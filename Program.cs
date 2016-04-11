@@ -10,6 +10,7 @@ using System.Reflection;
 using Microsoft.Samples.Debugging.CorMetadata;
 using System.Diagnostics.SymbolStore;
 using Consulo.Internal.Mssdw.Data;
+using Consulo.Internal.Mssdw.Server;
 
 public class Program
 {
@@ -39,10 +40,9 @@ public class Program
 
 		session.Start(args);
 
-		while(!session.Finished)
-		{
-			Thread.Sleep(500);
-		}
+		NettyServer server = new NettyServer();
+
+		server.Start();
 	}
 
 	internal static StackFrame CreateFrame (DebugSession session, CorFrame frame)
