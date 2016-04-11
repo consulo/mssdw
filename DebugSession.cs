@@ -9,377 +9,483 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Consulo.Internal.Mssdw.Request;
+using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 
-namespace Consulo.Internal.Mssdw {
-    public class DebugSession {
-        class ModuleInfo {
-            public ISymbolReader Reader;
-            public CorModule Module;
-            public CorMetadataImport Importer;
-            public int References;
-        }
+namespace Consulo.Internal.Mssdw
+{
+	public class DebugSession
+	{
+		class ModuleInfo
+		{
+			public ISymbolReader Reader;
+			public CorModule Module;
+			public CorMetadataImport Importer;
+			public int References;
+		}
 
-        class DocInfo {
-            public ISymbolReader Reader;
-            public ISymbolDocument Document;
-            public CorModule Module;
-        }
+		class DocInfo
+		{
+			public ISymbolReader Reader;
+			public ISymbolDocument Document;
+			public CorModule Module;
+		}
 
-        private readonly object terminateLock = new object();
-        private readonly object debugLock = new object();
-        private readonly Dictionary<string, DocInfo> documents = new Dictionary<string, DocInfo>(StringComparer.CurrentCultureIgnoreCase);
-        private readonly Dictionary<string, ModuleInfo> modules = new Dictionary<string, ModuleInfo>();
-        private readonly SymbolBinder symbolBinder = new SymbolBinder();
-        readonly Dictionary<CorBreakpoint, BreakpointRequestResult> breakpoints = new Dictionary<CorBreakpoint, BreakpointRequestResult> ();
+		private readonly object terminateLock = new object();
+		private readonly object debugLock = new object();
+		private readonly Dictionary<string, DocInfo> documents = new Dictionary<string, DocInfo>(StringComparer.CurrentCultureIgnoreCase);
+		private readonly Dictionary<string, ModuleInfo> modules = new Dictionary<string, ModuleInfo>();
+		private readonly SymbolBinder symbolBinder = new SymbolBinder();
+		readonly Dictionary<CorBreakpoint, BreakpointRequestResult> breakpoints = new Dictionary<CorBreakpoint, BreakpointRequestResult>();
 
-        public event Action<DebugSession, String> CodeFileLoaded = delegate(DebugSession arg1, string arg2) {
-        };
+		public event Action<DebugSession, String> OnCodeFileLoad = delegate(DebugSession arg1, string arg2)
+		{
+		};
 
-        private CorProcess process;
-        private CorDebugger dbg;
-        private int processId;
-        private bool evaluating;
+		public event Action<DebugSession> OnStop = delegate(DebugSession arg1)
+		{
+		};
 
-        public bool Finished {
-            get {
-                return process == null;
-            }
-        }
+		private CorProcess process;
+		private CorDebugger dbg;
+		private int processId;
+		private bool evaluating;
+		private CorThread activeThread;
+		private CorStepper stepper;
+		private bool autoStepInto;
 
-        public void Start(String[] args) {
-            string command = args[0];
-            string commandLine = String.Join(" ", args);
-            Console.WriteLine("running: " + commandLine);
-            DirectoryInfo parentDirectory = Directory.GetParent(command);
+		public bool Finished
+		{
+			get
+			{
+				return process == null;
+			}
+		}
 
-            // Create the debugger
-            string dversion;
-            try {
-                dversion = CorDebugger.GetDebuggerVersionFromFile(command);
-            }
-            catch {
-                dversion = CorDebugger.GetDefaultDebuggerVersion();
-            }
-            dbg = new CorDebugger(dversion);
+		public void Start(String[] args)
+		{
+			string command = args[0];
+			string commandLine = String.Join(" ", args);
+			Console.WriteLine("running: " + commandLine);
+			DirectoryInfo parentDirectory = Directory.GetParent(command);
 
-            Dictionary<string, string> env = new Dictionary<string, string>();
-            foreach (DictionaryEntry de in Environment.GetEnvironmentVariables())
-                env[(string)de.Key] = (string)de.Value;
+			// Create the debugger
+			string dversion;
+			try
+			{
+				dversion = CorDebugger.GetDebuggerVersionFromFile(command);
+			}
+			catch
+			{
+				dversion = CorDebugger.GetDefaultDebuggerVersion();
+			}
+			dbg = new CorDebugger(dversion);
 
-            //foreach (KeyValuePair<string, string> var in startInfo.EnvironmentVariables)
-            //   env[var.Key] = var.Value;
+			Dictionary<string, string> env = new Dictionary<string, string>();
+			foreach (DictionaryEntry de in Environment.GetEnvironmentVariables())
+				env[(string)de.Key] = (string)de.Value;
 
-            int flags = 0;
-            //if (!startInfo.UseExternalConsole)
-            /*{
-                flags = (int)CreationFlags.CREATE_NO_WINDOW;
-                flags |= DebuggerExtensions.CREATE_REDIRECT_STD;
-            }*/
+			//foreach (KeyValuePair<string, string> var in startInfo.EnvironmentVariables)
+			//   env[var.Key] = var.Value;
 
-            process = dbg.CreateProcess(command, commandLine, parentDirectory.FullName, env, flags);
-            processId = process.Id;
-            Console.WriteLine("processId: " + processId);
+			int flags = 0;
+			//if (!startInfo.UseExternalConsole)
+			/*{
+				flags = (int)CreationFlags.CREATE_NO_WINDOW;
+				flags |= DebuggerExtensions.CREATE_REDIRECT_STD;
+			}*/
 
-            process.OnCreateProcess += new CorProcessEventHandler(OnCreateProcess);
-            process.OnCreateAppDomain += new CorAppDomainEventHandler(OnCreateAppDomain);
-            /*  process.OnAssemblyLoad += new CorAssemblyEventHandler(OnAssemblyLoad);
-              process.OnAssemblyUnload += new CorAssemblyEventHandler(OnAssemblyUnload);
-              process.OnCreateThread += new CorThreadEventHandler(OnCreateThread);
-              process.OnThreadExit += new CorThreadEventHandler(OnThreadExit);*/
-            process.OnModuleLoad += new CorModuleEventHandler(OnModuleLoad);
-            process.OnModuleUnload += new CorModuleEventHandler(OnModuleUnload);
-            process.OnProcessExit += new CorProcessEventHandler(OnProcessExit);
-            /*  process.OnUpdateModuleSymbols += new UpdateModuleSymbolsEventHandler(OnUpdateModuleSymbols);
-              process.OnDebuggerError += new DebuggerErrorEventHandler(OnDebuggerError);*/
-              process.OnBreakpoint += new BreakpointEventHandler(OnBreakpoint);
-            /*  process.OnStepComplete += new StepCompleteEventHandler(OnStepComplete);
-              process.OnBreak += new CorThreadEventHandler(OnBreak);
-              process.OnNameChange += new CorThreadEventHandler(OnNameChange);
-              process.OnEvalComplete += new EvalEventHandler(OnEvalComplete);
-              process.OnEvalException += new EvalEventHandler(OnEvalException);
-              process.OnLogMessage += new LogMessageEventHandler(OnLogMessage);
-              process.OnException2 += new CorException2EventHandler(OnException2);
-    */
-            //process.RegisterStdOutput(OnStdOutput);
+			process = dbg.CreateProcess(command, commandLine, parentDirectory.FullName, env, flags);
+			processId = process.Id;
+			Console.WriteLine("processId: " + processId);
 
-            process.Continue(false);
-        }
+			process.OnCreateProcess += new CorProcessEventHandler(OnCreateProcess);
+			process.OnCreateAppDomain += new CorAppDomainEventHandler(OnCreateAppDomain);
+			/*  process.OnAssemblyLoad += new CorAssemblyEventHandler(OnAssemblyLoad);
+			  process.OnAssemblyUnload += new CorAssemblyEventHandler(OnAssemblyUnload);
+			  process.OnCreateThread += new CorThreadEventHandler(OnCreateThread);
+			  process.OnThreadExit += new CorThreadEventHandler(OnThreadExit);*/
+			process.OnModuleLoad += new CorModuleEventHandler(OnModuleLoad);
+			process.OnModuleUnload += new CorModuleEventHandler(OnModuleUnload);
+			process.OnProcessExit += new CorProcessEventHandler(OnProcessExit);
+			/*  process.OnUpdateModuleSymbols += new UpdateModuleSymbolsEventHandler(OnUpdateModuleSymbols);
+			  process.OnDebuggerError += new DebuggerErrorEventHandler(OnDebuggerError);*/
+			process.OnBreakpoint += new BreakpointEventHandler(OnBreakpoint);
+			/*  process.OnStepComplete += new StepCompleteEventHandler(OnStepComplete);
+			  process.OnBreak += new CorThreadEventHandler(OnBreak);
+			  process.OnNameChange += new CorThreadEventHandler(OnNameChange);
+			  process.OnEvalComplete += new EvalEventHandler(OnEvalComplete);
+			  process.OnEvalException += new EvalEventHandler(OnEvalException);
+			  process.OnLogMessage += new LogMessageEventHandler(OnLogMessage);
+			  process.OnException2 += new CorException2EventHandler(OnException2);
+	*/
+			//process.RegisterStdOutput(OnStdOutput);
 
-        public BreakpointRequestResult InsertBreakpoint(BreakpointRequest request) {
-            BreakpointRequestResult result = new BreakpointRequestResult(request);
+			process.Continue(false);
+		}
 
-            DocInfo doc;
-            if (!documents.TryGetValue(System.IO.Path.GetFullPath(request.FileName), out doc)) {
-                result.SetStatus(BreakEventStatus.NotBound, null);
-                return result;
-            }
+		internal List<CorFrame> FrameList
+		{
+			get
+			{
 
-            int line;
-            try {
-                line = doc.Document.FindClosestLine(request.Line);
-            } catch {
-                // Invalid line
-                result.SetStatus(BreakEventStatus.Invalid, null);
-                return result;
-            }
-            ISymbolMethod met = null;
-            if (doc.Reader is ISymbolReader2) {
-                var methods = ((ISymbolReader2)doc.Reader).GetMethodsFromDocumentPosition(doc.Document, line, 0);
-                if (methods != null && methods.Any()) {
-                    if (methods.Count() == 1) {
-                        met = methods[0];
-                    } else {
-                        int deepest = -1;
-                        foreach (var method in methods) {
-                            var firstSequence = method.GetSequencePoints().FirstOrDefault((sp) => sp.StartLine != 0xfeefee);
-                            if (firstSequence != null && firstSequence.StartLine >= deepest) {
-                                deepest = firstSequence.StartLine;
-                                met = method;
-                            }
-                        }
-                    }
-                }
-            }
-            if (met == null) {
-                met = doc.Reader.GetMethodFromDocumentPosition(doc.Document, line, 0);
-            }
-            if (met == null) {
-                result.SetStatus(BreakEventStatus.Invalid, null);
-                return result;
-            }
+				return new List<CorFrame>(GetFrames(activeThread));
+			}
+		}
 
-            int offset = -1;
-            int firstSpInLine = -1;
-            foreach (SequencePoint sp in met.GetSequencePoints()) {
-                if (sp.IsInside(doc.Document.URL, line, request.Column)) {
-                    offset = sp.Offset;
-                    break;
-                } else if (firstSpInLine == -1
-                && sp.StartLine == line
-                && sp.Document.URL.Equals(doc.Document.URL, StringComparison.OrdinalIgnoreCase)) {
-                    firstSpInLine = sp.Offset;
-                }
-            }
-            if (offset == -1) {
-                //No exact match? Use first match in that line
-                offset = firstSpInLine;
-            }
-            if (offset == -1) {
-                result.SetStatus(BreakEventStatus.Invalid, null);
-                return result;
-            }
+		internal static IEnumerable<CorFrame> GetFrames (CorThread thread)
+		{
+			foreach (CorChain chain in thread.Chains)
+			{
+				if(!chain.IsManaged)
+					continue;
+				foreach (CorFrame frame in chain.Frames)
+					yield return frame;
+			}
+		}
 
-            CorFunction func = doc.Module.GetFunctionFromToken(met.Token.GetToken());
-            CorFunctionBreakpoint corBp = func.ILCode.CreateBreakpoint(offset);
-            corBp.Activate(request.Enabled);
-            breakpoints[corBp] = result;
+		void SetActiveThread (CorThread t)
+		{
+			activeThread = t;
+			if(stepper != null && stepper.IsActive())
+			{
+				stepper.Deactivate();
+			}
+			stepper = activeThread.CreateStepper();
+			stepper.SetUnmappedStopMask(CorDebugUnmappedStop.STOP_NONE);
+			stepper.SetJmcStatus(true);
+		}
 
-            //result.Handle = corBp;
-            result.Status = BreakEventStatus.Bound;
-            return result;
-        }
+		public BreakpointRequestResult InsertBreakpoint(BreakpointRequest request)
+		{
+			BreakpointRequestResult result = new BreakpointRequestResult(request);
 
-        void OnBreakpoint (object sender, CorBreakpointEventArgs e) {
-            lock (debugLock) {
-                if (evaluating) {
-                    e.Continue = true;
-                    return;
-                }
-            }
+			DocInfo doc;
+			if(!documents.TryGetValue(System.IO.Path.GetFullPath(request.FileName), out doc))
+			{
+				result.SetStatus(BreakEventStatus.NotBound, null);
+				return result;
+			}
 
-            BreakpointRequestResult binfo;
-            if (breakpoints.TryGetValue(e.Breakpoint, out binfo)) {
-                e.Continue = true;
-                BreakpointRequest bp = (BreakpointRequest)binfo.BreakEvent;
+			int line;
+			try
+			{
+				line = doc.Document.FindClosestLine(request.Line);
+			} catch
+			{
+				// Invalid line
+				result.SetStatus(BreakEventStatus.Invalid, null);
+				return result;
+			}
+			ISymbolMethod met = null;
+			if(doc.Reader is ISymbolReader2)
+			{
+				var methods = ((ISymbolReader2)doc.Reader).GetMethodsFromDocumentPosition(doc.Document, line, 0);
+				if(methods != null && methods.Any())
+				{
+					if(methods.Count() == 1)
+					{
+						met = methods[0];
+					}
+					else
+					{
+						int deepest = -1;
+						foreach (var method in methods)
+						{
+							var firstSequence = method.GetSequencePoints().FirstOrDefault((sp) => sp.StartLine != 0xfeefee);
+							if(firstSequence != null && firstSequence.StartLine >= deepest)
+							{
+								deepest = firstSequence.StartLine;
+								met = method;
+							}
+						}
+					}
+				}
+			}
+			if(met == null)
+			{
+				met = doc.Reader.GetMethodFromDocumentPosition(doc.Document, line, 0);
+			}
+			if(met == null)
+			{
+				result.SetStatus(BreakEventStatus.Invalid, null);
+				return result;
+			}
 
-                binfo.IncrementHitCount();
-                //if (!binfo.HitCountReached)
-                 //   return;
+			int offset = -1;
+			int firstSpInLine = -1;
+			foreach (SequencePoint sp in met.GetSequencePoints())
+			{
+				if(sp.IsInside(doc.Document.URL, line, request.Column))
+				{
+					offset = sp.Offset;
+					break;
+				}
+				else if(firstSpInLine == -1
+				&& sp.StartLine == line
+				&& sp.Document.URL.Equals(doc.Document.URL, StringComparison.OrdinalIgnoreCase))
+				{
+					firstSpInLine = sp.Offset;
+				}
+			}
+			if(offset == -1)
+			{
+				//No exact match? Use first match in that line
+				offset = firstSpInLine;
+			}
+			if(offset == -1)
+			{
+				result.SetStatus(BreakEventStatus.Invalid, null);
+				return result;
+			}
 
-               /* if (!string.IsNullOrEmpty(bp.ConditionExpression)) {
-                    string res = EvaluateExpression(e.Thread, bp.ConditionExpression);
-                    if (bp.BreakIfConditionChanges) {
-                        if (res == bp.LastConditionValue)
-                            return;
-                        bp.LastConditionValue = res;
-                    } else {
-                        if (res != null && res.ToLower() == "false")
-                            return;
-                    }
-                }*/
+			CorFunction func = doc.Module.GetFunctionFromToken(met.Token.GetToken());
+			CorFunctionBreakpoint corBp = func.ILCode.CreateBreakpoint(offset);
+			corBp.Activate(request.Enabled);
+			breakpoints[corBp] = result;
 
-                /*if ((bp.HitAction & HitAction.CustomAction) != HitAction.None) {
-                    // If custom action returns true, execution must continue
-                    if (binfo.RunCustomBreakpointAction(bp.CustomActionId))
-                        return;
-                }
+			//result.Handle = corBp;
+			result.Status = BreakEventStatus.Bound;
+			return result;
+		}
 
-                if ((bp.HitAction & HitAction.PrintExpression) != HitAction.None) {
-                    string exp = EvaluateTrace(e.Thread, bp.TraceExpression);
-                    binfo.UpdateLastTraceValue(exp);
-                }
+		void OnBreakpoint (object sender, CorBreakpointEventArgs e)
+		{
+			lock (debugLock)
+			{
+				if(evaluating)
+				{
+					e.Continue = true;
+					return;
+				}
+			}
 
-                if ((bp.HitAction & HitAction.Break) == HitAction.None)
-                    return;*/
-            }
+			BreakpointRequestResult binfo;
+			if(breakpoints.TryGetValue(e.Breakpoint, out binfo))
+			{
+				e.Continue = true;
+				BreakpointRequest bp = (BreakpointRequest)binfo.BreakEvent;
 
-            if (e.AppDomain.Process.HasQueuedCallbacks(e.Thread)) {
-                e.Continue = true;
-                return;
-            }
+				binfo.IncrementHitCount();
+				//if (!binfo.HitCountReached)
+				//   return;
 
-            //OnStopped();
-            e.Continue = false;
-            // If a breakpoint is hit while stepping, cancel the stepping operation
-            /*if (stepper != null && stepper.IsActive())
-                stepper.Deactivate();
-            autoStepInto = false;
-            SetActiveThread(e.Thread);
-            TargetEventArgs args = new TargetEventArgs(TargetEventType.TargetHitBreakpoint);
-            args.Process = GetProcess(process);
-            args.Thread = GetThread(e.Thread);
-            args.Backtrace = new Backtrace(new CorBacktrace(e.Thread, this));
-            OnTargetEvent(args);*/
-        }
+				/* if (!string.IsNullOrEmpty(bp.ConditionExpression)) {
+					 string res = EvaluateExpression(e.Thread, bp.ConditionExpression);
+					 if (bp.BreakIfConditionChanges) {
+						 if (res == bp.LastConditionValue)
+							 return;
+						 bp.LastConditionValue = res;
+					 } else {
+						 if (res != null && res.ToLower() == "false")
+							 return;
+					 }
+				 }*/
 
-        private void OnModuleLoad(object sender, CorModuleEventArgs e) {
-            CorMetadataImport mi = new CorMetadataImport(e.Module);
+				/*if ((bp.HitAction & HitAction.CustomAction) != HitAction.None) {
+					// If custom action returns true, execution must continue
+					if (binfo.RunCustomBreakpointAction(bp.CustomActionId))
+						return;
+				}
 
-            try {
-                // Required to avoid the jit to get rid of variables too early
-                e.Module.JITCompilerFlags = CorDebugJITCompilerFlags.CORDEBUG_JIT_DISABLE_OPTIMIZATION;
-            }
-            catch {
-                // Some kind of modules don't allow JIT flags to be changed.
-            }
+				if ((bp.HitAction & HitAction.PrintExpression) != HitAction.None) {
+					string exp = EvaluateTrace(e.Thread, bp.TraceExpression);
+					binfo.UpdateLastTraceValue(exp);
+				}
 
-            string file = e.Module.Assembly.Name;
-            lock (documents) {
-                ISymbolReader reader = null;
-                if (System.IO.File.Exists(System.IO.Path.ChangeExtension(file, ".pdb"))) {
-                    try {
-                        reader = symbolBinder.GetReaderForFile(mi.RawCOMObject, file, ".");
-                        foreach (ISymbolDocument doc in reader.GetDocuments()) {
-                            if (string.IsNullOrEmpty(doc.URL))
-                                continue;
-                            string docFile = System.IO.Path.GetFullPath(doc.URL);
-                            DocInfo di = new DocInfo();
-                            di.Document = doc;
-                            di.Reader = reader;
-                            di.Module = e.Module;
-                            documents[docFile] = di;
+				if ((bp.HitAction & HitAction.Break) == HitAction.None)
+					return;*/
+			}
 
-                            CodeFileLoaded(this, docFile);
-                        }
-                    }
-                    catch (Exception ex) {
-                        OnDebuggerOutput(true, string.Format("Debugger Error: {0}\n", ex.Message));
-                    }
-                    e.Module.SetJmcStatus(true, null);
-                }
-                else {
-                    // Flag modules without debug info as not JMC. In this way
-                    // the debugger won't try to step into them
-                    e.Module.SetJmcStatus(false, null);
-                }
+			if(e.AppDomain.Process.HasQueuedCallbacks(e.Thread))
+			{
+				e.Continue = true;
+				return;
+			}
 
-                ModuleInfo moi;
+			//OnStopped();
+			e.Continue = false;
+			// If a breakpoint is hit while stepping, cancel the stepping operation
+			if(stepper != null && stepper.IsActive())
+				stepper.Deactivate();
+			autoStepInto = false;
 
-                if (modules.TryGetValue(e.Module.Name, out moi)) {
-                    moi.References++;
-                }
-                else {
-                    moi = new ModuleInfo();
-                    moi.Module = e.Module;
-                    moi.Reader = reader;
-                    moi.Importer = mi;
-                    moi.References = 1;
-                    modules[e.Module.Name] = moi;
-                }
-            }
-            e.Continue = true;
-        }
+			SetActiveThread(e.Thread);
 
-        private void OnModuleUnload (object sender, CorModuleEventArgs e) {
-            lock (documents) {
-                ModuleInfo moi;
-                modules.TryGetValue(e.Module.Name, out moi);
-                if (moi == null || --moi.References > 0)
-                    return;
+			OnStop(this);
+		}
 
-                modules.Remove(e.Module.Name);
-                List<string> toRemove = new List<string>();
-                foreach (KeyValuePair<string, DocInfo> di in documents) {
-                    if (di.Value.Module.Name == e.Module.Name)
-                        toRemove.Add(di.Key);
-                }
-                foreach (string file in toRemove) {
-                    documents.Remove(file);
-                }
-            }
-        }
+		private void OnModuleLoad(object sender, CorModuleEventArgs e)
+		{
+			CorMetadataImport mi = new CorMetadataImport(e.Module);
 
-        public void OnCreateAppDomain(object sender, CorAppDomainEventArgs e) {
-            e.AppDomain.Attach();
-            e.Continue = true;
-        }
+			try
+			{
+				// Required to avoid the jit to get rid of variables too early
+				e.Module.JITCompilerFlags = CorDebugJITCompilerFlags.CORDEBUG_JIT_DISABLE_OPTIMIZATION;
+			}
+			catch
+			{
+				// Some kind of modules don't allow JIT flags to be changed.
+			}
 
-        public void OnCreateProcess(object sender, CorProcessEventArgs e) {
-            // Required to avoid the jit to get rid of variables too early
-            e.Process.DesiredNGENCompilerFlags = CorDebugJITCompilerFlags.CORDEBUG_JIT_DISABLE_OPTIMIZATION;
-            e.Process.EnableLogMessages(true);
-            e.Continue = true;
-        }
+			string file = e.Module.Assembly.Name;
+			lock (documents)
+			{
+				ISymbolReader reader = null;
+				if(System.IO.File.Exists(System.IO.Path.ChangeExtension(file, ".pdb")))
+				{
+					try
+					{
+						reader = symbolBinder.GetReaderForFile(mi.RawCOMObject, file, ".");
+						foreach (ISymbolDocument doc in reader.GetDocuments())
+						{
+							if(string.IsNullOrEmpty(doc.URL))
+								continue;
+							string docFile = System.IO.Path.GetFullPath(doc.URL);
+							DocInfo di = new DocInfo();
+							di.Document = doc;
+							di.Reader = reader;
+							di.Module = e.Module;
+							documents[docFile] = di;
 
-        public void OnProcessExit(object sender, CorProcessEventArgs e) {
-            // If the main thread stopped, terminate the debugger session
-            if (e.Process.Id == process.Id) {
-                lock (terminateLock) {
-                    process.Dispose();
-                    process = null;
-                    ThreadPool.QueueUserWorkItem(delegate
-                    {
-                        // The Terminate call will fail if called in the event handler
-                        dbg.Terminate();
-                        dbg = null;
-                    });
-                }
-            }
-        }
+							OnCodeFileLoad(this, docFile);
+						}
+					}
+					catch(Exception ex)
+					{
+						OnDebuggerOutput(true, string.Format("Debugger Error: {0}\n", ex.Message));
+					}
+					e.Module.SetJmcStatus(true, null);
+				}
+				else
+				{
+					// Flag modules without debug info as not JMC. In this way
+					// the debugger won't try to step into them
+					e.Module.SetJmcStatus(false, null);
+				}
 
-        private void OnDebuggerOutput(bool error, String message) {
-            if (error) {
-                Console.Error.WriteLine(message);
-            }
-            else {
-                Console.WriteLine(message);
-            }
-        }
+				ModuleInfo moi;
 
-        internal CorMetadataImport GetMetadataForModule (string file) {
-            lock (documents) {
-                ModuleInfo mod;
-                if (!modules.TryGetValue(System.IO.Path.GetFullPath(file), out mod))
-                    return null;
-                return mod.Importer;
-            }
-        }
+				if(modules.TryGetValue(e.Module.Name, out moi))
+				{
+					moi.References++;
+				}
+				else
+				{
+					moi = new ModuleInfo();
+					moi.Module = e.Module;
+					moi.Reader = reader;
+					moi.Importer = mi;
+					moi.References = 1;
+					modules[e.Module.Name] = moi;
+				}
+			}
+			e.Continue = true;
+		}
 
-        internal ISymbolReader GetReaderForModule (string file) {
-            lock (documents) {
-                ModuleInfo mod;
-                if (!modules.TryGetValue(System.IO.Path.GetFullPath(file), out mod))
-                    return null;
-                return mod.Reader;
-            }
-        }
-        /*public void OnStdOutput (object sender, CorTargetOutputEventArgs e) {
-            if (e.IsStdError) {
-                Console.Error.WriteLine(e.Text);
-            }
-            else {
-                Console.WriteLine(e.Text);
-            }
-        }*/
-    }
+		private void OnModuleUnload (object sender, CorModuleEventArgs e)
+		{
+			lock (documents)
+			{
+				ModuleInfo moi;
+				modules.TryGetValue(e.Module.Name, out moi);
+				if(moi == null || --moi.References > 0)
+					return;
+
+				modules.Remove(e.Module.Name);
+				List<string> toRemove = new List<string>();
+				foreach (KeyValuePair<string, DocInfo> di in documents)
+				{
+					if(di.Value.Module.Name == e.Module.Name)
+						toRemove.Add(di.Key);
+				}
+				foreach (string file in toRemove)
+				{
+					documents.Remove(file);
+				}
+			}
+		}
+
+		public void OnCreateAppDomain(object sender, CorAppDomainEventArgs e)
+		{
+			e.AppDomain.Attach();
+			e.Continue = true;
+		}
+
+		public void OnCreateProcess(object sender, CorProcessEventArgs e)
+		{
+			// Required to avoid the jit to get rid of variables too early
+			e.Process.DesiredNGENCompilerFlags = CorDebugJITCompilerFlags.CORDEBUG_JIT_DISABLE_OPTIMIZATION;
+			e.Process.EnableLogMessages(true);
+			e.Continue = true;
+		}
+
+		public void OnProcessExit(object sender, CorProcessEventArgs e)
+		{
+			// If the main thread stopped, terminate the debugger session
+			if(e.Process.Id == process.Id)
+			{
+				lock (terminateLock)
+				{
+					process.Dispose();
+					process = null;
+					ThreadPool.QueueUserWorkItem(delegate
+					{
+						// The Terminate call will fail if called in the event handler
+						dbg.Terminate();
+						dbg = null;
+					});
+				}
+			}
+		}
+
+		private void OnDebuggerOutput(bool error, String message)
+		{
+			if(error)
+			{
+				Console.Error.WriteLine(message);
+			}
+			else
+			{
+				Console.WriteLine(message);
+			}
+		}
+
+		internal CorMetadataImport GetMetadataForModule (string file)
+		{
+			lock (documents)
+			{
+				ModuleInfo mod;
+				if(!modules.TryGetValue(System.IO.Path.GetFullPath(file), out mod))
+					return null;
+				return mod.Importer;
+			}
+		}
+
+		internal ISymbolReader GetReaderForModule (string file)
+		{
+			lock (documents)
+			{
+				ModuleInfo mod;
+				if(!modules.TryGetValue(System.IO.Path.GetFullPath(file), out mod))
+					return null;
+				return mod.Reader;
+			}
+		}
+
+		public bool IsExternalCode (string fileName)
+		{
+			return string.IsNullOrWhiteSpace(fileName)
+			|| !documents.ContainsKey(fileName);
+		}
+
+		/*public void OnStdOutput (object sender, CorTargetOutputEventArgs e) {
+			if (e.IsStdError) {
+				Console.Error.WriteLine(e.Text);
+			}
+			else {
+				Console.WriteLine(e.Text);
+			}
+		}*/
+	}
 }
