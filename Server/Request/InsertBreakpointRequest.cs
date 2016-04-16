@@ -1,10 +1,8 @@
-using System;
-
 namespace Consulo.Internal.Mssdw.Server.Event.Request
 {
 	public class InsertBreakpointRequest
 	{
-		public String FilePath
+		public string FilePath
 		{
 			get;
 			set;
@@ -18,7 +16,7 @@ namespace Consulo.Internal.Mssdw.Server.Event.Request
 
 		public int Column = -1;
 
-		public InsertBreakpointRequest(String fileName, int line)
+		public InsertBreakpointRequest(string fileName, int line)
 		{
 			FilePath = fileName;
 			Line = line;

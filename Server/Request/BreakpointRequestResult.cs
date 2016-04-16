@@ -17,7 +17,7 @@ namespace Consulo.Internal.Mssdw.Server.Event.Request
 			set;
 		}
 
-		public InsertBreakpointRequest BreakEvent
+		public InsertBreakpointRequest Request
 		{
 			get;
 			set;
@@ -25,7 +25,7 @@ namespace Consulo.Internal.Mssdw.Server.Event.Request
 
 		public BreakpointRequestResult(InsertBreakpointRequest breakpointRequest)
 		{
-			BreakEvent = breakpointRequest;
+			Request = breakpointRequest;
 		}
 
 		public void SetStatus(BreakEventStatus status, Object o)

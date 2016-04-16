@@ -53,7 +53,7 @@ public class Program
 
 			session.Start(arguments); // we can failed if file is not exists
 
-			session.OnStop += delegate(DebugSession obj)
+			/*session.OnStop += delegate(DebugSession obj)
 			{
 				List<CorFrame> frames = obj.FrameList;
 
@@ -63,7 +63,7 @@ public class Program
 
 					Console.WriteLine(frame.Location.Method + ":" + frame.Language);
 				}
-			};
+			};     */
 
 			Semaphore semaphore = new  Semaphore(0, 1);
 

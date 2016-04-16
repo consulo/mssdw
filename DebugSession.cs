@@ -40,10 +40,6 @@ namespace Consulo.Internal.Mssdw
 		private readonly SymbolBinder symbolBinder = new SymbolBinder();
 		readonly Dictionary<CorBreakpoint, BreakpointRequestResult> breakpoints = new Dictionary<CorBreakpoint, BreakpointRequestResult>();
 
-		public event Action<DebugSession> OnStop = delegate(DebugSession arg1)
-		{
-		};
-
 		public event Action<DebugSession> OnProcessExit = delegate(DebugSession arg1)
 		{
 		};
@@ -268,7 +264,7 @@ namespace Consulo.Internal.Mssdw
 			if(breakpoints.TryGetValue(e.Breakpoint, out binfo))
 			{
 				e.Continue = true;
-				InsertBreakpointRequest bp = (InsertBreakpointRequest)binfo.BreakEvent;
+				InsertBreakpointRequest bp = (InsertBreakpointRequest)binfo.Request;
 
 				binfo.IncrementHitCount();
 				//if (!binfo.HitCountReached)
@@ -307,16 +303,25 @@ namespace Consulo.Internal.Mssdw
 				return;
 			}
 
-			//OnStopped();
-			e.Continue = false;
 			// If a breakpoint is hit while stepping, cancel the stepping operation
 			if(stepper != null && stepper.IsActive())
+			{
 				stepper.Deactivate();
+			}
+
 			autoStepInto = false;
 
 			SetActiveThread(e.Thread);
 
-			OnStop(this);
+			ClientMessage result = binfo != null ? Notify(new OnBreakpointFire(binfo.Request.FilePath, binfo.Request.Line)) : null;
+			if(result != null)
+			{
+				e.Continue = result.Continue;
+			}
+			else
+			{
+				e.Continue = true;
+			}
 		}
 
 		private void OnModuleLoadImpl(object sender, CorModuleEventArgs e)
