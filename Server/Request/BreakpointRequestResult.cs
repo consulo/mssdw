@@ -9,7 +9,7 @@ namespace Consulo.Internal.Mssdw.Server.Event.Request
 		NotBound
 	}
 
-	public class BreakpointRequestResult
+	public class InsertBreakpointRequestResult
 	{
 		public BreakEventStatus Status
 		{
@@ -23,12 +23,12 @@ namespace Consulo.Internal.Mssdw.Server.Event.Request
 			set;
 		}
 
-		public BreakpointRequestResult(InsertBreakpointRequest breakpointRequest)
+		public InsertBreakpointRequestResult(InsertBreakpointRequest breakpointRequest)
 		{
 			Request = breakpointRequest;
 		}
 
-		public void SetStatus(BreakEventStatus status, Object o)
+		public void SetStatus(BreakEventStatus status, object o)
 		{
 			Status = status;
 		}
@@ -39,7 +39,7 @@ namespace Consulo.Internal.Mssdw.Server.Event.Request
 
 		}
 
-		public override String ToString()
+		public override string ToString()
 		{
 			return "BreakpointRequestResult: " + Enum.GetName(typeof(BreakEventStatus), Status);
 		}

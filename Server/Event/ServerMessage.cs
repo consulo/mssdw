@@ -2,7 +2,7 @@ using System;
 
 namespace Consulo.Internal.Mssdw.Server.Event
 {
-	public class OnEvent<T> where T : class
+	public class ServerMessage<T> where T : class
 	{
 		public String Id;
 
@@ -10,7 +10,7 @@ namespace Consulo.Internal.Mssdw.Server.Event
 
 		public T Object;
 
-		public OnEvent(T o)
+		public ServerMessage(T o)
 		{
 			Type = o.GetType().Name;
 			Object = o;

@@ -49,21 +49,32 @@ namespace Consulo.Internal.Mssdw.Server
 			{
 				string jsonContext = buffer.ToString(Encoding.UTF8);
 
-				ClientMessage clientMessage = JsonConvert.DeserializeObject<ClientMessage>(jsonContext, new ClientMessageConverter());
-
-				Action<ClientMessage> action;
-				if(!queries.TryGetValue(clientMessage.Id, out action))
+				try
 				{
-					object messageObject = clientMessage.Object;
-					if(messageObject is InsertBreakpointRequest)
+					ClientMessage clientMessage = JsonConvert.DeserializeObject<ClientMessage>(jsonContext, new ClientMessageConverter());
+
+					Action<ClientMessage> action;
+					if(!queries.TryGetValue(clientMessage.Id, out action))
 					{
-						BreakpointRequestResult result = debugSession.InsertBreakpoint((InsertBreakpointRequest)messageObject);
-						Console.WriteLine(result);
+						object messageObject = clientMessage.Object;
+						if(messageObject is InsertBreakpointRequest)
+						{
+							InsertBreakpointRequestResult result = debugSession.InsertBreakpoint((InsertBreakpointRequest)messageObject);
+
+							ServerMessage<InsertBreakpointRequestResult> serverMessage = new ServerMessage<InsertBreakpointRequestResult>(result);
+							serverMessage.Id = clientMessage.Id;
+							client.Write(serverMessage);
+						}
+					}
+					else
+					{
+						action(clientMessage);
 					}
 				}
-				else
+				catch(Exception e)
 				{
-					action(clientMessage);
+					Console.WriteLine("Erro with: " + jsonContext);
+					Console.WriteLine(e.StackTrace);
 				}
 			}
 		}

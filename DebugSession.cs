@@ -38,7 +38,7 @@ namespace Consulo.Internal.Mssdw
 		private readonly Dictionary<string, DocInfo> documents = new Dictionary<string, DocInfo>(StringComparer.CurrentCultureIgnoreCase);
 		private readonly Dictionary<string, ModuleInfo> modules = new Dictionary<string, ModuleInfo>();
 		private readonly SymbolBinder symbolBinder = new SymbolBinder();
-		readonly Dictionary<CorBreakpoint, BreakpointRequestResult> breakpoints = new Dictionary<CorBreakpoint, BreakpointRequestResult>();
+		readonly Dictionary<CorBreakpoint, InsertBreakpointRequestResult> breakpoints = new Dictionary<CorBreakpoint, InsertBreakpointRequestResult>();
 
 		public event Action<DebugSession> OnProcessExit = delegate(DebugSession arg1)
 		{
@@ -124,6 +124,14 @@ namespace Consulo.Internal.Mssdw
 			process.Continue(false);
 		}
 
+		public CorProcess Process
+		{
+			get
+			{
+				return process;
+			}
+		}
+
 		internal List<CorFrame> FrameList
 		{
 			get
@@ -156,9 +164,9 @@ namespace Consulo.Internal.Mssdw
 			stepper.SetJmcStatus(true);
 		}
 
-		public BreakpointRequestResult InsertBreakpoint(InsertBreakpointRequest request)
+		public InsertBreakpointRequestResult InsertBreakpoint(InsertBreakpointRequest request)
 		{
-			BreakpointRequestResult result = new BreakpointRequestResult(request);
+			InsertBreakpointRequestResult result = new InsertBreakpointRequestResult(request);
 
 			DocInfo doc;
 			if(!documents.TryGetValue(System.IO.Path.GetFullPath(request.FilePath), out doc))
@@ -260,7 +268,7 @@ namespace Consulo.Internal.Mssdw
 				}
 			}
 
-			BreakpointRequestResult binfo;
+			InsertBreakpointRequestResult binfo;
 			if(breakpoints.TryGetValue(e.Breakpoint, out binfo))
 			{
 				e.Continue = true;

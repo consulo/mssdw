@@ -24,7 +24,7 @@ namespace Consulo.Internal.Mssdw.Server
 		{
 			return Task.Run<ClientMessage>(async () =>
 			{
-				OnEvent<T> onEvent = new OnEvent<T>(e);
+				ServerMessage<T> onEvent = new ServerMessage<T>(e);
 
 				onEvent.Id = Guid.NewGuid().ToString();
 
@@ -46,6 +46,23 @@ namespace Consulo.Internal.Mssdw.Server
 
 				semaphore.WaitOne();
 				return clientAnswer;
+			});
+		}
+
+		public Task Write<T>(ServerMessage<T> e) where T : class
+		{
+			return Task.Run(async () =>
+			{
+				string serializeObject = JsonConvert.SerializeObject(e);
+
+				Console.WriteLine("send: " + serializeObject);
+
+				byte[] messageBytes = Encoding.UTF8.GetBytes(serializeObject);
+
+				IByteBuffer buffer = Unpooled.Buffer(messageBytes.Length);
+
+				buffer.WriteBytes(messageBytes);
+				await myChannel.WriteAndFlushAsync(buffer);
 			});
 		}
 	}
