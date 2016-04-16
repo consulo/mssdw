@@ -21,7 +21,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
     ]
     public interface ISymbolEnCMethod: ISymbolMethod
     {
-        String GetFileNameFromOffset(int dwOffset);
+        string GetFileNameFromOffset(int dwOffset);
    
         int GetLineFromOffset(int dwOffset,
                                   out int column,

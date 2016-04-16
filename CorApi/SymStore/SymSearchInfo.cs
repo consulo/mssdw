@@ -52,7 +52,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             }
         }
 
-        public String SearchPath
+        public string SearchPath
         {
             get 
             {

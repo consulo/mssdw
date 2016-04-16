@@ -177,7 +177,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 
 		/** Modify the specified switches severity level */
-		public void ModifyLogSwitch (String name, int level)
+		public void ModifyLogSwitch (string name, int level)
 		{
 			_p().ModifyLogSwitch(name, level);
 		}
@@ -239,10 +239,10 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		/** set a BP in native code */
 		public byte[] SetUnmanagedBreakpoint(long address)
 		{
-			UInt32 outLen;
-			byte[] ret = new Byte[1];
+			uint outLen;
+			byte[] ret = new byte[1];
 			ICorDebugProcess2 p2 = (ICorDebugProcess2)_p();
-			p2.SetUnmanagedBreakpoint((UInt64)address, 1, ret, out outLen);
+			p2.SetUnmanagedBreakpoint((ulong)address, 1, ret, out outLen);
 			Debug.Assert(outLen == 1);
 			return ret;
 		}
@@ -251,7 +251,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		public void ClearUnmanagedBreakpoint(long address)
 		{
 			ICorDebugProcess2 p2 = (ICorDebugProcess2)_p();
-			p2.ClearUnmanagedBreakpoint((UInt64)address);
+			p2.ClearUnmanagedBreakpoint((ulong)address);
 		}
 
 		public override void Stop (int timeout)
@@ -290,7 +290,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 				Debug.Assert((int)callback >= 0 && (int)callback < m_callbacksArray.Length);
 				Delegate d = m_callbacksArray[(int)callback];
 				if( d != null )
-					d.DynamicInvoke(new Object[]{this, e});
+					d.DynamicInvoke(new object[]{this, e});
 			}
 			catch(Exception ex)
 			{
@@ -304,7 +304,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 					Debug.Assert(m_callbackAttachedEvent == null);
 					Delegate d = m_callbacksArray[(int)ManagedCallbackType.OnExceptionInCallback];
 					if( d != null )
-						d.DynamicInvoke(new Object[]{this, e2});
+						d.DynamicInvoke(new object[]{this, e2});
 				}
 				catch(Exception ex2)
 				{

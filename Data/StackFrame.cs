@@ -10,13 +10,13 @@ namespace Consulo.Internal.Mssdw.Data
 			set;
 		}
 
-		public String Language
+		public string Language
 		{
 			get;
 			set;
 		}
 
-		public StackFrame(long address, String addressSpace, SourceLocation sourceLocation, String lang, bool external, bool hasDebugInfo, bool hidden)
+		public StackFrame(long address, string addressSpace, SourceLocation sourceLocation, string lang, bool external, bool hasDebugInfo, bool hidden)
 		{
 			Location = sourceLocation;
 			Language = lang;

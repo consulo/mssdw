@@ -67,7 +67,7 @@ namespace Consulo.Internal.Mssdw
 
 			if(!File.Exists(command))
 			{
-				throw new Exception(String.Format("File '{0}' is not exists", command));
+				throw new Exception(string.Format("File '{0}' is not exists", command));
 			}
 			// Create the debugger
 			string dversion;
@@ -465,7 +465,7 @@ namespace Consulo.Internal.Mssdw
 			OnProcessExit(this);
 		}
 
-		private void OnDebuggerOutput(bool error, String message)
+		private void OnDebuggerOutput(bool error, string message)
 		{
 			if(error)
 			{

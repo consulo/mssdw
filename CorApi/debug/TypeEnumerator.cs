@@ -24,7 +24,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
         //
         // ICloneable interface
         //
-        public Object Clone ()
+        public object Clone ()
         {
             ICorDebugEnum clone = null;
             if( m_enum!=null )
@@ -71,7 +71,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
             m_ty = null;
         }
 
-        public Object Current
+        public object Current
         {
             get 
             {

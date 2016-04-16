@@ -42,7 +42,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         void FindClosestLine(int line,
                                 out int pRetVal);
     
-        void HasEmbeddedSource(out Boolean pRetVal);
+        void HasEmbeddedSource(out bool pRetVal);
     
         void GetSourceLength(out int pRetVal);
     
@@ -71,7 +71,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
         
         /// <include file='doc\SymDocument.uex' path='docs/doc[@for="SymDocument.URL"]/*' />
-        public String URL 
+        public string URL
         { 
             get
             {

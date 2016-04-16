@@ -4,9 +4,9 @@ namespace Consulo.Internal.Mssdw.Server.Event
 {
 	public class ServerMessage<T> where T : class
 	{
-		public String Id;
+		public string Id;
 
-		public String Type;
+		public string Type;
 
 		public T Object;
 

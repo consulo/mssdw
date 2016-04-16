@@ -265,7 +265,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
             }
         }
 
-        public override String AssemblyQualifiedName 
+        public override string AssemblyQualifiedName
         {
             get 
             {
@@ -274,7 +274,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
         }
 
 		// [Xamarin] Expression evaluator.
-        public override String Namespace 
+        public override string Namespace
         {
             get 
             {
@@ -287,7 +287,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
         }
 
 		// [Xamarin] Expression evaluator.
-        public override String FullName 
+        public override string FullName
         {
             get 
             {
@@ -441,7 +441,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
             throw new NotImplementedException();
         }
 
-        public override Type GetNestedType(String name, BindingFlags bindingAttr)
+        public override Type GetNestedType(string name, BindingFlags bindingAttr)
         {
             throw new NotImplementedException();
         }
@@ -479,7 +479,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			return (PropertyInfo[]) al.ToArray (typeof (PropertyInfo));
 		}
 
-        protected override PropertyInfo GetPropertyImpl(String name, BindingFlags bindingAttr,Binder binder,
+        protected override PropertyInfo GetPropertyImpl(string name, BindingFlags bindingAttr,Binder binder,
                                                         Type returnType, Type[] types, ParameterModifier[] modifiers)
         {
             throw new NotImplementedException();
@@ -490,12 +490,12 @@ namespace Microsoft.Samples.Debugging.CorMetadata
             throw new NotImplementedException();
         }
 
-        public override EventInfo GetEvent(String name,BindingFlags bindingAttr)
+        public override EventInfo GetEvent(string name,BindingFlags bindingAttr)
         {
             throw new NotImplementedException();
         }
 
-        public override Type GetInterface(String name, bool ignoreCase)
+        public override Type GetInterface(string name, bool ignoreCase)
         {
             throw new NotImplementedException();
         }
@@ -527,7 +527,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			return (Type[]) al.ToArray(typeof(Type));
         }
 
-        public override FieldInfo GetField(String name, BindingFlags bindingAttr)
+        public override FieldInfo GetField(string name, BindingFlags bindingAttr)
         {
 			foreach (var field in GetFields (bindingAttr)) {
 				if (field.Name == name)
@@ -590,7 +590,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
             return (MethodInfo[]) al.ToArray(typeof(MethodInfo));
         }
 
-        protected override MethodInfo GetMethodImpl(String name,
+        protected override MethodInfo GetMethodImpl(string name,
                                                     BindingFlags bindingAttr,
                                                     Binder binder,
                                                     CallingConventions callConvention, 
@@ -614,9 +614,9 @@ namespace Microsoft.Samples.Debugging.CorMetadata
             throw new NotImplementedException();
         }
 
-        public override Object InvokeMember(String name,BindingFlags invokeAttr,Binder binder,Object target,
-                                            Object[] args, ParameterModifier[] modifiers,CultureInfo culture,
-                                            String[] namedParameters)
+        public override object InvokeMember(string name,BindingFlags invokeAttr,Binder binder, object target,
+                                            object[] args, ParameterModifier[] modifiers,CultureInfo culture,
+                                            string[] namedParameters)
         {
             throw new NotImplementedException();
         }
@@ -696,7 +696,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
                 //return mt.Name+".";
             }
             else
-                return String.Empty;
+                return string.Empty;
         }
 
         // member variables
@@ -790,7 +790,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
             m_type = null;
         }
 
-        public Object Current
+        public object Current
         {
             get 
             {

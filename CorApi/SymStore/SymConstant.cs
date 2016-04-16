@@ -29,7 +29,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                          out int pcchName,
                          [MarshalAs(UnmanagedType.LPWStr)] StringBuilder name);
         
-         void GetValue(out Object pValue);
+         void GetValue(out object pValue);
          
          void GetSignature(int cSig,
                               out int pcSig,
@@ -45,7 +45,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             m_target = target;
         }
         
-        public String GetName()
+        public string GetName()
         {
             int count;
             m_target.GetName(0, out count, null);
@@ -54,9 +54,9 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             return name.ToString();
         }
         
-        public Object GetValue()
+        public object GetValue()
         {
-            Object value = null;
+            object value = null;
             m_target.GetValue(out value);
             return value;
         }

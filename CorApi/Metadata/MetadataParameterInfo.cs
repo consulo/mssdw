@@ -62,7 +62,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
             
         }
 
-        public override String Name
+        public override string Name
         {
             get 
             {

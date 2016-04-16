@@ -79,7 +79,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
         }
 
         /** The name of the CorAppDomain */
-        public String Name
+        public string Name
         {
             get 
             {

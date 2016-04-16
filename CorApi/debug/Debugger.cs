@@ -142,8 +142,8 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		 * Parameters are the same as the Win32 CreateProcess call.
 		 */
 		public CorProcess CreateProcess (
-				String applicationName,
-				String commandLine
+				string applicationName,
+				string commandLine
 		)
 		{
 			return CreateProcess(applicationName, commandLine, ".");
@@ -155,9 +155,9 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		 * Parameters are the same as the Win32 CreateProcess call.
 		 */
 		public CorProcess CreateProcess (
-				String applicationName,
-				String commandLine,
-				String currentDirectory
+				string applicationName,
+				string commandLine,
+				string currentDirectory
 		)
 		{
 			// [Xamarin] ASP.NET Debugging.
@@ -171,9 +171,9 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		 */
 		// [Xamarin] ASP.NET Debugging.
 		public CorProcess CreateProcess (
-				String applicationName,
-				String commandLine,
-				String currentDirectory,
+				string applicationName,
+				string commandLine,
+				string currentDirectory,
 				IDictionary<string, string> environment
 		)
 		{
@@ -186,9 +186,9 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		 * Parameters are the same as the Win32 CreateProcess call.
 		 */
 		public CorProcess CreateProcess (
-				String applicationName,
-				String commandLine,
-				String currentDirectory,
+				string applicationName,
+				string commandLine,
+				string currentDirectory,
 				IDictionary<string, string> environment,
 				int flags
 		)
@@ -249,14 +249,14 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		 */
 		[CLSCompliant(false)]
 		public CorProcess CreateProcess (
-				String applicationName,
-				String commandLine,
+				string applicationName,
+				string commandLine,
 				SECURITY_ATTRIBUTES processAttributes,
 				SECURITY_ATTRIBUTES threadAttributes,
 				bool inheritHandles,
 				int creationFlags,
 				IntPtr environment,
-				String currentDirectory,
+				string currentDirectory,
 				STARTUPINFO startupInfo,
 				ref PROCESS_INFORMATION processInformation,
 				CorDebugCreateProcessFlags debuggingFlags)
@@ -271,7 +271,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 			{
 				int firstSpace = commandLine.IndexOf(" ");
 				if(firstSpace != -1)
-					commandLine = String.Format(CultureInfo.InvariantCulture, "\"{0}\" {1}", commandLine.Substring(0, firstSpace), commandLine.Substring(firstSpace, commandLine.Length - firstSpace));
+					commandLine = string.Format(CultureInfo.InvariantCulture, "\"{0}\" {1}", commandLine.Substring(0, firstSpace), commandLine.Substring(firstSpace, commandLine.Length - firstSpace));
 			}
 
 			ICorDebugProcess proc = null;
@@ -490,20 +490,20 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		DllImport(ShimLibraryName, CharSet = CharSet.Unicode)
 		]
 		public static extern int GetCORVersion([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder szName
-		, Int32 cchBuffer
-		, out Int32 dwLength);
+		, int cchBuffer
+		, out int dwLength);
 
 		[
 		DllImport(ShimLibraryName, CharSet = CharSet.Unicode, PreserveSig = false)
 		]
 		public static extern void GetVersionFromProcess(ProcessSafeHandle hProcess, StringBuilder versionString,
-				Int32 bufferSize, out Int32 dwLength);
+				int bufferSize, out int dwLength);
 
 		[
 		DllImport(ShimLibraryName, CharSet = CharSet.Unicode, PreserveSig = false)
 		]
 		public static extern void GetRequestedRuntimeVersion(string pExe, StringBuilder pVersion,
-				Int32 cchBuffer, out Int32 dwLength);
+				int cchBuffer, out int dwLength);
 
 		public enum ProcessAccessOptions : int
 		{
@@ -525,7 +525,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		[
 		DllImport(Kernel32LibraryName, PreserveSig = true)
 		]
-		public static extern ProcessSafeHandle OpenProcess(Int32 dwDesiredAccess, bool bInheritHandle, Int32 dwProcessId);
+		public static extern ProcessSafeHandle OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
 
 		public static Guid IIDICorDebug = new Guid("3d6f5f61-7538-11d3-8d5b-00104b35e7ef");
 
@@ -533,7 +533,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		DllImport(Ole32LibraryName, PreserveSig = false)
 		]
 		public static extern void CoCreateInstance(ref Guid rclsid, IntPtr pUnkOuter,
-				Int32 dwClsContext,
+				int dwClsContext,
 				ref Guid riid, // must be "ref NativeMethods.IIDICorDebug"
 				[MarshalAs(UnmanagedType.Interface)]
 				out ICorDebug debuggingInterface
@@ -674,7 +674,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void CorProcessEventHandler(Object sender,
+	public delegate void CorProcessEventHandler(object sender,
 			CorProcessEventArgs e);
 
 
@@ -719,7 +719,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void CorAppDomainEventHandler(Object sender,
+	public delegate void CorAppDomainEventHandler(object sender,
 			CorAppDomainEventArgs e);
 
 
@@ -780,7 +780,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void CorThreadEventHandler(Object sender,
+	public delegate void CorThreadEventHandler(object sender,
 			CorThreadEventArgs e);
 
 
@@ -825,7 +825,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void BreakpointEventHandler(Object sender,
+	public delegate void BreakpointEventHandler(object sender,
 			CorBreakpointEventArgs e);
 
 
@@ -881,7 +881,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void StepCompleteEventHandler(Object sender,
+	public delegate void StepCompleteEventHandler(object sender,
 			CorStepCompleteEventArgs e);
 
 
@@ -917,7 +917,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void CorExceptionEventHandler(Object sender,
+	public delegate void CorExceptionEventHandler(object sender,
 			CorExceptionEventArgs e);
 
 
@@ -962,7 +962,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void EvalEventHandler(Object sender, CorEvalEventArgs e);
+	public delegate void EvalEventHandler(object sender, CorEvalEventArgs e);
 
 
 	/**
@@ -1004,7 +1004,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void CorModuleEventHandler(Object sender,
+	public delegate void CorModuleEventHandler(object sender,
 			CorModuleEventArgs e);
 
 
@@ -1047,7 +1047,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void CorClassEventHandler(Object sender,
+	public delegate void CorClassEventHandler(object sender,
 			CorClassEventArgs e);
 
 
@@ -1099,7 +1099,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void DebuggerErrorEventHandler(Object sender,
+	public delegate void DebuggerErrorEventHandler(object sender,
 			CorDebuggerErrorEventArgs e);
 
 
@@ -1144,7 +1144,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void CorAssemblyEventHandler(Object sender,
+	public delegate void CorAssemblyEventHandler(object sender,
 			CorAssemblyEventArgs e);
 
 
@@ -1208,7 +1208,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void LogMessageEventHandler(Object sender,
+	public delegate void LogMessageEventHandler(object sender,
 			CorLogMessageEventArgs e);
 
 
@@ -1288,7 +1288,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void LogSwitchEventHandler(Object sender,
+	public delegate void LogSwitchEventHandler(object sender,
 			CorLogSwitchEventArgs e);
 
 
@@ -1338,7 +1338,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		//CorProcess Process { get { return m_proc; } }
 	}
 
-	public delegate void MDANotificationEventHandler(Object sender, CorMDAEventArgs e);
+	public delegate void MDANotificationEventHandler(object sender, CorMDAEventArgs e);
 
 
 
@@ -1385,7 +1385,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 	}
 
-	public delegate void UpdateModuleSymbolsEventHandler(Object sender,
+	public delegate void UpdateModuleSymbolsEventHandler(object sender,
 			CorUpdateModuleSymbolsEventArgs e);
 
 	public sealed class CorExceptionInCallbackEventArgs : CorEventArgs
@@ -1421,7 +1421,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		private Exception m_exceptionThrown;
 	}
 
-	public delegate void CorExceptionInCallbackEventHandler(Object sender,
+	public delegate void CorExceptionInCallbackEventHandler(object sender,
 			CorExceptionInCallbackEventArgs e);
 
 
@@ -1469,7 +1469,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		private int m_accurate;
 	}
 
-	public delegate void CorEditAndContinueRemapEventHandler(Object sender,
+	public delegate void CorEditAndContinueRemapEventHandler(object sender,
 			CorEditAndContinueRemapEventArgs e);
 
 
@@ -1523,7 +1523,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		private int m_errorCode;
 	}
 
-	public delegate void CorBreakpointSetErrorEventHandler(Object sender,
+	public delegate void CorBreakpointSetErrorEventHandler(object sender,
 			CorBreakpointSetErrorEventArgs e);
 
 
@@ -1591,7 +1591,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		private int m_oldILoffset;
 	}
 
-	public delegate void CorFunctionRemapOpportunityEventHandler(Object sender,
+	public delegate void CorFunctionRemapOpportunityEventHandler(object sender,
 			CorFunctionRemapOpportunityEventArgs e);
 
 	public sealed class CorFunctionRemapCompleteEventArgs : CorThreadEventArgs
@@ -1624,7 +1624,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		private CorFunction m_managedFunction;
 	}
 
-	public delegate void CorFunctionRemapCompleteEventHandler(Object sender,
+	public delegate void CorFunctionRemapCompleteEventHandler(object sender,
 			CorFunctionRemapCompleteEventArgs e);
 
 
@@ -1681,7 +1681,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		int m_flags;
 	}
 
-	public delegate void CorExceptionUnwind2EventHandler(Object sender,
+	public delegate void CorExceptionUnwind2EventHandler(object sender,
 			CorExceptionUnwind2EventArgs e);
 
 
@@ -1765,7 +1765,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		int m_flags;
 	}
 
-	public delegate void CorException2EventHandler(Object sender,
+	public delegate void CorException2EventHandler(object sender,
 			CorException2EventArgs e);
 
 
@@ -2092,7 +2092,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 				ICorDebugAppDomain appDomain,
 				ICorDebugThread thread,
 				ICorDebugBreakpoint breakpoint,
-				UInt32 errorCode)
+				uint errorCode)
 		{
 			HandleEvent(ManagedCallbackType.OnBreakpointSetError,
 					new CorBreakpointSetErrorEventArgs(appDomain == null ? null : new CorAppDomain(appDomain),

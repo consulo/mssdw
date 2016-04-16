@@ -126,7 +126,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
                 }
         }
 
-        public override Object GetValue(Object obj)
+        public override object GetValue(object obj)
         {
             FieldAttributes staticLiteralField = FieldAttributes.Static | FieldAttributes.HasDefault | FieldAttributes.Literal;
             if ((m_fieldAttributes & staticLiteralField) != staticLiteralField)
@@ -143,7 +143,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
             }
         }
 
-        public override void SetValue(Object obj, Object value,BindingFlags invokeAttr,Binder binder,CultureInfo culture)
+        public override void SetValue(object obj, object value,BindingFlags invokeAttr,Binder binder,CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -206,7 +206,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
             }
         }
     
-        public override String Name 
+        public override string Name
         {
             get 
             {
@@ -244,7 +244,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
         private string m_name;
         private FieldAttributes m_fieldAttributes;
-        private Object m_value;
+        private object m_value;
 		// [Xamarin] Expression evaluator.
 		private object[] m_customAttributes;
     }

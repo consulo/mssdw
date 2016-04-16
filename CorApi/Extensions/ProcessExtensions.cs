@@ -43,7 +43,7 @@ namespace Microsoft.Samples.Debugging.Extensions {
         public bool IsStdError { get; set; }
     }
 
-    public delegate void CorTargetOutputEventHandler (Object sender, CorTargetOutputEventArgs e);
+    public delegate void CorTargetOutputEventHandler (object sender, CorTargetOutputEventArgs e);
 
     public static class CorProcessExtensions {
         internal static void TrackStdOutput (this CorProcess proc, SafeFileHandle outputPipe, SafeFileHandle errorPipe) {

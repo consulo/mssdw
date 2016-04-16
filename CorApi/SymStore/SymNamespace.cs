@@ -49,7 +49,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             m_unmanagedNamespace = nameSpace;
         }
         
-        public String Name 
+        public string Name
         { 
             get
             {

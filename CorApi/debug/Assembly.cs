@@ -58,7 +58,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
         }
     
         /** Get the name of the code base used to load the assembly. */
-        public String CodeBase
+        public string CodeBase
         {
             get 
             {
@@ -72,7 +72,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
         }
 
         /** The name of the assembly. */
-        public String Name
+        public string Name
         {
             get 
             {
@@ -85,7 +85,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
             }
         }
 
-        public Boolean IsFullyTrusted
+        public bool IsFullyTrusted
         {
             get
             {

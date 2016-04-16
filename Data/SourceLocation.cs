@@ -4,7 +4,7 @@ namespace Consulo.Internal.Mssdw.Data
 {
 	public class SourceLocation
 	{
-		public String Method
+		public string Method
 		{
 			get;
 			set;

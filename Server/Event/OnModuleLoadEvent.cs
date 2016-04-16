@@ -4,9 +4,9 @@ namespace Consulo.Internal.Mssdw.Server.Event
 {
 	public class OnModuleLoadEvent
 	{
-		public String ModuleFile;
+		public string ModuleFile;
 
-		public OnModuleLoadEvent(String file)
+		public OnModuleLoadEvent(string file)
 		{
 			ModuleFile = file;
 		}

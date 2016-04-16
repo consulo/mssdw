@@ -77,12 +77,12 @@ namespace Microsoft.Samples.Debugging.CorDebug
     {
         public static CorTokenType TypeFromToken(int token)
         {
-            return (CorTokenType) ((UInt32)token & 0xff000000);
+            return (CorTokenType) ((uint)token & 0xff000000);
         }
 
         public static int RidFromToken(int token)
         {
-            return (int)( (UInt32)token & 0x00ffffff);
+            return (int)( (uint)token & 0x00ffffff);
         }
 
         public static bool IsNullToken(int token)

@@ -425,7 +425,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
                     if(count!=1)
                         break;
 					var mp = new MetadataParameterInfo (m_importer, paramToken, this, m_argTypes [nArg++]);
-					if (mp.Name != String.Empty)
+					if (mp.Name != string.Empty)
 						al.Add (mp);
 					//al.Add(new MetadataParameterInfo(m_importer,paramToken,
 					//                                 this,DeclaringType));

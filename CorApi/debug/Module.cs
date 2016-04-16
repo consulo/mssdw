@@ -142,12 +142,12 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 
 		/** The name of the module. */
-		public String Name
+		public string Name
 		{
 			get
 			{
 
-				char[] name = new Char[300];
+				char[] name = new char[300];
 				uint fetched = 0;
 				m_module.GetName((uint) name.Length, out fetched, name);
 				// ``fetched'' includes terminating null; String doesn't handle null,

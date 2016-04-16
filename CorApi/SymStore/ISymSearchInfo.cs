@@ -24,7 +24,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
     {
         int SearchPathLength{ get; }
     
-        String SearchPath{ get; }
+        string SearchPath{ get; }
     
         int HResult{ get; }
     }

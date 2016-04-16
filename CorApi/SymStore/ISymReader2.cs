@@ -28,8 +28,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         // Note: you need only specify one of the filename or the stream,
         // not both. The searchPath parameter is optional.
         //
-        void Initialize(Object importer, String filename,
-                       String searchPath, IStream stream);
+        void Initialize(object importer, string filename,
+                       string searchPath, IStream stream);
 
         // Update the existing symbol reader with a delta symbol store. This
         // is used in EnC scenarios as a way to update the symbol store to
@@ -40,7 +40,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         // the symbols in that file. If a IStream is specified, the store will
         // be updated with the data from the IStream.
         //       
-        void UpdateSymbolStore(String fileName, IStream stream);
+        void UpdateSymbolStore(string fileName, IStream stream);
 
         // Update the existing symbol reader with a delta symbol
         // store. This is much like UpdateSymbolStore, but the given detla
@@ -51,11 +51,11 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         // the symbols in that file. If a IStream is specified, the store will
         // be updated with the data from the IStream.
         //
-        void ReplaceSymbolStore(String fileName, IStream stream);
+        void ReplaceSymbolStore(string fileName, IStream stream);
 
         // Provides the on disk filename of the symbol store.
         //
-        String GetSymbolStoreFileName();
+        string GetSymbolStoreFileName();
         
         // Given a position in a document, return the ISymUnmanagedMethods that
         // contains that position.
@@ -68,7 +68,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         // bCurrent is true is this is the latest version of the document.
         //
         int GetDocumentVersion(ISymbolDocument document,
-                                     out Boolean isCurrent);
+                                     out bool isCurrent);
         
         // The method version starts at 1 and is incremented each time
         // the method is recompiled.  (This can happen  changes to the method.)

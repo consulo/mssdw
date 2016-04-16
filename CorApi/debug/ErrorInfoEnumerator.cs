@@ -19,7 +19,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
     {
         private ICorDebugErrorInfoEnum m_enum;
 
-        private Object m_einfo;
+        private object m_einfo;
 
         internal CorErrorInfoEnumerator (ICorDebugErrorInfoEnum erroInfoEnumerator)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
         //
         // ICloneable interface
         //
-        public Object Clone ()
+        public object Clone ()
         {
             ICorDebugEnum clone = null;
             m_enum.Clone (out clone);
@@ -58,7 +58,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
             m_einfo = null;
         }
 
-        public Object Current
+        public object Current
         {
             get 
             {

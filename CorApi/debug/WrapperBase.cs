@@ -46,13 +46,13 @@ namespace Microsoft.Samples.Debugging.CorDebug
 
     public abstract class WrapperBase : MarshalByRefObject
     {
-        protected WrapperBase(Object value)
+        protected WrapperBase(object value)
         {
             Debug.Assert(value!=null);
             m_comObject = value;
         }
 
-        public override bool Equals(Object value) 
+        public override bool Equals(object value)
         {
             if(!(value is WrapperBase))
                 return false;
@@ -66,10 +66,10 @@ namespace Microsoft.Samples.Debugging.CorDebug
 
         public static bool operator ==( WrapperBase operand,WrapperBase operand2)
         {
-            if(Object.ReferenceEquals(operand,operand2))
+            if(object.ReferenceEquals(operand,operand2))
                 return true;
 
-            if(Object.ReferenceEquals(operand, null))               // this means that operand==null && operand2 is not null 
+            if(object.ReferenceEquals(operand, null))               // this means that operand==null && operand2 is not null
                 return false;
 
             return operand.Equals(operand2);
@@ -80,7 +80,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
             return !(operand==operand2);
         }
 
-        private Object m_comObject;
+        private object m_comObject;
     }
     
 } /* namespace */

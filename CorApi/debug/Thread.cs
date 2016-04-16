@@ -249,7 +249,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		public CorActiveFunction[] GetActiveFunctions()
 		{
 			ICorDebugThread2 m_th2 = (ICorDebugThread2) m_th;
-			UInt32 pcFunctions;
+			uint pcFunctions;
 			m_th2.GetActiveFunctions(0, out pcFunctions, null);
 			COR_ACTIVE_FUNCTION[] afunctions = new COR_ACTIVE_FUNCTION[pcFunctions];
 			m_th2.GetActiveFunctions(pcFunctions, out pcFunctions, afunctions);
@@ -387,7 +387,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 
 
 		[CLSCompliant(false)]
-		public void GetStackRange(out UInt64 startOffset, out UInt64 endOffset)
+		public void GetStackRange(out ulong startOffset, out ulong endOffset)
 		{
 			m_frame.GetStackRange(out startOffset, out endOffset);
 		}
@@ -673,13 +673,13 @@ namespace Microsoft.Samples.Debugging.CorDebug
 			}
 		}
 
-		public void GetStackRange(out Int64 pStart, out Int64 pEnd)
+		public void GetStackRange(out long pStart, out long pEnd)
 		{
-			UInt64 start = 0;
-			UInt64 end = 0;
+			ulong start = 0;
+			ulong end = 0;
 			m_chain.GetStackRange(out start, out end);
-			pStart = (Int64) start;
-			pEnd = (Int64) end;
+			pStart = (long) start;
+			pEnd = (long) end;
 		}
 
 		public CorThread Thread
@@ -725,7 +725,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		//
 		// ICloneable interface
 		//
-		public Object Clone ()
+		public object Clone ()
 		{
 			ICorDebugEnum clone = null;
 			m_enum.Clone(out clone);
@@ -761,7 +761,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 			m_frame = null;
 		}
 
-		public Object Current
+		public object Current
 		{
 			get
 			{
@@ -835,7 +835,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		{
 			get
 			{
-				UInt64 start;
+				ulong start;
 				m_code.GetAddress(out start);
 				return start;
 			}
@@ -865,7 +865,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		[CLSCompliant(false)]
 		public _CodeChunkInfo[] GetCodeChunks()
 		{
-			UInt32 pcnumChunks;
+			uint pcnumChunks;
 			(m_code as ICorDebugCode2).GetCodeChunks(0, out pcnumChunks, null);
 			if(pcnumChunks == 0)
 				return new _CodeChunkInfo[0];
@@ -884,7 +884,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 
 		public IL2NativeMap[] GetILToNativeMapping()
 		{
-			UInt32 pcMap;
+			uint pcMap;
 			m_code.GetILToNativeMapping(0, out pcMap, null);
 			if(pcMap == 0)
 				return new IL2NativeMap[0];
@@ -908,7 +908,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		{
 			get
 			{
-				UInt32 pcBytes;
+				uint pcBytes;
 				m_code.GetSize(out pcBytes);
 				return (int)pcBytes;
 			}
@@ -918,7 +918,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		{
 			get
 			{
-				UInt32 nVersion;
+				uint nVersion;
 				m_code.GetVersionNumber(out nVersion);
 				return (int)nVersion;
 			}
@@ -928,7 +928,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		{
 			get
 			{
-				Int32 pbIL;
+				int pbIL;
 				m_code.IsIL(out pbIL);
 				return ( pbIL != 0 ? true : false );
 			}
@@ -951,7 +951,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		//
 		// ICloneable interface
 		//
-		public Object Clone ()
+		public object Clone ()
 		{
 			ICorDebugEnum clone = null;
 			m_enum.Clone(out clone);
@@ -993,7 +993,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 			m_c = null;
 		}
 
-		public Object Current
+		public object Current
 		{
 			get
 			{
@@ -1063,7 +1063,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		{
 			get
 			{
-				UInt32 pMethodDef;
+				uint pMethodDef;
 				m_function.GetToken(out pMethodDef);
 				return (int)pMethodDef;
 			}
@@ -1073,7 +1073,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		{
 			get
 			{
-				UInt32 pVersion;
+				uint pVersion;
 				(m_function as ICorDebugFunction2).GetVersionNumber(out pVersion);
 				return (int)pVersion;
 			}

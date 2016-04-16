@@ -30,7 +30,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
 
         public override string ToString()
         {
-            return String.Format( @"Characteristics: {0}
+            return string.Format( @"Characteristics: {0}
 TimeDateStamp: {1}
 MajorVersion: {2}
 MinorVersion: {3}
@@ -55,33 +55,33 @@ PointerToRawData: {7}
     ]
     public interface ISymbolWriter2 : ISymbolWriter
     {
-        void Initialize(Object emitter,
-                    String fileName,
-                    Boolean fullBuild);
+        void Initialize(object emitter,
+                    string fileName,
+                    bool fullBuild);
 
-        void Initialize(Object emitter,
-                        String fileName,
+        void Initialize(object emitter,
+                        string fileName,
                         IStream stream,
-                        Boolean fullBuild);
+                        bool fullBuild);
 
-        void Initialize(Object emitter,
-                        String temporaryFileName,
+        void Initialize(object emitter,
+                        string temporaryFileName,
                         IStream stream,
-                        Boolean fullBuild,
-                        String finalFileName);
+                        bool fullBuild,
+                        string finalFileName);
 
         byte[] GetDebugInfo(out ImageDebugDirectory imageDebugDirectory);
                              
         void RemapToken(SymbolToken oldToken,
                             SymbolToken newToken);
                              
-        void DefineConstant(String name,
-                               Object value,
+        void DefineConstant(string name,
+                               object value,
                                byte[] signature);
     
         void Abort();   
 
-        void DefineLocalVariable(String name,
+        void DefineLocalVariable(string name,
                                      int attributes,
                                      SymbolToken sigToken,
                                      int addressKind,
@@ -91,7 +91,7 @@ PointerToRawData: {7}
                                      int startOffset,
                                      int endOffset);
     
-        void DefineGlobalVariable(String name,
+        void DefineGlobalVariable(string name,
                                        int attributes,
                                        SymbolToken sigToken,
                                        int addressKind,
@@ -100,8 +100,8 @@ PointerToRawData: {7}
                                        int addr3);
         
         
-         void DefineConstant(String name,
-                                  Object value,
+         void DefineConstant(string name,
+                                  object value,
                                   SymbolToken sigToken);
     }
 }

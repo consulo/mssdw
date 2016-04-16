@@ -22,9 +22,9 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
     ]
     public interface ISymbolConstant
     {
-        String GetName();
+        string GetName();
 
-        Object GetValue();
+        object GetValue();
 
         byte[] GetSignature();
     }

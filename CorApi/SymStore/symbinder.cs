@@ -33,8 +33,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         // Exceptions should be reserved for truely "exceptional" cases.
         [PreserveSig]
         int GetReaderForFile(IntPtr importer,
-                                  [MarshalAs(UnmanagedType.LPWStr)] String filename,
-                                  [MarshalAs(UnmanagedType.LPWStr)] String SearchPath,
+                                  [MarshalAs(UnmanagedType.LPWStr)] string filename,
+                                  [MarshalAs(UnmanagedType.LPWStr)] string SearchPath,
                                   [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedReader retVal);
 
         [PreserveSig]
@@ -54,8 +54,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         // ISymUnmanagedBinder methods (need to define the base interface methods also, per COM interop requirements)
         [PreserveSig]
         new int GetReaderForFile(IntPtr importer,
-                                  [MarshalAs(UnmanagedType.LPWStr)] String filename,
-                                  [MarshalAs(UnmanagedType.LPWStr)] String SearchPath,
+                                  [MarshalAs(UnmanagedType.LPWStr)] string filename,
+                                  [MarshalAs(UnmanagedType.LPWStr)] string SearchPath,
                                   [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedReader retVal);
 
         [PreserveSig]
@@ -66,8 +66,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         // ISymUnmanagedBinder2 methods 
         [PreserveSig]
         int GetReaderForFile2(IntPtr importer,
-                                  [MarshalAs(UnmanagedType.LPWStr)] String fileName,
-                                  [MarshalAs(UnmanagedType.LPWStr)] String searchPath,
+                                  [MarshalAs(UnmanagedType.LPWStr)] string fileName,
+                                  [MarshalAs(UnmanagedType.LPWStr)] string searchPath,
                                   int searchPolicy,
                                   [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedReader pRetVal);
     }
@@ -83,8 +83,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         // ISymUnmanagedBinder methods (need to define the base interface methods also, per COM interop requirements)
         [PreserveSig]
         new int GetReaderForFile(IntPtr importer,
-                                  [MarshalAs(UnmanagedType.LPWStr)] String filename,
-                                  [MarshalAs(UnmanagedType.LPWStr)] String SearchPath,
+                                  [MarshalAs(UnmanagedType.LPWStr)] string filename,
+                                  [MarshalAs(UnmanagedType.LPWStr)] string SearchPath,
                                   [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedReader retVal);
 
         [PreserveSig]
@@ -95,16 +95,16 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         // ISymUnmanagedBinder2 methods (need to define the base interface methods also, per COM interop requirements)
         [PreserveSig]
         new int GetReaderForFile2(IntPtr importer,
-                   [MarshalAs(UnmanagedType.LPWStr)] String fileName,
-                   [MarshalAs(UnmanagedType.LPWStr)] String searchPath,
+                   [MarshalAs(UnmanagedType.LPWStr)] string fileName,
+                   [MarshalAs(UnmanagedType.LPWStr)] string searchPath,
                    int searchPolicy,
                    [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedReader pRetVal);
 
         // ISymUnmanagedBinder3 methods 
         [PreserveSig]
         int GetReaderFromCallback(IntPtr importer,
-                                   [MarshalAs(UnmanagedType.LPWStr)] String fileName,
-                                   [MarshalAs(UnmanagedType.LPWStr)] String searchPath,
+                                   [MarshalAs(UnmanagedType.LPWStr)] string fileName,
+                                   [MarshalAs(UnmanagedType.LPWStr)] string searchPath,
                                    int searchPolicy,
                                    IntPtr callback,
                                    [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedReader pRetVal);
@@ -124,8 +124,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
         
         /// <include file='doc\symbinder.uex' path='docs/doc[@for="SymbolBinder.GetReader"]/*' />
-        public ISymbolReader GetReader(IntPtr importer, String filename,
-                                          String searchPath)
+        public ISymbolReader GetReader(IntPtr importer, string filename,
+                                          string searchPath)
         {
             ISymUnmanagedReader reader = null;
             int hr = m_binder.GetReaderForFile(importer, filename, searchPath, out reader);
@@ -138,8 +138,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
 
         /// <include file='doc\symbinder.uex' path='docs/doc[@for="SymbolBinder.GetReaderForFile"]/*' />
-        public ISymbolReader GetReaderForFile(Object importer, String filename,
-                                           String searchPath)
+        public ISymbolReader GetReaderForFile(object importer, string filename,
+                                           string searchPath)
         {
             ISymUnmanagedReader reader = null;
             IntPtr uImporter = IntPtr.Zero;
@@ -162,8 +162,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
         
         /// <include file='doc\symbinder.uex' path='docs/doc[@for="SymbolBinder.GetReaderForFile1"]/*' />
-        public ISymbolReader GetReaderForFile(Object importer, String fileName,
-                                           String searchPath, SymSearchPolicies searchPolicy)
+        public ISymbolReader GetReaderForFile(object importer, string fileName,
+                                           string searchPath, SymSearchPolicies searchPolicy)
         {
             ISymUnmanagedReader symReader = null;
             IntPtr uImporter = IntPtr.Zero;
@@ -186,8 +186,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
         
         /// <include file='doc\symbinder.uex' path='docs/doc[@for="SymbolBinder.GetReaderForFile2"]/*' />
-        public ISymbolReader GetReaderForFile(Object importer, String fileName,
-                                           String searchPath, SymSearchPolicies searchPolicy,
+        public ISymbolReader GetReaderForFile(object importer, string fileName,
+                                           string searchPath, SymSearchPolicies searchPolicy,
                                            IntPtr callback)
         {
             ISymUnmanagedReader reader = null;
@@ -210,7 +210,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
         
         /// <include file='doc\symbinder.uex' path='docs/doc[@for="SymbolBinder.GetReaderFromStream"]/*' />
-        public ISymbolReader GetReaderFromStream(Object importer, IStream stream)
+        public ISymbolReader GetReaderFromStream(object importer, IStream stream)
         {
             ISymUnmanagedReader reader = null;
             IntPtr uImporter = IntPtr.Zero;

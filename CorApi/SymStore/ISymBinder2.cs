@@ -20,15 +20,15 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
     ]
     public interface ISymbolBinder2
     {
-        ISymbolReader GetReaderForFile(Object importer, String filename, String searchPath);
+        ISymbolReader GetReaderForFile(object importer, string filename, string searchPath);
                                 
-        ISymbolReader GetReaderForFile(Object importer, String fileName,
-                                           String searchPath, SymSearchPolicies searchPolicy);
+        ISymbolReader GetReaderForFile(object importer, string fileName,
+                                           string searchPath, SymSearchPolicies searchPolicy);
         
-        ISymbolReader GetReaderForFile(Object importer, String fileName,
-                                           String searchPath, SymSearchPolicies searchPolicy,
+        ISymbolReader GetReaderForFile(object importer, string fileName,
+                                           string searchPath, SymSearchPolicies searchPolicy,
                                            IntPtr callback);
       
-        ISymbolReader GetReaderFromStream(Object importer, IStream stream);
+        ISymbolReader GetReaderFromStream(object importer, IStream stream);
     }
 }

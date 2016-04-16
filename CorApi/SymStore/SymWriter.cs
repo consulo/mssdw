@@ -24,7 +24,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
     ]
     internal interface ISymUnmanagedWriter 
     {
-        void DefineDocument([MarshalAs(UnmanagedType.LPWStr)] String url,
+        void DefineDocument([MarshalAs(UnmanagedType.LPWStr)] string url,
                                  ref Guid language,
                                  ref Guid languageVendor,
                                  ref Guid documentType,
@@ -45,7 +45,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                 int startOffset,
                                 int endOffset);
     
-        void DefineLocalVariable([MarshalAs(UnmanagedType.LPWStr)] String name,
+        void DefineLocalVariable([MarshalAs(UnmanagedType.LPWStr)] string name,
                                     int attributes,
                                     int cSig,
                                     [MarshalAs(UnmanagedType.LPArray, SizeParamIndex=2)] byte[] signature,
@@ -56,7 +56,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                     int startOffset,
                                     int endOffset);
     
-        void DefineParameter([MarshalAs(UnmanagedType.LPWStr)] String name,
+        void DefineParameter([MarshalAs(UnmanagedType.LPWStr)] string name,
                                 int attributes,
                                 int sequence,
                                 int addressKind,
@@ -65,7 +65,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                 int addr3);
     
         void DefineField(SymbolToken parent,
-                          [MarshalAs(UnmanagedType.LPWStr)] String name,
+                          [MarshalAs(UnmanagedType.LPWStr)] string name,
                           int attributes,
                           int cSig,
                           [MarshalAs(UnmanagedType.LPArray, SizeParamIndex=3)] byte[] signature,
@@ -74,7 +74,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                           int addr2,
                           int addr3);
     
-        void DefineGlobalVariable([MarshalAs(UnmanagedType.LPWStr)] String name,
+        void DefineGlobalVariable([MarshalAs(UnmanagedType.LPWStr)] string name,
                                      int attributes,
                                      int cSig,
                                      [MarshalAs(UnmanagedType.LPArray, SizeParamIndex=2)] byte[] signature,
@@ -86,15 +86,15 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         void Close();
     
         void SetSymAttribute(SymbolToken parent,
-                                [MarshalAs(UnmanagedType.LPWStr)] String name,
+                                [MarshalAs(UnmanagedType.LPWStr)] string name,
                                 int cData,
                                 [MarshalAs(UnmanagedType.LPArray, SizeParamIndex=2)] byte[] data);
     
-        void OpenNamespace([MarshalAs(UnmanagedType.LPWStr)] String name);
+        void OpenNamespace([MarshalAs(UnmanagedType.LPWStr)] string name);
     
         void CloseNamespace();
     
-        void UsingNamespace([MarshalAs(UnmanagedType.LPWStr)] String fullName);
+        void UsingNamespace([MarshalAs(UnmanagedType.LPWStr)] string fullName);
     
         void SetMethodSourceRange(ISymUnmanagedDocumentWriter startDoc,
                                      int startLine,
@@ -104,9 +104,9 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                      int endColumn);
     
         void Initialize(IntPtr emitter,
-                       [MarshalAs(UnmanagedType.LPWStr)] String filename,
+                       [MarshalAs(UnmanagedType.LPWStr)] string filename,
                        IStream stream,
-                       Boolean fullBuild);
+                       bool fullBuild);
     
         void GetDebugInfo(out ImageDebugDirectory iDD,
                              int cData,
@@ -125,13 +125,13 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                              SymbolToken newToken);
     
         void Initialize2(IntPtr emitter,
-                        [MarshalAs(UnmanagedType.LPWStr)] String tempfilename,
+                        [MarshalAs(UnmanagedType.LPWStr)] string tempfilename,
                         IStream stream,
-                        Boolean fullBuild,
-                        [MarshalAs(UnmanagedType.LPWStr)] String finalfilename);
+                        bool fullBuild,
+                        [MarshalAs(UnmanagedType.LPWStr)] string finalfilename);
     
-        void DefineConstant( [MarshalAs(UnmanagedType.LPWStr)] String name,
-                                Object value,
+        void DefineConstant( [MarshalAs(UnmanagedType.LPWStr)] string name,
+                                object value,
                                 int cSig,
                                 [MarshalAs(UnmanagedType.LPArray, SizeParamIndex=2)] byte[] signature);
     
@@ -149,7 +149,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
     internal interface ISymUnmanagedWriter2 : ISymUnmanagedWriter
     {
         // ISymUnmanagedWriter interfaces (need to define the base interface methods also, per COM interop requirements)
-        new void DefineDocument([MarshalAs(UnmanagedType.LPWStr)] String url,
+        new void DefineDocument([MarshalAs(UnmanagedType.LPWStr)] string url,
                                      ref Guid language,
                                      ref Guid languageVendor,
                                      ref Guid documentType,
@@ -170,7 +170,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                 int startOffset,
                                 int endOffset);
 
-        new void DefineLocalVariable([MarshalAs(UnmanagedType.LPWStr)] String name,
+        new void DefineLocalVariable([MarshalAs(UnmanagedType.LPWStr)] string name,
                                     int attributes,
                                     int cSig,
                                     [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature,
@@ -181,7 +181,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                     int startOffset,
                                     int endOffset);
 
-        new void DefineParameter([MarshalAs(UnmanagedType.LPWStr)] String name,
+        new void DefineParameter([MarshalAs(UnmanagedType.LPWStr)] string name,
                                 int attributes,
                                 int sequence,
                                 int addressKind,
@@ -190,7 +190,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                 int addr3);
 
         new void DefineField(SymbolToken parent,
-                          [MarshalAs(UnmanagedType.LPWStr)] String name,
+                          [MarshalAs(UnmanagedType.LPWStr)] string name,
                           int attributes,
                           int cSig,
                           [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] signature,
@@ -199,7 +199,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                           int addr2,
                           int addr3);
 
-        new void DefineGlobalVariable([MarshalAs(UnmanagedType.LPWStr)] String name,
+        new void DefineGlobalVariable([MarshalAs(UnmanagedType.LPWStr)] string name,
                                      int attributes,
                                      int cSig,
                                      [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature,
@@ -211,15 +211,15 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         new void Close();
 
         new void SetSymAttribute(SymbolToken parent,
-                                [MarshalAs(UnmanagedType.LPWStr)] String name,
+                                [MarshalAs(UnmanagedType.LPWStr)] string name,
                                 int cData,
                                 [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] data);
 
-        new void OpenNamespace([MarshalAs(UnmanagedType.LPWStr)] String name);
+        new void OpenNamespace([MarshalAs(UnmanagedType.LPWStr)] string name);
 
         new void CloseNamespace();
 
-        new void UsingNamespace([MarshalAs(UnmanagedType.LPWStr)] String fullName);
+        new void UsingNamespace([MarshalAs(UnmanagedType.LPWStr)] string fullName);
 
         new void SetMethodSourceRange(ISymUnmanagedDocumentWriter startDoc,
                                      int startLine,
@@ -229,9 +229,9 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                      int endColumn);
 
         new void Initialize(IntPtr emitter,
-                       [MarshalAs(UnmanagedType.LPWStr)] String filename,
+                       [MarshalAs(UnmanagedType.LPWStr)] string filename,
                        IStream stream,
-                       Boolean fullBuild);
+                       bool fullBuild);
 
         new void GetDebugInfo(out ImageDebugDirectory iDD,
                              int cData,
@@ -250,20 +250,20 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                              SymbolToken newToken);
 
         new void Initialize2(IntPtr emitter,
-                        [MarshalAs(UnmanagedType.LPWStr)] String tempfilename,
+                        [MarshalAs(UnmanagedType.LPWStr)] string tempfilename,
                         IStream stream,
-                        Boolean fullBuild,
-                        [MarshalAs(UnmanagedType.LPWStr)] String finalfilename);
+                        bool fullBuild,
+                        [MarshalAs(UnmanagedType.LPWStr)] string finalfilename);
 
-        new void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] String name,
-                               Object value,
+        new void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] string name,
+                               object value,
                                int cSig,
                                [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature);
 
         new void Abort();
 
         // ISymUnmanagedWriter2 interfaces
-        void DefineLocalVariable2([MarshalAs(UnmanagedType.LPWStr)] String name,
+        void DefineLocalVariable2([MarshalAs(UnmanagedType.LPWStr)] string name,
                                       int attributes,
                                       SymbolToken sigToken,
                                       int addressKind,
@@ -273,7 +273,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                       int startOffset,
                                       int endOffset);
           
-        void DefineGlobalVariable2([MarshalAs(UnmanagedType.LPWStr)] String name,
+        void DefineGlobalVariable2([MarshalAs(UnmanagedType.LPWStr)] string name,
                                        int attributes,
                                        SymbolToken sigToken,
                                        int addressKind,
@@ -282,8 +282,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                        int addr3);
           
           
-        void DefineConstant2([MarshalAs(UnmanagedType.LPWStr)] String name,
-                                 Object value,
+        void DefineConstant2([MarshalAs(UnmanagedType.LPWStr)] string name,
+                                 object value,
                                  SymbolToken sigToken);
     };
 
@@ -296,7 +296,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
     internal interface ISymUnmanagedWriter3 : ISymUnmanagedWriter2
     {
         // ISymUnmanagedWriter interfaces (need to define the base interface methods also, per COM interop requirements)
-        new void DefineDocument([MarshalAs(UnmanagedType.LPWStr)] String url,
+        new void DefineDocument([MarshalAs(UnmanagedType.LPWStr)] string url,
                                      ref Guid language,
                                      ref Guid languageVendor,
                                      ref Guid documentType,
@@ -317,7 +317,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                 int startOffset,
                                 int endOffset);
 
-        new void DefineLocalVariable([MarshalAs(UnmanagedType.LPWStr)] String name,
+        new void DefineLocalVariable([MarshalAs(UnmanagedType.LPWStr)] string name,
                                     int attributes,
                                     int cSig,
                                     [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature,
@@ -328,7 +328,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                     int startOffset,
                                     int endOffset);
 
-        new void DefineParameter([MarshalAs(UnmanagedType.LPWStr)] String name,
+        new void DefineParameter([MarshalAs(UnmanagedType.LPWStr)] string name,
                                 int attributes,
                                 int sequence,
                                 int addressKind,
@@ -337,7 +337,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                 int addr3);
 
         new void DefineField(SymbolToken parent,
-                          [MarshalAs(UnmanagedType.LPWStr)] String name,
+                          [MarshalAs(UnmanagedType.LPWStr)] string name,
                           int attributes,
                           int cSig,
                           [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] signature,
@@ -346,7 +346,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                           int addr2,
                           int addr3);
 
-        new void DefineGlobalVariable([MarshalAs(UnmanagedType.LPWStr)] String name,
+        new void DefineGlobalVariable([MarshalAs(UnmanagedType.LPWStr)] string name,
                                      int attributes,
                                      int cSig,
                                      [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature,
@@ -358,15 +358,15 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         new void Close();
 
         new void SetSymAttribute(SymbolToken parent,
-                                [MarshalAs(UnmanagedType.LPWStr)] String name,
+                                [MarshalAs(UnmanagedType.LPWStr)] string name,
                                 int cData,
                                 [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] data);
 
-        new void OpenNamespace([MarshalAs(UnmanagedType.LPWStr)] String name);
+        new void OpenNamespace([MarshalAs(UnmanagedType.LPWStr)] string name);
 
         new void CloseNamespace();
 
-        new void UsingNamespace([MarshalAs(UnmanagedType.LPWStr)] String fullName);
+        new void UsingNamespace([MarshalAs(UnmanagedType.LPWStr)] string fullName);
 
         new void SetMethodSourceRange(ISymUnmanagedDocumentWriter startDoc,
                                      int startLine,
@@ -376,9 +376,9 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                      int endColumn);
 
         new void Initialize(IntPtr emitter,
-                       [MarshalAs(UnmanagedType.LPWStr)] String filename,
+                       [MarshalAs(UnmanagedType.LPWStr)] string filename,
                        IStream stream,
-                       Boolean fullBuild);
+                       bool fullBuild);
 
         new void GetDebugInfo(out ImageDebugDirectory iDD,
                              int cData,
@@ -397,20 +397,20 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                              SymbolToken newToken);
 
         new void Initialize2(IntPtr emitter,
-                        [MarshalAs(UnmanagedType.LPWStr)] String tempfilename,
+                        [MarshalAs(UnmanagedType.LPWStr)] string tempfilename,
                         IStream stream,
-                        Boolean fullBuild,
-                        [MarshalAs(UnmanagedType.LPWStr)] String finalfilename);
+                        bool fullBuild,
+                        [MarshalAs(UnmanagedType.LPWStr)] string finalfilename);
 
-        new void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] String name,
-                               Object value,
+        new void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] string name,
+                               object value,
                                int cSig,
                                [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] byte[] signature);
 
         new void Abort();
 
         // ISymUnmanagedWriter2 interfaces (need to define the base interface methods also, per COM interop requirements)
-        new void DefineLocalVariable2([MarshalAs(UnmanagedType.LPWStr)] String name,
+        new void DefineLocalVariable2([MarshalAs(UnmanagedType.LPWStr)] string name,
                                       int attributes,
                                       SymbolToken sigToken,
                                       int addressKind,
@@ -420,7 +420,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                       int startOffset,
                                       int endOffset);
 
-        new void DefineGlobalVariable2([MarshalAs(UnmanagedType.LPWStr)] String name,
+        new void DefineGlobalVariable2([MarshalAs(UnmanagedType.LPWStr)] string name,
                                        int attributes,
                                        SymbolToken sigToken,
                                        int addressKind,
@@ -429,8 +429,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                        int addr3);
 
 
-        new void DefineConstant2([MarshalAs(UnmanagedType.LPWStr)] String name,
-                                 Object value,
+        new void DefineConstant2([MarshalAs(UnmanagedType.LPWStr)] string name,
+                                 object value,
                                  SymbolToken sigToken);
 
         // ISymUnmanagedWriter3 interfaces
@@ -465,13 +465,13 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
         
          /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.Initialize"]/*' />
-        public void Initialize(IntPtr emitter, String filename, bool fullBuild)
+        public void Initialize(IntPtr emitter, string filename, bool fullBuild)
         {
             m_target.Initialize(emitter, filename, null, fullBuild);
         }
 
          /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.Initialize"]/*' />
-        public void Initialize(Object emitter, String filename, bool fullBuild)
+        public void Initialize(object emitter, string filename, bool fullBuild)
         {
             IntPtr uEmitter = IntPtr.Zero;
             try {
@@ -484,10 +484,10 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
 
          /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.Initialize1"]/*' />
-         public void Initialize(Object emitter,
-                         [MarshalAs(UnmanagedType.LPWStr)] String filename,
+         public void Initialize(object emitter,
+                         [MarshalAs(UnmanagedType.LPWStr)] string filename,
                          IStream stream,
-                         Boolean fullBuild)
+                         bool fullBuild)
          {
              IntPtr uEmitter = IntPtr.Zero;
              try {
@@ -500,11 +500,11 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
          }
                              
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.Initialize2"]/*' />
-        public void Initialize(Object emitter,
-                        [MarshalAs(UnmanagedType.LPWStr)] String tempfilename,
+        public void Initialize(object emitter,
+                        [MarshalAs(UnmanagedType.LPWStr)] string tempfilename,
                         IStream stream,
-                        Boolean fullBuild,
-                        [MarshalAs(UnmanagedType.LPWStr)] String finalfilename)
+                        bool fullBuild,
+                        [MarshalAs(UnmanagedType.LPWStr)] string finalfilename)
         {
             IntPtr uEmitter = IntPtr.Zero;
             try {
@@ -517,7 +517,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
 
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.DefineDocument"]/*' />
-        public ISymbolDocumentWriter DefineDocument(String url,
+        public ISymbolDocumentWriter DefineDocument(string url,
                                           Guid language,
                                           Guid languageVendor,
                                           Guid documentType)
@@ -578,7 +578,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
 
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.DefineLocalVariable"]/*' />
-        public void DefineLocalVariable(String name,
+        public void DefineLocalVariable(string name,
                                     FieldAttributes attributes,
                                     byte[] signature,
                                     SymAddressKind addressKind,
@@ -593,7 +593,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }                                    
 
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.DefineParameter"]/*' />
-        public void DefineParameter(String name,
+        public void DefineParameter(string name,
                                 ParameterAttributes attributes,
                                 int sequence,
                                 SymAddressKind addressKind,
@@ -606,7 +606,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
 
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.DefineField"]/*' />
         public void DefineField(SymbolToken parent,
-                                String name,
+                                string name,
                                 FieldAttributes attributes,
                                 byte[] signature,
                                 SymAddressKind addressKind,
@@ -619,7 +619,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
 
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.DefineGlobalVariable"]/*' />
-        public void DefineGlobalVariable(String name,
+        public void DefineGlobalVariable(string name,
                                      FieldAttributes attributes,
                                      byte[] signature,
                                      SymAddressKind addressKind,
@@ -638,13 +638,13 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
 
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.SetSymAttribute"]/*' />
-        public void SetSymAttribute(SymbolToken parent, String name, byte[] data)
+        public void SetSymAttribute(SymbolToken parent, string name, byte[] data)
         {
             m_target.SetSymAttribute(parent, name, data.Length, data);
         }
 
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.OpenNamespace"]/*' />
-        public void OpenNamespace(String name)
+        public void OpenNamespace(string name)
         {
             m_target.OpenNamespace(name);
         }
@@ -656,7 +656,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
 
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.UsingNamespace"]/*' />
-        public void UsingNamespace(String fullName)
+        public void UsingNamespace(string fullName)
         {
             m_target.UsingNamespace(fullName);
         }
@@ -694,8 +694,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                             
                              
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.DefineConstant"]/*' />
-        public void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] String name,
-                                Object value,
+        public void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] string name,
+                                object value,
                                 byte[] signature)
         {
             m_target.DefineConstant(name, value, signature.Length, signature);
@@ -708,7 +708,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
 
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.DefineLocalVariable1"]/*' />
-        public void DefineLocalVariable([MarshalAs(UnmanagedType.LPWStr)] String name,
+        public void DefineLocalVariable([MarshalAs(UnmanagedType.LPWStr)] string name,
                                         int attributes,
                                         SymbolToken sigToken,
                                         int addressKind,
@@ -723,7 +723,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
     
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.DefineGlobalVariable1"]/*' />
-        public void DefineGlobalVariable([MarshalAs(UnmanagedType.LPWStr)] String name,
+        public void DefineGlobalVariable([MarshalAs(UnmanagedType.LPWStr)] string name,
                                        int attributes,
                                        SymbolToken sigToken,
                                        int addressKind,
@@ -738,8 +738,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         
         
         /// <include file='doc\SymWriter.uex' path='docs/doc[@for="SymbolWriter.DefineConstant1"]/*' />
-        public void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] String name,
-                                  Object value,
+        public void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] string name,
+                                  object value,
                                   SymbolToken sigToken)
         {
             ((ISymUnmanagedWriter2)m_target).DefineConstant2(name, value, sigToken);

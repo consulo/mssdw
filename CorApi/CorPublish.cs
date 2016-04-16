@@ -96,7 +96,7 @@ namespace Microsoft.Samples.Debugging.CorPublish
         //
         // ICloneable interface
         //
-        public Object Clone ()
+        public object Clone ()
         {
             ICorPublishEnum clone = null;
             m_enum.Clone (out clone);
@@ -132,7 +132,7 @@ namespace Microsoft.Samples.Debugging.CorPublish
             m_proc = null;
         }
 
-        public Object Current
+        public object Current
         {
             get
             {
@@ -188,7 +188,7 @@ namespace Microsoft.Samples.Debugging.CorPublish
         //
         // ICloneable interface
         //
-        public Object Clone ()
+        public object Clone ()
         {
             ICorPublishEnum clone = null;
             m_enum.Clone (out clone);
@@ -224,7 +224,7 @@ namespace Microsoft.Samples.Debugging.CorPublish
             m_appDomain = null;
         }
 
-        public Object Current
+        public object Current
         {
             get
             {

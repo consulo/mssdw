@@ -58,7 +58,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             m_unmanagedVariable = variable;
         }
         
-        public String Name 
+        public string Name
         {
             get
             {
@@ -71,7 +71,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             }
           }
 
-        public Object Attributes 
+        public object Attributes
         { 
             get
             {

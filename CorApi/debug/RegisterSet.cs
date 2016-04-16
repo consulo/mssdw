@@ -58,11 +58,11 @@ namespace Microsoft.Samples.Debugging.CorDebug
         //HRESULT GetRegistersAvailable([out] ULONG64 *pAvailable);
 
         [CLSCompliant(false)]
-        public UInt64 RegistersAvailable
+        public ulong RegistersAvailable
         {
             get 
             {
-                UInt64 availableReg;
+                ulong availableReg;
                 m_rs.GetRegistersAvailable(out availableReg);
                 return availableReg;
             }
@@ -90,24 +90,24 @@ namespace Microsoft.Samples.Debugging.CorDebug
         //                [out, size_is(regCount), length_is(regCount)] 
         //                 CORDB_REGISTER regBuffer[]);
         [CLSCompliant(false)]
-        public UInt64[] GetRegisters(UInt64 mask)
+        public ulong[] GetRegisters(ulong mask)
         {
             int regsToGet=0;
-            for(UInt64 m = mask;m!=0;m>>=1)
+            for(ulong m = mask;m!=0;m>>=1)
                 if( (m&1) != 0 )
                     regsToGet++;
 
-            UInt64[] regs = new UInt64[regsToGet];
+            ulong[] regs = new ulong[regsToGet];
             m_rs.GetRegisters(mask,(uint)regs.Length,regs);
             return regs;
         }
 
         [CLSCompliant(false)]
-        public UInt64 GetRegister(CorCorDebugRegister register)
+        public ulong GetRegister(CorCorDebugRegister register)
         {
-            UInt64 mask=1;
+            ulong mask=1;
             mask<<=(int)register;
-            UInt64[] regs = GetRegisters(mask);
+            ulong[] regs = GetRegisters(mask);
             Debug.Assert(regs!=null && regs.Length==1);
             return regs[0];
         }
@@ -144,17 +144,17 @@ namespace Microsoft.Samples.Debugging.CorDebug
         //                          [in] ULONG32 regCount, 
         //                          [in, size_is(regCount)] CORDB_REGISTER regBuffer[]);
         [CLSCompliant(false)]
-        public void SetRegisters(UInt64 mask,UInt64[] registerValues)
+        public void SetRegisters(ulong mask, ulong[] registerValues)
         {
             m_rs.SetRegisters(mask,(uint)registerValues.Length,registerValues);
         }
 
         [CLSCompliant(false)]
-        public void SetRegister(CorCorDebugRegister register,UInt64 value)
+        public void SetRegister(CorCorDebugRegister register, ulong value)
         {
-            UInt64 mask = 1;
+            ulong mask = 1;
             mask<<=(int)register;
-            SetRegisters(mask,new UInt64[]{value});
+            SetRegisters(mask,new ulong[]{value});
         }
 
         

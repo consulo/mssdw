@@ -36,7 +36,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
     ]
     internal interface ISymUnmanagedReader
     {
-        void GetDocument([MarshalAs(UnmanagedType.LPWStr)] String url,
+        void GetDocument([MarshalAs(UnmanagedType.LPWStr)] string url,
                               Guid language,
                               Guid languageVendor,
                               Guid documentType,
@@ -79,7 +79,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                               [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedMethod retVal);
     
         void GetSymAttribute(SymbolToken parent,
-                                [MarshalAs(UnmanagedType.LPWStr)] String name,
+                                [MarshalAs(UnmanagedType.LPWStr)] string name,
                                 int sizeBuffer,
                                 out int lengthBuffer,
                                 [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex=2)] byte[] buffer);
@@ -89,14 +89,14 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
                                 [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex=0)] ISymUnmanagedNamespace[] namespaces);
     
         void Initialize(IntPtr importer,
-                       [MarshalAs(UnmanagedType.LPWStr)] String filename,
-                       [MarshalAs(UnmanagedType.LPWStr)] String searchPath,
+                       [MarshalAs(UnmanagedType.LPWStr)] string filename,
+                       [MarshalAs(UnmanagedType.LPWStr)] string searchPath,
                        IStream stream);
     
-        void UpdateSymbolStore([MarshalAs(UnmanagedType.LPWStr)] String filename,
+        void UpdateSymbolStore([MarshalAs(UnmanagedType.LPWStr)] string filename,
                                      IStream stream);
     
-        void ReplaceSymbolStore([MarshalAs(UnmanagedType.LPWStr)] String filename,
+        void ReplaceSymbolStore([MarshalAs(UnmanagedType.LPWStr)] string filename,
                                       IStream stream);
     
         void GetSymbolStoreFileName(int cchName,
@@ -112,7 +112,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
     
         void GetDocumentVersion(ISymUnmanagedDocument pDoc,
                                       out int version,
-                                      out Boolean pbCurrent);
+                                      out bool pbCurrent);
     
         void GetMethodVersion(ISymUnmanagedMethod pMethod,
                                    out int version);
@@ -175,7 +175,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             m_reader = null;
         }
 
-        public ISymbolDocument GetDocument(String url,
+        public ISymbolDocument GetDocument(string url,
                                         Guid language,
                                         Guid languageVendor,
                                         Guid documentType)
@@ -300,7 +300,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             return new SymMethod(unmanagedMethod);
         }
 
-        public byte[] GetSymAttribute(SymbolToken parent, String name)
+        public byte[] GetSymAttribute(SymbolToken parent, string name)
         {
             byte[] Data;
             int cData = 0;
@@ -326,8 +326,8 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             return namespaces;
         }
 
-        public void Initialize(Object importer, String filename,
-                       String searchPath, IStream stream)
+        public void Initialize(object importer, string filename,
+                       string searchPath, IStream stream)
         {
             IntPtr uImporter = IntPtr.Zero;
             try {
@@ -339,18 +339,18 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             }
         }
         
-        public void UpdateSymbolStore(String fileName, IStream stream)
+        public void UpdateSymbolStore(string fileName, IStream stream)
         {
             m_reader.UpdateSymbolStore(fileName, stream);
         }
 
-        public void ReplaceSymbolStore(String fileName, IStream stream)
+        public void ReplaceSymbolStore(string fileName, IStream stream)
         {
             m_reader.ReplaceSymbolStore(fileName, stream);
         }
 
         
-        public String GetSymbolStoreFileName()
+        public string GetSymbolStoreFileName()
         {            
             StringBuilder fileName;
             int count = 0;
@@ -385,7 +385,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         }
         
         public int GetDocumentVersion(ISymbolDocument document,
-                                     out Boolean isCurrent)
+                                     out bool isCurrent)
         {
             int version = 0;
             m_reader.GetDocumentVersion(((SymbolDocument)document).InternalDocument, out version, out isCurrent);

@@ -43,7 +43,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         void GetSourceStartEnd(ISymUnmanagedDocument[] docs,
                                   [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] lines,
                                   [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] columns,
-                                  out Boolean retVal);
+                                  out bool retVal);
         void GetSequencePoints(int cPoints,
                                   out int pcPoints,
                                   [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex=0)] int[] offsets,
@@ -267,7 +267,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
             
         }
 
-        public String GetFileNameFromOffset(int dwOffset)
+        public string GetFileNameFromOffset(int dwOffset)
         {
              int cchName = 0;
              ((ISymENCUnmanagedMethod)m_unmanagedMethod).GetFileNameFromOffset(dwOffset, 0, out cchName, null);

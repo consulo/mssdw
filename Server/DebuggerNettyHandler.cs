@@ -89,7 +89,7 @@ namespace Consulo.Internal.Mssdw.Server
 			Console.WriteLine("Exception: " + exception);
 		}
 
-		public void PutWaiter(String id, Action<ClientMessage> action)
+		public void PutWaiter(string id, Action<ClientMessage> action)
 		{
 			queries.Add(id, action);
 		}

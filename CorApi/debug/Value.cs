@@ -147,17 +147,17 @@ namespace Microsoft.Samples.Debugging.CorDebug
             m_refVal = referenceValue;
         }
         
-        public Int64 Value
+        public long Value
         {
             get 
             {
-                UInt64 v;
+                ulong v;
                 m_refVal.GetValue(out v);
-                return (Int64) v;
+                return (long) v;
             }
             set 
             {
-                UInt64 v = (UInt64) value;
+                ulong v = (ulong) value;
                 m_refVal.SetValue(v);
             }
         }
@@ -343,7 +343,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
                         
                     case CorElementType.ELEMENT_TYPE_I1:
-                        SByte sbv = Convert.ToSByte( value );
+                        sbyte sbv = Convert.ToSByte( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &sbv ) );
@@ -351,7 +351,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
 
                     case CorElementType.ELEMENT_TYPE_U1:                
-                        Byte bv = Convert.ToByte( value );
+                        byte bv = Convert.ToByte( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &bv ) );
@@ -359,7 +359,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
                         
                     case CorElementType.ELEMENT_TYPE_CHAR:              
-                        Char cv = Convert.ToChar( value );
+                        char cv = Convert.ToChar( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &cv ) );
@@ -367,7 +367,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
                         
                     case CorElementType.ELEMENT_TYPE_I2:
-                        Int16 i16v = Convert.ToInt16( value );
+                        short i16v = Convert.ToInt16( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &i16v ) );
@@ -375,7 +375,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
 
                     case CorElementType.ELEMENT_TYPE_U2:
-                        UInt16 u16v = Convert.ToUInt16( value );
+                        ushort u16v = Convert.ToUInt16( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &u16v ) );
@@ -383,7 +383,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
                         
                     case CorElementType.ELEMENT_TYPE_I4:
-                        Int32 i32v = Convert.ToInt32( value );
+                        int i32v = Convert.ToInt32( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &i32v ) );
@@ -391,7 +391,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
                         
                     case CorElementType.ELEMENT_TYPE_U4:
-                        UInt32 u32v = Convert.ToUInt32( value );
+                        uint u32v = Convert.ToUInt32( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &u32v ) );
@@ -399,7 +399,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
 
                     case CorElementType.ELEMENT_TYPE_I:
-                        Int64 ip64v = Convert.ToInt64( value );
+                        long ip64v = Convert.ToInt64( value );
                         IntPtr ipv = new IntPtr( ip64v );
                         unsafe
                         {
@@ -408,7 +408,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
 
                     case CorElementType.ELEMENT_TYPE_U:         
-                        UInt64 ipu64v = Convert.ToUInt64( value );
+                        ulong ipu64v = Convert.ToUInt64( value );
                         UIntPtr uipv = new UIntPtr( ipu64v );
                         unsafe
                         {
@@ -417,7 +417,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
 
                     case CorElementType.ELEMENT_TYPE_I8:                
-                        Int64 i64v = Convert.ToInt64( value );
+                        long i64v = Convert.ToInt64( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &i64v ) );
@@ -425,7 +425,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
                         
                     case CorElementType.ELEMENT_TYPE_U8:
-                        UInt64 u64v = Convert.ToUInt64( value );
+                        ulong u64v = Convert.ToUInt64( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &u64v ) );
@@ -433,7 +433,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                         break;
 
                     case CorElementType.ELEMENT_TYPE_R4:                                
-                        Single sv = Convert.ToSingle( value );
+                        float sv = Convert.ToSingle( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &sv ) );
@@ -441,7 +441,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
                          break;
 
                     case CorElementType.ELEMENT_TYPE_R8:                                                            
-                        Double dv = Convert.ToDouble( value );
+                        double dv = Convert.ToDouble( value );
                         unsafe
                         {
                             SetValueInternal( new IntPtr( &dv ) );
@@ -494,7 +494,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
             return buffer;
         }
 
-        public Object UnsafeGetValueAsType(CorElementType type)
+        public object UnsafeGetValueAsType(CorElementType type)
         {
             switch(type)
             {
@@ -517,37 +517,37 @@ namespace Microsoft.Samples.Debugging.CorDebug
                     return (object) cValue;
 
                 case CorElementType.ELEMENT_TYPE_I1:
-                    SByte i1Value=4;
+                    sbyte i1Value=4;
                     unsafe 
                     {
-                        Debug.Assert(this.Size==sizeof(SByte));
+                        Debug.Assert(this.Size==sizeof(sbyte));
                         this.GetValueInternal(new IntPtr(&i1Value));
                     }
                     return (object) i1Value;
                     
                 case CorElementType.ELEMENT_TYPE_U1:
-                    Byte u1Value=4;
+                    byte u1Value=4;
                     unsafe 
                     {
-                        Debug.Assert(this.Size==sizeof(Byte));
+                        Debug.Assert(this.Size==sizeof(byte));
                         this.GetValueInternal(new IntPtr(&u1Value));
                     }
                     return (object) u1Value;
                     
                 case CorElementType.ELEMENT_TYPE_I2:
-                    Int16 i2Value=4;
+                    short i2Value=4;
                     unsafe 
                     {
-                        Debug.Assert(this.Size==sizeof(Int16));
+                        Debug.Assert(this.Size==sizeof(short));
                         this.GetValueInternal(new IntPtr(&i2Value));
                     }
                     return (object) i2Value;
                     
                 case CorElementType.ELEMENT_TYPE_U2:
-                    UInt16 u2Value=4;
+                    ushort u2Value=4;
                     unsafe 
                     {
-                        Debug.Assert(this.Size==sizeof(UInt16));
+                        Debug.Assert(this.Size==sizeof(ushort));
                         this.GetValueInternal(new IntPtr(&u2Value));
                     }
                     return (object) u2Value;
@@ -571,55 +571,55 @@ namespace Microsoft.Samples.Debugging.CorDebug
                     return (object) uipValue;
                     
                 case CorElementType.ELEMENT_TYPE_I4:
-                    Int32 i4Value=4;
+                    int i4Value=4;
                     unsafe 
                     {
-                        Debug.Assert(this.Size==sizeof(Int32));
+                        Debug.Assert(this.Size==sizeof(int));
                         this.GetValueInternal(new IntPtr(&i4Value));
                     }
                     return (object) i4Value;
 
                 case CorElementType.ELEMENT_TYPE_U4:
-                    UInt32 u4Value=4;
+                    uint u4Value=4;
                     unsafe 
                     {
-                        Debug.Assert(this.Size==sizeof(UInt32));
+                        Debug.Assert(this.Size==sizeof(uint));
                         this.GetValueInternal(new IntPtr(&u4Value));
                     }
                     return (object) u4Value;
 
                 case CorElementType.ELEMENT_TYPE_I8:
-                    Int64 i8Value=4;
+                    long i8Value=4;
                     unsafe 
                     {
-                        Debug.Assert(this.Size==sizeof(Int64));
+                        Debug.Assert(this.Size==sizeof(long));
                         this.GetValueInternal(new IntPtr(&i8Value));
                     }
                     return (object) i8Value;
 
                 case CorElementType.ELEMENT_TYPE_U8:
-                    UInt64 u8Value=4;
+                    ulong u8Value=4;
                     unsafe 
                     {
-                        Debug.Assert(this.Size==sizeof(UInt64));
+                        Debug.Assert(this.Size==sizeof(ulong));
                         this.GetValueInternal(new IntPtr(&u8Value));
                     }
                     return (object) u8Value;
 
                 case CorElementType.ELEMENT_TYPE_R4:
-                    Single r4Value=4;
+                    float r4Value=4;
                     unsafe 
                     {
-                        Debug.Assert(this.Size==sizeof(Single));
+                        Debug.Assert(this.Size==sizeof(float));
                         this.GetValueInternal(new IntPtr(&r4Value));
                     }
                     return (object) r4Value;
 
                 case CorElementType.ELEMENT_TYPE_R8:
-                    Double r8Value=4;
+                    double r8Value=4;
                     unsafe 
                     {
-                        Debug.Assert(this.Size==sizeof(Double));
+                        Debug.Assert(this.Size==sizeof(double));
                         this.GetValueInternal(new IntPtr(&r8Value));
                     }
                     return (object) r8Value;

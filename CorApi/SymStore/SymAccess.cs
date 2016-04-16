@@ -33,10 +33,10 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         {
             [DllImport("ole32.dll")]
             internal static extern int CoCreateInstance([In] ref Guid rclsid,
-                                                       [In, MarshalAs(UnmanagedType.IUnknown)] Object pUnkOuter,
+                                                       [In, MarshalAs(UnmanagedType.IUnknown)] object pUnkOuter,
                                                        [In] uint dwClsContext,
                                                        [In] ref Guid riid,
-                                                       [Out, MarshalAs(UnmanagedType.Interface)] out Object ppv);
+                                                       [Out, MarshalAs(UnmanagedType.Interface)] out object ppv);
         }
 
         // This function will either use a given IMetadataEmitter for the ISymbolWriter2
@@ -131,7 +131,7 @@ namespace Microsoft.Samples.Debugging.CorSymbolStore
         //  DWORD       dwOpenFlags,            // [in] Open mode flags.
         //  REFIID      riid,                   // [in] The interface desired.
         //  IUnknown    **ppIUnk) PURE;         // [out] Return interface on success.
-        void OpenScope([In, MarshalAs(UnmanagedType.LPWStr)] String szScope, [In] Int32 dwOpenFlags, [In] ref Guid riid, [Out, MarshalAs(UnmanagedType.IUnknown)] out Object punk);
+        void OpenScope([In, MarshalAs(UnmanagedType.LPWStr)] string szScope, [In] int dwOpenFlags, [In] ref Guid riid, [Out, MarshalAs(UnmanagedType.IUnknown)] out object punk);
 
         // There are more methods in this interface, but we don't need them.
     }
