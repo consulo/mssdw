@@ -65,15 +65,15 @@ public class Program
 				}
 			};
 
+			Semaphore semaphore = new  Semaphore(0, 1);
+
 			session.OnProcessExit += delegate(DebugSession obj)
 			{
 				server.Close();
+				semaphore.Release();
 			};
 
-			while(!session.Finished)
-			{
-				Thread.Sleep(500);
-			}
+			semaphore.WaitOne();
 		}
 		catch(Exception)
 		{

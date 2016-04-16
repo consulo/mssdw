@@ -5,13 +5,14 @@ using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Consulo.Internal.Mssdw.Request;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.CorMetadata;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorSymbolStore;
+using System.Threading.Tasks;
 using Consulo.Internal.Mssdw.Server;
 using Consulo.Internal.Mssdw.Server.Event;
+using Consulo.Internal.Mssdw.Server.Event.Request;
 
 namespace Consulo.Internal.Mssdw
 {
@@ -59,14 +60,6 @@ namespace Consulo.Internal.Mssdw
 		{
 			get;
 			set;
-		}
-
-		public bool Finished
-		{
-			get
-			{
-				return process == null;
-			}
 		}
 
 		public void Start(List<string> args)
@@ -167,12 +160,12 @@ namespace Consulo.Internal.Mssdw
 			stepper.SetJmcStatus(true);
 		}
 
-		public BreakpointRequestResult InsertBreakpoint(BreakpointRequest request)
+		public BreakpointRequestResult InsertBreakpoint(InsertBreakpointRequest request)
 		{
 			BreakpointRequestResult result = new BreakpointRequestResult(request);
 
 			DocInfo doc;
-			if(!documents.TryGetValue(System.IO.Path.GetFullPath(request.FileName), out doc))
+			if(!documents.TryGetValue(System.IO.Path.GetFullPath(request.FilePath), out doc))
 			{
 				result.SetStatus(BreakEventStatus.NotBound, null);
 				return result;
@@ -252,7 +245,7 @@ namespace Consulo.Internal.Mssdw
 
 			CorFunction func = doc.Module.GetFunctionFromToken(met.Token.GetToken());
 			CorFunctionBreakpoint corBp = func.ILCode.CreateBreakpoint(offset);
-			corBp.Activate(request.Enabled);
+			corBp.Activate(true);
 			breakpoints[corBp] = result;
 
 			//result.Handle = corBp;
@@ -275,7 +268,7 @@ namespace Consulo.Internal.Mssdw
 			if(breakpoints.TryGetValue(e.Breakpoint, out binfo))
 			{
 				e.Continue = true;
-				BreakpointRequest bp = (BreakpointRequest)binfo.BreakEvent;
+				InsertBreakpointRequest bp = (InsertBreakpointRequest)binfo.BreakEvent;
 
 				binfo.IncrementHitCount();
 				//if (!binfo.HitCountReached)
@@ -391,12 +384,10 @@ namespace Consulo.Internal.Mssdw
 				}
 			}
 
-			if(Client != null)
+			ClientMessage result = Notify(new OnModuleLoadEvent(file));
+			if(result != null)
 			{
-				Client.Notify(new OnModuleLoadEvent(file));
-
-				e.Continue = false;
-				//FIXME [VISTALL]
+				e.Continue = result.Continue;
 			}
 			else
 			{
@@ -501,19 +492,17 @@ namespace Consulo.Internal.Mssdw
 			|| !documents.ContainsKey(fileName);
 		}
 
-		private void NotifyClients<T>(T o)  where T : class
+		private ClientMessage Notify<T>(T value) where T : class
 		{
-			foreach (NettyClient channel in myConnectedClients)
+			if(Client != null)
 			{
-				channel.Notify(o);
+				Task<ClientMessage> task = Client.Notify(value);
+				task.Wait();
+				return task.Result;
 			}
-		}
-
-		public bool HaveClients
-		{
-			get
+			else
 			{
-				return myConnectedClients.Count != 0;
+				return null;
 			}
 		}
 
