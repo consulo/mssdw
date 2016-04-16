@@ -18,10 +18,13 @@
           <orderEntry type="dot-net-library" name="System" />
           <orderEntry type="dot-net-library" name="System.Core" />
           <orderEntry type="module-library">
-            <library name="nuget: DotNetty.Handlers.0.2.4">
+            <library name="nuget: Newtonsoft.Json.8.0.3">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Handlers.0.2.4/lib/net45/DotNetty.Handlers.dll!/" />
+                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/Newtonsoft.Json.8.0.3/lib/net45/Newtonsoft.Json.dll!/" />
               </binaries>
+              <documentation>
+                <root url="file://$MODULE_DIR$/packages/Newtonsoft.Json.8.0.3/lib/net45/Newtonsoft.Json.xml" />
+              </documentation>
             </library>
           </orderEntry>
           <orderEntry type="module-library">
@@ -35,40 +38,37 @@
             </library>
           </orderEntry>
           <orderEntry type="module-library">
-            <library name="nuget: DotNetty.Common.0.2.4">
+            <library name="nuget: DotNetty.Common.0.2.5">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Common.0.2.4/lib/net45/DotNetty.Common.dll!/" />
+                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Common.0.2.5/lib/net45/DotNetty.Common.dll!/" />
               </binaries>
             </library>
           </orderEntry>
           <orderEntry type="module-library">
-            <library name="nuget: DotNetty.Buffers.0.2.4">
+            <library name="nuget: DotNetty.Buffers.0.2.5">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Buffers.0.2.4/lib/net45/DotNetty.Buffers.dll!/" />
+                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Buffers.0.2.5/lib/net45/DotNetty.Buffers.dll!/" />
               </binaries>
             </library>
           </orderEntry>
           <orderEntry type="module-library">
-            <library name="nuget: DotNetty.Transport.0.2.4">
+            <library name="nuget: DotNetty.Transport.0.2.5">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Transport.0.2.4/lib/net45/DotNetty.Transport.dll!/" />
+                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Transport.0.2.5/lib/net45/DotNetty.Transport.dll!/" />
               </binaries>
             </library>
           </orderEntry>
           <orderEntry type="module-library">
-            <library name="nuget: Newtonsoft.Json.6.0.8">
+            <library name="nuget: DotNetty.Codecs.0.2.5">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/Newtonsoft.Json.6.0.8/lib/net45/Newtonsoft.Json.dll!/" />
+                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Codecs.0.2.5/lib/net45/DotNetty.Codecs.dll!/" />
               </binaries>
-              <documentation>
-                <root url="file://$MODULE_DIR$/packages/Newtonsoft.Json.6.0.8/lib/net45/Newtonsoft.Json.xml" />
-              </documentation>
             </library>
           </orderEntry>
           <orderEntry type="module-library">
-            <library name="nuget: DotNetty.Codecs.0.2.4">
+            <library name="nuget: DotNetty.Handlers.0.2.5">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Codecs.0.2.4/lib/net45/DotNetty.Codecs.dll!/" />
+                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Handlers.0.2.5/lib/net45/DotNetty.Handlers.dll!/" />
               </binaries>
             </library>
           </orderEntry>
