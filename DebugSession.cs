@@ -1,6 +1,3 @@
-using Microsoft.Samples.Debugging.CorMetadata;
-using Microsoft.Samples.Debugging.CorDebug;
-using Microsoft.Samples.Debugging.CorSymbolStore;
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -10,6 +7,11 @@ using System.Linq;
 using System.Threading;
 using Consulo.Internal.Mssdw.Request;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
+using Microsoft.Samples.Debugging.CorMetadata;
+using Microsoft.Samples.Debugging.CorDebug;
+using Microsoft.Samples.Debugging.CorSymbolStore;
+using Consulo.Internal.Mssdw.Server;
+using Consulo.Internal.Mssdw.Server.Event;
 
 namespace Consulo.Internal.Mssdw
 {
@@ -37,11 +39,11 @@ namespace Consulo.Internal.Mssdw
 		private readonly SymbolBinder symbolBinder = new SymbolBinder();
 		readonly Dictionary<CorBreakpoint, BreakpointRequestResult> breakpoints = new Dictionary<CorBreakpoint, BreakpointRequestResult>();
 
-		public event Action<DebugSession, String> OnCodeFileLoad = delegate(DebugSession arg1, string arg2)
+		public event Action<DebugSession> OnStop = delegate(DebugSession arg1)
 		{
 		};
 
-		public event Action<DebugSession> OnStop = delegate(DebugSession arg1)
+		public event Action<DebugSession> OnProcessExit = delegate(DebugSession arg1)
 		{
 		};
 
@@ -53,6 +55,12 @@ namespace Consulo.Internal.Mssdw
 		private CorStepper stepper;
 		private bool autoStepInto;
 
+		public NettyClient Client
+		{
+			get;
+			set;
+		}
+
 		public bool Finished
 		{
 			get
@@ -61,13 +69,17 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		public void Start(String[] args)
+		public void Start(List<string> args)
 		{
 			string command = args[0];
-			string commandLine = String.Join(" ", args);
+			string commandLine = string.Join(" ", args);
 			Console.WriteLine("running: " + commandLine);
 			DirectoryInfo parentDirectory = Directory.GetParent(command);
 
+			if(!File.Exists(command))
+			{
+				throw new Exception(String.Format("File '{0}' is not exists", command));
+			}
 			// Create the debugger
 			string dversion;
 			try
@@ -104,9 +116,9 @@ namespace Consulo.Internal.Mssdw
 			  process.OnAssemblyUnload += new CorAssemblyEventHandler(OnAssemblyUnload);
 			  process.OnCreateThread += new CorThreadEventHandler(OnCreateThread);
 			  process.OnThreadExit += new CorThreadEventHandler(OnThreadExit);*/
-			process.OnModuleLoad += new CorModuleEventHandler(OnModuleLoad);
+			process.OnModuleLoad += new CorModuleEventHandler(OnModuleLoadImpl);
 			process.OnModuleUnload += new CorModuleEventHandler(OnModuleUnload);
-			process.OnProcessExit += new CorProcessEventHandler(OnProcessExit);
+			process.OnProcessExit += new CorProcessEventHandler(OnProcessExitImpl);
 			/*  process.OnUpdateModuleSymbols += new UpdateModuleSymbolsEventHandler(OnUpdateModuleSymbols);
 			  process.OnDebuggerError += new DebuggerErrorEventHandler(OnDebuggerError);*/
 			process.OnBreakpoint += new BreakpointEventHandler(OnBreakpoint);
@@ -314,7 +326,7 @@ namespace Consulo.Internal.Mssdw
 			OnStop(this);
 		}
 
-		private void OnModuleLoad(object sender, CorModuleEventArgs e)
+		private void OnModuleLoadImpl(object sender, CorModuleEventArgs e)
 		{
 			CorMetadataImport mi = new CorMetadataImport(e.Module);
 
@@ -347,8 +359,6 @@ namespace Consulo.Internal.Mssdw
 							di.Reader = reader;
 							di.Module = e.Module;
 							documents[docFile] = di;
-
-							OnCodeFileLoad(this, docFile);
 						}
 					}
 					catch(Exception ex)
@@ -380,7 +390,18 @@ namespace Consulo.Internal.Mssdw
 					modules[e.Module.Name] = moi;
 				}
 			}
-			e.Continue = true;
+
+			if(Client != null)
+			{
+				Client.Notify(new OnModuleLoadEvent(file));
+
+				e.Continue = false;
+				//FIXME [VISTALL]
+			}
+			else
+			{
+				e.Continue = true;
+			}
 		}
 
 		private void OnModuleUnload (object sender, CorModuleEventArgs e)
@@ -420,7 +441,7 @@ namespace Consulo.Internal.Mssdw
 			e.Continue = true;
 		}
 
-		public void OnProcessExit(object sender, CorProcessEventArgs e)
+		public void OnProcessExitImpl(object sender, CorProcessEventArgs e)
 		{
 			// If the main thread stopped, terminate the debugger session
 			if(e.Process.Id == process.Id)
@@ -437,6 +458,7 @@ namespace Consulo.Internal.Mssdw
 					});
 				}
 			}
+			OnProcessExit(this);
 		}
 
 		private void OnDebuggerOutput(bool error, String message)
@@ -477,6 +499,22 @@ namespace Consulo.Internal.Mssdw
 		{
 			return string.IsNullOrWhiteSpace(fileName)
 			|| !documents.ContainsKey(fileName);
+		}
+
+		private void NotifyClients<T>(T o)  where T : class
+		{
+			foreach (NettyClient channel in myConnectedClients)
+			{
+				channel.Notify(o);
+			}
+		}
+
+		public bool HaveClients
+		{
+			get
+			{
+				return myConnectedClients.Count != 0;
+			}
 		}
 
 		/*public void OnStdOutput (object sender, CorTargetOutputEventArgs e) {

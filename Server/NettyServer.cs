@@ -1,61 +1,61 @@
-using System;
 using System.Threading.Tasks;
 using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
+using System;
+using Newtonsoft.Json;
 
 namespace Consulo.Internal.Mssdw.Server
 {
 	public class NettyServer
 	{
-		public NettyServer()
+		private IChannel bootstrapChannel;
+		private MultithreadEventLoopGroup bossGroup = new MultithreadEventLoopGroup(1);
+		private MultithreadEventLoopGroup workerGroup = new MultithreadEventLoopGroup();
+		private ObservableEventListener eventListener = new ObservableEventListener();
+
+		private int port;
+
+		public NettyServer(int port)
 		{
+			this.port = port;
 		}
 
-		public void Start()
+		public async void RunServer(DebugSession debugSession)
 		{
-			Task.Run(() => RunServer()).Wait();
-		}
-
-		static async Task RunServer()
-		{
-			var eventListener = new ObservableEventListener();
 			eventListener.LogToConsole();
-			//eventListener.EnableEvents(DefaultEventSource.Log, EventLevel.Verbose);
+			//eventListener.EnableEvents(DefaultEventSource.Log, EventLevel.Informational);
 
-			var bossGroup = new MultithreadEventLoopGroup(1);
-			var workerGroup = new MultithreadEventLoopGroup();
-			try
+			var bootstrap = new ServerBootstrap();
+			bootstrap
+			.Group(bossGroup, workerGroup)
+			.Channel<TcpServerSocketChannel>()
+			.Option(ChannelOption.SoBacklog, 100)
+			.Handler(new LoggingHandler(LogLevel.INFO))
+			.ChildHandler(new ActionChannelInitializer<ISocketChannel>(channel =>
 			{
-				var bootstrap = new ServerBootstrap();
-				bootstrap
-				.Group(bossGroup, workerGroup)
-				.Channel<TcpServerSocketChannel>()
-				.Option(ChannelOption.SoBacklog, 100)
-				.Handler(new LoggingHandler(LogLevel.INFO))
-				.ChildHandler(new ActionChannelInitializer<ISocketChannel>(channel =>
-				{
-					IChannelPipeline pipeline = channel.Pipeline;
+				IChannelPipeline pipeline = channel.Pipeline;
 
-					pipeline.AddLast(new DebuggerNettyHandler());
-				}));
+				pipeline.AddLast(new DebuggerNettyHandler(debugSession));
+			}));
 
-				IChannel bootstrapChannel = await bootstrap.BindAsync(7755);
+			bootstrapChannel = await bootstrap.BindAsync(port);
+		}
 
-				Console.ReadLine();
-
-				Console.WriteLine("close");
-				await bootstrapChannel.CloseAsync();
-				Console.WriteLine("after close");
-			}
-			finally
+		public async void Close()
+		{
+			if(bootstrapChannel == null)
 			{
-				Task.WaitAll(bossGroup.ShutdownGracefullyAsync(), workerGroup.ShutdownGracefullyAsync());
-				eventListener.Dispose();
+				return;
 			}
-			Console.WriteLine("finish");
+
+			await bootstrapChannel.CloseAsync();
+
+			Task.WaitAll(bossGroup.ShutdownGracefullyAsync(), workerGroup.ShutdownGracefullyAsync());
+
+			eventListener.Dispose();
 		}
 	}
 }

@@ -1,8 +1,5 @@
 using System;
-using System.Linq;
-using System.Threading;
 using Consulo.Internal.Mssdw;
-using Consulo.Internal.Mssdw.Request;
 using Microsoft.Samples.Debugging.CorDebug;
 using System.Collections.Generic;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
@@ -11,38 +8,77 @@ using Microsoft.Samples.Debugging.CorMetadata;
 using System.Diagnostics.SymbolStore;
 using Consulo.Internal.Mssdw.Data;
 using Consulo.Internal.Mssdw.Server;
+using System.Threading.Tasks;
+using System.Threading;
 
 public class Program
 {
-	public static void Main(String[] args)
+	public static void Main(string[] temp)
 	{
-		DebugSession session = new DebugSession();
-		session.OnCodeFileLoad += delegate(DebugSession arg1, string fileName)
+		List<string> arguments = new List<string>(temp);
+
+		int port = -1;
+		foreach (string argument in temp)
 		{
-			Console.WriteLine("code file loaded: " + fileName);
-
-			BreakpointRequestResult result = session.InsertBreakpoint(new BreakpointRequest(fileName, 6));
-
-			Console.WriteLine(result);
-		};
-
-		session.OnStop += delegate(DebugSession obj)
-		{
-			List<CorFrame> frames = obj.FrameList;
-
-			foreach (CorFrame f in frames)
+			if(argument.StartsWith("--port="))
 			{
-				StackFrame frame = CreateFrame(obj, f);
-
-				Console.WriteLine(frame.Location.Method + ":" + frame.Language);
+				port = int.Parse(argument.Substring(7, argument.Length - 7));
+				arguments.Remove(argument);
 			}
-		};
+		}
 
-		session.Start(args);
+		if(port == -1)
+		{
+			Console.WriteLine("Port is not set. use '--port=<port>' argument");
+			return;
+		}
 
-		NettyServer server = new NettyServer();
+		Console.WriteLine("Port: " + port);
 
-		server.Start();
+		DebugSession session = new DebugSession();
+
+		try
+		{
+			NettyServer server = new NettyServer(port);
+
+			Task.Run(() => server.RunServer(session)).Wait();
+
+			Console.WriteLine("Waiting client");
+			// w8 client
+			while(session.Client == null)
+			{
+				Thread.Sleep(500);
+			}
+			Console.WriteLine("Client connected");
+
+			session.Start(arguments); // we can failed if file is not exists
+
+			session.OnStop += delegate(DebugSession obj)
+			{
+				List<CorFrame> frames = obj.FrameList;
+
+				foreach (CorFrame f in frames)
+				{
+					StackFrame frame = CreateFrame(obj, f);
+
+					Console.WriteLine(frame.Location.Method + ":" + frame.Language);
+				}
+			};
+
+			session.OnProcessExit += delegate(DebugSession obj)
+			{
+				server.Close();
+			};
+
+			while(!session.Finished)
+			{
+				Thread.Sleep(500);
+			}
+		}
+		catch(Exception)
+		{
+			throw;
+		}
 	}
 
 	internal static StackFrame CreateFrame (DebugSession session, CorFrame frame)
@@ -87,6 +123,8 @@ public class Program
 					address = (uint)sp.Offset;
 				}
 
+				object[] customAttributes = mi.GetCustomAttributes(true);
+
 				if(session.IsExternalCode(file))
 				{
 					external = true;
@@ -99,10 +137,10 @@ public class Program
 						v is System.Diagnostics.DebuggerNonUserCodeAttribute);
 					} else */
 					{
-						external = mi.GetCustomAttributes(true).Any(v => v is System.Diagnostics.DebuggerHiddenAttribute);
+						external = false;// customAttributes.Any(v => v is System.Diagnostics.DebuggerHiddenAttribute);
 					}
 				}
-				hidden = mi.GetCustomAttributes(true).Any(v => v is System.Diagnostics.DebuggerHiddenAttribute);
+				hidden = false;// customAttributes.Any(v => v is System.Diagnostics.DebuggerHiddenAttribute);
 			}
 			lang = "Managed";
 			hasDebugInfo = true;
