@@ -237,7 +237,7 @@ namespace Consulo.Internal.Mssdw.Server
 			if(method == null)
 				method = "<Unknown>";
 
-			result.Add(method);
+			result.Add(file, line, method);
 		}
 
 		private const int SpecialSequencePoint = 0xfeefee;

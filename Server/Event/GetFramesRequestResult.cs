@@ -6,17 +6,29 @@ namespace Consulo.Internal.Mssdw.Server.Event
 	{
 		public class FrameInfo
 		{
+			public class SourcePosition
+			{
+				public string FilePath;
+
+				public int Line;
+			}
+
+			public SourcePosition Position = new SourcePosition();
+
 			public string Method;
 		}
 
 		public List<FrameInfo> Frames = new List<FrameInfo>();
 
-		public void Add(string method)
+		public void Add(string filePath, int line, string method)
 		{
-			FrameInfo threadInfo = new FrameInfo();
-			threadInfo.Method = method;
+			FrameInfo frameInfo = new FrameInfo();
+			frameInfo.Method = method;
 
-			Frames.Add(threadInfo);
+			frameInfo.Position.Line = line;
+			frameInfo.Position.FilePath = filePath;
+
+			Frames.Add(frameInfo);
 		}
 	}
 }
