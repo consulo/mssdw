@@ -1,4 +1,4 @@
-namespace Consulo.Internal.Mssdw.Server.Event.Request
+namespace Consulo.Internal.Mssdw.Server.Request
 {
 	public class InsertBreakpointRequest
 	{

@@ -12,7 +12,7 @@ using Microsoft.Samples.Debugging.CorSymbolStore;
 using System.Threading.Tasks;
 using Consulo.Internal.Mssdw.Server;
 using Consulo.Internal.Mssdw.Server.Event;
-using Consulo.Internal.Mssdw.Server.Event.Request;
+using Consulo.Internal.Mssdw.Server.Request;
 
 namespace Consulo.Internal.Mssdw
 {
@@ -56,6 +56,14 @@ namespace Consulo.Internal.Mssdw
 		{
 			get;
 			set;
+		}
+
+		public CorThread ActiveThread
+		{
+			get
+			{
+				return activeThread;
+			}
 		}
 
 		public void Start(List<string> args)
@@ -132,16 +140,7 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		internal List<CorFrame> FrameList
-		{
-			get
-			{
-
-				return new List<CorFrame>(GetFrames(activeThread));
-			}
-		}
-
-		internal static IEnumerable<CorFrame> GetFrames (CorThread thread)
+		internal static IEnumerable<CorFrame> GetFrames(CorThread thread)
 		{
 			foreach (CorChain chain in thread.Chains)
 			{

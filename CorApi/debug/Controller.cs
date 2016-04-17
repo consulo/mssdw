@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------
 using System;
 using System.Collections;
-
+using System.Collections.Generic;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 
 namespace Microsoft.Samples.Debugging.CorDebug
@@ -64,7 +64,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
         }
 
         /** Enumerate over all threads in active in the process. */
-        public IEnumerable Threads
+        public IEnumerable<CorThread> Threads
         {
             get 
             {

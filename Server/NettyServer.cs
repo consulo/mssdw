@@ -4,8 +4,6 @@ using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
-using System;
-using Newtonsoft.Json;
 
 namespace Consulo.Internal.Mssdw.Server
 {

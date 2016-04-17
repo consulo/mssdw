@@ -1,6 +1,7 @@
 using System;
+using Consulo.Internal.Mssdw.Server.Request;
 
-namespace Consulo.Internal.Mssdw.Server.Event.Request
+namespace Consulo.Internal.Mssdw.Server.Event
 {
 	public enum BreakEventStatus
 	{

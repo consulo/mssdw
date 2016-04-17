@@ -28,7 +28,11 @@ namespace Consulo.Internal.Mssdw.Server
 
 				onEvent.Id = Guid.NewGuid().ToString();
 
-				byte[] messageBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(onEvent));
+				string serializeObject = JsonConvert.SerializeObject(onEvent);
+
+				//Console.WriteLine("send: " + serializeObject);
+
+				byte[] messageBytes = Encoding.UTF8.GetBytes(serializeObject);
 
 				IByteBuffer buffer = Unpooled.Buffer(messageBytes.Length);
 
@@ -55,14 +59,14 @@ namespace Consulo.Internal.Mssdw.Server
 			{
 				string serializeObject = JsonConvert.SerializeObject(e);
 
-				Console.WriteLine("send: " + serializeObject);
-
 				byte[] messageBytes = Encoding.UTF8.GetBytes(serializeObject);
 
 				IByteBuffer buffer = Unpooled.Buffer(messageBytes.Length);
 
 				buffer.WriteBytes(messageBytes);
 				await myChannel.WriteAndFlushAsync(buffer);
+
+				Console.WriteLine("send1: " + serializeObject);
 			});
 		}
 	}

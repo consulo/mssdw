@@ -35,7 +35,7 @@ namespace Consulo.Internal.Mssdw.Server
 					{
 						string messageType = clientMessage.Type;
 
-						Type objectValueType = Type.GetType("Consulo.Internal.Mssdw.Server.Event.Request." + messageType);
+						Type objectValueType = Type.GetType("Consulo.Internal.Mssdw.Server.Request." + messageType);
 
 						object objectValue = serializer.Deserialize(reader, objectValueType);
 
