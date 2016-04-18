@@ -13,38 +13,46 @@ using System.Diagnostics;
 
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
-using Microsoft.Samples.Debugging.CorDebug.NativeApi;
+using Microsoft.Samples.Debugging.CorDebug.NativeApi; // we neeed this - due consulo resolve bug
 using Microsoft.Samples.Debugging.Extensions;
 using System.Collections.Generic;
+using Consulo.Internal.Mssdw;
 
 namespace Microsoft.Samples.Debugging.CorMetadata
 {
 	public sealed class CorMetadataImport
 	{
-		public int ModuleToken;
-
-		public CorMetadataImport(CorModule managedModule)
+		public DebugSession DebugSession
 		{
-			ModuleToken = managedModule.Token;
-			m_importer = managedModule.GetMetaDataInterface <IMetadataImport>();
-			Debug.Assert(m_importer != null);
+			get;
+			private set;
 		}
 
-		public CorMetadataImport(object metadataImport)
+		public int ModuleToken
 		{
-			m_importer = (IMetadataImport) metadataImport;
+			get;
+			private set;
+		}
+
+		internal IMetadataImport m_importer;
+
+		public CorMetadataImport(DebugSession debugSession, CorModule managedModule)
+		{
+			ModuleToken = managedModule.Token;
+			DebugSession = debugSession;
+			m_importer = managedModule.GetMetaDataInterface <IMetadataImport>();
 			Debug.Assert(m_importer != null);
 		}
 
 		// methods
 		public MethodInfo GetMethodInfo(int methodToken)
 		{
-			return new MetadataMethodInfo(ModuleToken, m_importer, methodToken);
+			return new MetadataMethodInfo(this, m_importer, methodToken);
 		}
 
 		public Type GetType(int typeToken)
 		{
-			return new MetadataType(ModuleToken, m_importer, typeToken);
+			return new MetadataType(this, m_importer, typeToken);
 		}
 
 
@@ -246,17 +254,6 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-
-		// properties
-
-
-		//////////////////////////////////////////////////////////////////////////////////
-		//
-		// CorMetadataImport variables
-		//
-		//////////////////////////////////////////////////////////////////////////////////
-
-		internal IMetadataImport m_importer;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////
@@ -267,11 +264,15 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 	public sealed class MetadataMethodInfo : MethodInfo
 	{
-		public int ModuleToken { get; set; }
-
-		internal MetadataMethodInfo(int moduleToken, IMetadataImport importer, int methodToken)
+		public CorMetadataImport CorMetadataImport
 		{
-			ModuleToken = moduleToken;
+			get;
+			private set;
+		}
+
+		internal MetadataMethodInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int methodToken)
+		{
+			CorMetadataImport = corMetadataImport;
 			if(!importer.IsValidToken((uint)methodToken))
 				throw new ArgumentException();
 
@@ -309,7 +310,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 			// [Xamarin] Expression evaluator.
 			CorCallingConvention callingConv;
-			MetadataHelperFunctionsExtensions.ReadMethodSignature(ModuleToken, importer, ref ppvSigBlob, out callingConv, out m_retType, out m_argTypes);
+			MetadataHelperFunctionsExtensions.ReadMethodSignature(CorMetadataImport, importer, ref ppvSigBlob, out callingConv, out m_retType, out m_argTypes);
 			m_name = szMethodName.ToString();
 			m_methodAttributes = (MethodAttributes)pdwAttr;
 		}
@@ -346,7 +347,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				if(TokenUtils.IsNullToken(m_classToken))
 					return null;                            // this is method outside of class
 
-				return new MetadataType(ModuleToken, m_importer, m_classToken);
+				return new MetadataType(CorMetadataImport, m_importer, m_classToken);
 			}
 		}
 

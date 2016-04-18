@@ -21,17 +21,17 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 {
 	public sealed class MetadataType : Type
 	{
-		public int ModuleToken
+		public CorMetadataImport CorMetadataImport
 		{
 			get;
-			set;
+			private set;
 		}
 
-		internal MetadataType(int moduleToken, IMetadataImport importer, int classToken)
+		internal MetadataType(CorMetadataImport corMetadataImport, IMetadataImport importer, int classToken)
 		{
 			Debug.Assert(importer != null);
 
-			ModuleToken = moduleToken;
+			CorMetadataImport = corMetadataImport;
 			m_importer = importer;
 			m_typeToken = classToken;
 
@@ -272,7 +272,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				if(ptkExtends == 0)
 					return null;
 
-				return new MetadataType(ModuleToken, m_importer, ptkExtends);
+				return new MetadataType(CorMetadataImport, m_importer, ptkExtends);
 			}
 		}
 
@@ -476,7 +476,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					m_importer.EnumProperties(ref hEnum, (int) m_typeToken, out methodToken, 1, out size);
 					if(size == 0)
 						break;
-					var prop = new MetadataPropertyInfo(ModuleToken, m_importer, methodToken, this);
+					var prop = new MetadataPropertyInfo(CorMetadataImport, m_importer, methodToken, this);
 					try
 					{
 						MethodInfo mi = prop.GetGetMethod(true) ?? prop.GetSetMethod(true);
@@ -537,7 +537,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					int classTk;
 					int intfTk;
 					m_importer.GetInterfaceImplProps(impl, out classTk, out intfTk);
-					al.Add(new MetadataType(ModuleToken, m_importer, intfTk));
+					al.Add(new MetadataType(CorMetadataImport, m_importer, intfTk));
 				}
 			}
 			finally
@@ -599,7 +599,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					if(size == 0)
 						break;
 					// [Xamarin] Expression evaluator.
-					var met = new MetadataMethodInfo(ModuleToken, m_importer, methodToken);
+					var met = new MetadataMethodInfo(CorMetadataImport, m_importer, methodToken);
 					if(MetadataExtensions.TypeFlagsMatch(met.IsPublic, met.IsStatic, bindingAttr))
 						al.Add(met);
 				}
@@ -711,7 +711,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				int enclosingClass;
 				importer.GetNestedClassProps(classToken, out enclosingClass);
 				// [Xamarin] Expression evaluator.
-				m_declaringType = new MetadataType(ModuleToken, importer, enclosingClass);
+				m_declaringType = new MetadataType(CorMetadataImport, importer, enclosingClass);
 				return m_declaringType.FullName + "+";
 				//MetadataType mt = new MetadataType(importer,enclosingClass);
 				//return mt.Name+".";

@@ -333,7 +333,7 @@ namespace Consulo.Internal.Mssdw
 
 		private void OnModuleLoadImpl(object sender, CorModuleEventArgs e)
 		{
-			CorMetadataImport mi = new CorMetadataImport(e.Module);
+			CorMetadataImport mi = new CorMetadataImport(this, e.Module);
 
 			try
 			{

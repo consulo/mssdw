@@ -19,7 +19,7 @@ namespace Consulo.Internal.Mssdw.Server
 		{
 			if(type is MetadataType)
 			{
-				ModuleToken = ((MetadataType) type).ModuleToken;
+				ModuleToken = ((MetadataType) type).CorMetadataImport.ModuleToken;
 				ClassToken = ((MetadataType) type).MetadataToken;
 			}
 			else
