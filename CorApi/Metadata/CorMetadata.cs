@@ -420,8 +420,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				{
 					uint count;
 					int paramToken;
-					m_importer.EnumParams(ref hEnum,
-							m_methodToken, out paramToken, 1, out count);
+					m_importer.EnumParams(ref hEnum, m_methodToken, out paramToken, 1, out count);
 					if(count != 1)
 						break;
 					var mp = new MetadataParameterInfo(m_importer, paramToken, this, m_argTypes[nArg++]);
