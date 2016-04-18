@@ -11,21 +11,30 @@ namespace Consulo.Internal.Mssdw.Server.Event
 				public string FilePath;
 
 				public int Line;
+
+				public int Column;
 			}
 
 			public SourcePosition Position = new SourcePosition();
 
-			public string Method;
+			public int ModuleToken;
+
+			public int ClassToken;
+
+			public int FunctionToken;
 		}
 
 		public List<FrameInfo> Frames = new List<FrameInfo>();
 
-		public void Add(string filePath, int line, string method)
+		public void Add(string filePath, int line, int column, int moduleToken, int classToken, int functionToken)
 		{
 			FrameInfo frameInfo = new FrameInfo();
-			frameInfo.Method = method;
+			frameInfo.ModuleToken = moduleToken;
+			frameInfo.ClassToken = classToken;
+			frameInfo.FunctionToken = functionToken;
 
 			frameInfo.Position.Line = line;
+			frameInfo.Position.Column = column;
 			frameInfo.Position.FilePath = filePath;
 
 			Frames.Add(frameInfo);

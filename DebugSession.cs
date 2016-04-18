@@ -320,7 +320,7 @@ namespace Consulo.Internal.Mssdw
 
 			SetActiveThread(e.Thread);
 
-			ClientMessage result = binfo != null ? Notify(new OnBreakpointFire(binfo.Request.FilePath, binfo.Request.Line)) : null;
+			ClientMessage result = binfo != null ? Notify(new OnBreakpointFire(e.Thread.Id, binfo.Request.FilePath, binfo.Request.Line)) : null;
 			if(result != null)
 			{
 				e.Continue = result.Continue;
@@ -473,6 +473,31 @@ namespace Consulo.Internal.Mssdw
 			else
 			{
 				Console.WriteLine(message);
+			}
+		}
+
+		internal CorMetadataImport GetMetadataForModule (int token)
+		{
+			lock (documents)
+			{
+				CorModule corModule = null;
+				foreach (ModuleInfo value in modules.Values)
+				{
+					CorModule module = value.Module;
+					if(module.Token == token)
+					{
+						corModule = module;
+					}
+				}
+				if(corModule == null)
+				{
+					return null;
+				}
+
+				ModuleInfo mod;
+				if(!modules.TryGetValue(System.IO.Path.GetFullPath(corModule.Name), out mod))
+					return null;
+				return mod.Importer;
 			}
 		}
 

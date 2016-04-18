@@ -9,8 +9,6 @@ namespace Consulo.Internal.Mssdw.Server.Event
 			public int Id;
 		}
 
-		public int ActiveThreadId;
-
 		public List<ThreadInfo> Threads = new List<ThreadInfo>();
 
 		public void Add(int id)

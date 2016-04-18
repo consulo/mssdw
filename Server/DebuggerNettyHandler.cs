@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
@@ -13,6 +12,7 @@ using Consulo.Internal.Mssdw.Server.Request;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.CorMetadata;
+using System.Reflection;
 
 namespace Consulo.Internal.Mssdw.Server
 {
@@ -58,7 +58,7 @@ namespace Consulo.Internal.Mssdw.Server
 				{
 					string jsonContext = buffer.ToString(Encoding.UTF8);
 
-					//Console.WriteLine("receive: " + jsonContext);
+					Console.WriteLine("receive: " + jsonContext);
 					try
 					{
 						ClientMessage clientMessage = JsonConvert.DeserializeObject<ClientMessage>(jsonContext, new ClientMessageConverter());
@@ -77,7 +77,6 @@ namespace Consulo.Internal.Mssdw.Server
 							{
 								GetThreadsRequestResult result = new GetThreadsRequestResult();
 
-								result.ActiveThreadId = debugSession.ActiveThread == null ? -1 : debugSession.ActiveThread.Id;
 								foreach (CorThread thread in debugSession.Process.Threads)
 								{
 									result.Add(thread.Id);
@@ -100,9 +99,51 @@ namespace Consulo.Internal.Mssdw.Server
 								}
 								await SendMessage<GetFramesRequestResult>(clientMessage, result);
 							}
+							else if(messageObject is GetMethodInfoRequest)
+							{
+								GetMethodInfoRequest request = (GetMethodInfoRequest) messageObject;
+
+								string name = "<unknown>";
+								CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.ModuleToken);
+								if(metadataForModule != null)
+								{
+									MethodInfo methodInfo = metadataForModule.GetMethodInfo(request.FunctionToken);
+									if(methodInfo != null)
+									{
+										name = methodInfo.Name;
+									}
+								}
+
+								GetMethodInfoRequestResult result = new GetMethodInfoRequestResult();
+								result.Name = name;
+
+								await SendMessage<GetMethodInfoRequestResult>(clientMessage, result);
+							}
+							else if(messageObject is GetTypeInfoRequest)
+							{
+								GetTypeInfoRequest request = (GetTypeInfoRequest) messageObject;
+
+								string name = "<unknown>";
+								CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.ModuleToken);
+								if(metadataForModule != null)
+								{
+									Type type = metadataForModule.GetType(request.ClassToken);
+									if(type != null)
+									{
+										name = type.Name;
+									}
+								}
+
+								GetTypeInfoRequestResult result = new GetTypeInfoRequestResult();
+								result.Name = name;
+
+								await SendMessage<GetTypeInfoRequestResult>(clientMessage, result);
+							}
 							else
 							{
 								Console.WriteLine("Uknoown object: " + messageObject.GetType());
+
+								await SendMessage<BadRequestResult>(clientMessage, new BadRequestResult());
 							}
 						}
 						else
@@ -144,34 +185,41 @@ namespace Consulo.Internal.Mssdw.Server
 
 		internal static void AddFrame(DebugSession session, CorFrame frame, GetFramesRequestResult result)
 		{
-			// TODO: Fix remaining.
 			uint address = 0;
 			//string typeFQN;
 			//string typeFullName;
-			string addressSpace = "";
+			//string addressSpace = "";
 			string file = "";
 			int line = 0;
 			int endLine = 0;
 			int column = 0;
 			int endColumn = 0;
-			string method = "";
-			string lang = "";
-			string module = "";
-			string type = "";
+			//string method = "";
+			//string lang = "";
+			//string module = "";
+			//string type = "";
 			bool hasDebugInfo = false;
-			bool hidden = false;
-			bool external = true;
+			//bool hidden = false;
+			//bool external = true;
+
+			int moduleToken = -1;
+			int classToken = -1;
+			int functionToken = -1;
 
 			if(frame.FrameType == CorFrameType.ILFrame)
 			{
 				if(frame.Function != null)
 				{
-					module = frame.Function.Module.Name;
-					CorMetadataImport importer = new CorMetadataImport(frame.Function.Module);
-					MethodInfo mi = importer.GetMethodInfo(frame.Function.Token);
-					method = mi.DeclaringType.FullName + "." + mi.Name;
-					type = mi.DeclaringType.FullName;
-					addressSpace = mi.Name;
+					moduleToken = frame.Function.Module.Token;
+					classToken = frame.Function.Class.Token;
+					functionToken = frame.FunctionToken;
+
+					//module = frame.Function.Module.Name;
+					//CorMetadataImport importer = new CorMetadataImport(frame.Function.Module);
+					//MethodInfo mi = importer.GetMethodInfo(frame.Function.Token);
+					//method = mi.DeclaringType.FullName + "." + mi.Name;
+					//type = mi.DeclaringType.FullName;
+					//addressSpace = mi.Name;
 
 					var sp = GetSequencePoint(session, frame);
 					if(sp != null)
@@ -184,60 +232,36 @@ namespace Consulo.Internal.Mssdw.Server
 						address = (uint)sp.Offset;
 					}
 
-					object[] customAttributes = mi.GetCustomAttributes(true);
+					///object[] customAttributes = mi.GetCustomAttributes(true);
 
-					if(session.IsExternalCode(file))
-					{
-						external = true;
-					}
-					else
-					{
-						/*if (session.Options.ProjectAssembliesOnly) {
-							external = mi.GetCustomAttributes(true).Any(v =>
-							v is System.Diagnostics.DebuggerHiddenAttribute ||
-							v is System.Diagnostics.DebuggerNonUserCodeAttribute);
-						} else */
-						{
-							external = false;// customAttributes.Any(v => v is System.Diagnostics.DebuggerHiddenAttribute);
-						}
-					}
-					hidden = false;// customAttributes.Any(v => v is System.Diagnostics.DebuggerHiddenAttribute);
+					//if(session.IsExternalCode(file))
+					//{
+					//	external = true;
+					//}
+					//else
+					//{
+					/*if (session.Options.ProjectAssembliesOnly) {
+						external = mi.GetCustomAttributes(true).Any(v =>
+						v is System.Diagnostics.DebuggerHiddenAttribute ||
+						v is System.Diagnostics.DebuggerNonUserCodeAttribute);
+					} else */
+					//{
+					//	external = false;// customAttributes.Any(v => v is System.Diagnostics.DebuggerHiddenAttribute);
+					//}
+					//}
+					//hidden = false;// customAttributes.Any(v => v is System.Diagnostics.DebuggerHiddenAttribute);
 				}
-				lang = "Managed";
 				hasDebugInfo = true;
 			}
 			else if(frame.FrameType == CorFrameType.NativeFrame)
 			{
 				frame.GetNativeIP(out address);
-				method = "<Unknown>";
-				lang = "Native";
 			}
 			else if(frame.FrameType == CorFrameType.InternalFrame)
 			{
-				switch(frame.InternalFrameType)
-				{
-					case CorDebugInternalFrameType.STUBFRAME_M2U:
-						method = "[Managed to Native Transition]";
-						break;
-					case CorDebugInternalFrameType.STUBFRAME_U2M:
-						method = "[Native to Managed Transition]";
-						break;
-					case CorDebugInternalFrameType.STUBFRAME_LIGHTWEIGHT_FUNCTION:
-						method = "[Lightweight Method Call]";
-						break;
-					case CorDebugInternalFrameType.STUBFRAME_APPDOMAIN_TRANSITION:
-						method = "[Application Domain Transition]";
-						break;
-					case CorDebugInternalFrameType.STUBFRAME_FUNC_EVAL:
-						method = "[Function Evaluation]";
-						break;
-				}
 			}
 
-			if(method == null)
-				method = "<Unknown>";
-
-			result.Add(file, line, method);
+			result.Add(file, line, column, moduleToken, classToken, functionToken);
 		}
 
 		private const int SpecialSequencePoint = 0xfeefee;
