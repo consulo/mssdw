@@ -7,9 +7,9 @@ namespace Consulo.Internal.Mssdw.Server.Event
 		public int Id;
 		public string Value;
 
-		public StringValueResult(CorStringValue value)
+		public StringValueResult(int id, CorStringValue value)
 		{
-			Id = value.Id;
+			Id = id;
 			Value = value.String;
 		}
 	}

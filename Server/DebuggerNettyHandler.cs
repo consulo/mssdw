@@ -177,9 +177,9 @@ namespace Consulo.Internal.Mssdw.Server
 
 										if(corFrame != null)
 										{
-											CorValue corFrameGetArgument = corFrame.GetArgument(argumentRequest.Index);
+											CorValue value = corFrame.GetArgument(argumentRequest.Index);
 
-											temp = CreateValueResult(corFrameGetArgument);
+											temp = CreateValueResult(value == null ? -1 : value.Id, value);
 										}
 									}
 									if(temp == null)
@@ -222,7 +222,7 @@ namespace Consulo.Internal.Mssdw.Server
 			}
 		}
 
-		private static object CreateValueResult(CorValue corValue)
+		private static object CreateValueResult(int id, CorValue corValue)
 		{
 			if(corValue == null)
 			{
@@ -232,14 +232,16 @@ namespace Consulo.Internal.Mssdw.Server
 			CorReferenceValue toReferenceValue = corValue.CastToReferenceValue();
 			if(toReferenceValue != null)
 			{
-				return CreateValueResult(toReferenceValue.Dereference());
+				return CreateValueResult(id, toReferenceValue.Dereference());
 			}
 
 			CorElType corValueType = corValue.Type;
 			switch(corValueType)
 			{
 				case CorElType.ELEMENT_TYPE_STRING:
-					return new StringValueResult(corValue.CastToStringValue());
+					return new StringValueResult(id, corValue.CastToStringValue());
+				case CorElType.ELEMENT_TYPE_BOOLEAN:
+					return new BooleanValueResult(id, corValue.CastToGenericValue());
 			}
 			return new UnknownValueResult();
 		}
