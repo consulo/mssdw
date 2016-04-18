@@ -154,6 +154,12 @@ namespace Consulo.Internal.Mssdw.Server
 
 									temp = result;
 								}
+								else if(messageObject is ContinueRequest)
+								{
+									debugSession.Process.Continue(false);
+
+									temp = new ContinueRequestResult();
+								}
 							}
 							catch(Exception e)
 							{
