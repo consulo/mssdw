@@ -13,6 +13,7 @@ using System.Diagnostics;
 
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
+using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.Extensions;
 using System.Collections.Generic;
 
@@ -20,8 +21,11 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 {
 	public sealed class CorMetadataImport
 	{
+		public int ModuleToken;
+
 		public CorMetadataImport(CorModule managedModule)
 		{
+			ModuleToken = managedModule.Token;
 			m_importer = managedModule.GetMetaDataInterface <IMetadataImport>();
 			Debug.Assert(m_importer != null);
 		}
@@ -35,12 +39,12 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		// methods
 		public MethodInfo GetMethodInfo(int methodToken)
 		{
-			return new MetadataMethodInfo(m_importer, methodToken);
+			return new MetadataMethodInfo(ModuleToken, m_importer, methodToken);
 		}
 
 		public Type GetType(int typeToken)
 		{
-			return new MetadataType(m_importer, typeToken);
+			return new MetadataType(ModuleToken, m_importer, typeToken);
 		}
 
 
@@ -263,8 +267,11 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 	public sealed class MetadataMethodInfo : MethodInfo
 	{
-		internal MetadataMethodInfo(IMetadataImport importer, int methodToken)
+		public int ModuleToken { get; set; }
+
+		internal MetadataMethodInfo(int moduleToken, IMetadataImport importer, int methodToken)
 		{
+			ModuleToken = moduleToken;
 			if(!importer.IsValidToken((uint)methodToken))
 				throw new ArgumentException();
 
@@ -302,7 +309,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 			// [Xamarin] Expression evaluator.
 			CorCallingConvention callingConv;
-			MetadataHelperFunctionsExtensions.ReadMethodSignature(importer, ref ppvSigBlob, out callingConv, out m_retType, out m_argTypes);
+			MetadataHelperFunctionsExtensions.ReadMethodSignature(ModuleToken, importer, ref ppvSigBlob, out callingConv, out m_retType, out m_argTypes);
 			m_name = szMethodName.ToString();
 			m_methodAttributes = (MethodAttributes)pdwAttr;
 		}
@@ -339,7 +346,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				if(TokenUtils.IsNullToken(m_classToken))
 					return null;                            // this is method outside of class
 
-				return new MetadataType(m_importer, m_classToken);
+				return new MetadataType(ModuleToken, m_importer, m_classToken);
 			}
 		}
 

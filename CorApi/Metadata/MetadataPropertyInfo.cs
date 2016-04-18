@@ -27,8 +27,11 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		MetadataMethodInfo m_setter;
 		MetadataMethodInfo m_getter;
 
-		internal MetadataPropertyInfo (IMetadataImport importer, int propertyToken, MetadataType declaringType)
+		public int ModuleToken { get; set; }
+
+		internal MetadataPropertyInfo (int moduleToken, IMetadataImport importer, int propertyToken, MetadataType declaringType)
 		{
+			ModuleToken = moduleToken;
 			m_importer = importer;
 			m_propertyToken = propertyToken;
 			m_declaringType = declaringType;
@@ -118,7 +121,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				return null;
 
 			if (m_getter == null)
-				m_getter = new MetadataMethodInfo (m_importer, m_pmdGetter);
+				m_getter = new MetadataMethodInfo (ModuleToken, m_importer, m_pmdGetter);
 
 			if (nonPublic || m_getter.IsPublic)
 				return m_getter;
@@ -139,7 +142,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				return null;
 
 			if (m_setter == null)
-				m_setter = new MetadataMethodInfo (m_importer, m_pmdSetter);
+				m_setter = new MetadataMethodInfo (ModuleToken, m_importer, m_pmdSetter);
 
 			if (nonPublic || m_setter.IsPublic)
 				return m_setter;

@@ -126,7 +126,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 			CoreTypes.Add (CorElementType.ELEMENT_TYPE_U, typeof (UIntPtr));
 		}
 
-		internal static void ReadMethodSignature (IMetadataImport importer, ref IntPtr pData, out CorCallingConvention cconv, out Type retType, out List<Type> argTypes)
+		internal static void ReadMethodSignature (int moduleToken, IMetadataImport importer, ref IntPtr pData, out CorCallingConvention cconv, out Type retType, out List<Type> argTypes)
 		{
 			cconv = MetadataHelperFunctions.CorSigUncompressCallingConv (ref pData);
 			uint numArgs = 0;
@@ -138,10 +138,10 @@ namespace Microsoft.Samples.Debugging.Extensions
 			if (cconv != CorCallingConvention.Field)
 				numArgs = MetadataHelperFunctions.CorSigUncompressData (ref pData);
 
-			retType = ReadType (importer, ref pData);
+			retType = ReadType (moduleToken, importer, ref pData);
 			argTypes = new List<Type> ();
 			for (int n = 0; n < numArgs; n++)
-				argTypes.Add (ReadType (importer, ref pData));
+				argTypes.Add (ReadType (moduleToken, importer, ref pData));
 		}
 
 		class GenericType
@@ -149,7 +149,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 			// Used as marker for generic method args
 		}
 
-		static Type ReadType (IMetadataImport importer, ref IntPtr pData)
+		static Type ReadType (int moduleToken, IMetadataImport importer, ref IntPtr pData)
 		{
 			CorElementType et;
 			unsafe {
@@ -185,22 +185,22 @@ namespace Microsoft.Samples.Debugging.Extensions
 				return typeof(GenericType);
 
 			case CorElementType.ELEMENT_TYPE_GENERICINST: {
-					Type t = ReadType (importer, ref pData);
+					Type t = ReadType (moduleToken, importer, ref pData);
 					var typeArgs = new List<Type> ();
 					uint num = MetadataHelperFunctions.CorSigUncompressData (ref pData);
 					for (int n=0; n<num; n++) {
-						typeArgs.Add (ReadType (importer, ref pData));
+						typeArgs.Add (ReadType (moduleToken, importer, ref pData));
 					}
 					return MetadataExtensions.MakeGeneric (t, typeArgs);
 				}
 
 			case CorElementType.ELEMENT_TYPE_PTR: {
-					Type t = ReadType (importer, ref pData);
+					Type t = ReadType (moduleToken, importer, ref pData);
 					return MetadataExtensions.MakePointer (t);
 				}
 
 			case CorElementType.ELEMENT_TYPE_BYREF: {
-					Type t = ReadType (importer, ref pData);
+					Type t = ReadType (moduleToken, importer, ref pData);
 					return MetadataExtensions.MakeByRef(t);
 				}
 
@@ -208,11 +208,11 @@ namespace Microsoft.Samples.Debugging.Extensions
 			case CorElementType.ELEMENT_TYPE_VALUETYPE:
 			case CorElementType.ELEMENT_TYPE_CLASS: {
 					uint token = MetadataHelperFunctions.CorSigUncompressToken (ref pData);
-					return new MetadataType (importer, (int) token);
+					return new MetadataType (moduleToken, importer, (int) token);
 				}
 
 			case CorElementType.ELEMENT_TYPE_ARRAY: {
-					Type t = ReadType (importer, ref pData);
+					Type t = ReadType (moduleToken, importer, ref pData);
 					int rank = (int)MetadataHelperFunctions.CorSigUncompressData (ref pData);
 					if (rank == 0)
 						return MetadataExtensions.MakeArray (t, null, null);
@@ -231,7 +231,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 				}
 
 			case CorElementType.ELEMENT_TYPE_SZARRAY: {
-					Type t = ReadType (importer, ref pData);
+					Type t = ReadType (moduleToken, importer, ref pData);
 					return MetadataExtensions.MakeArray (t, null, null);
 				}
 
@@ -239,13 +239,13 @@ namespace Microsoft.Samples.Debugging.Extensions
 					CorCallingConvention cconv;
 					Type retType;
 					List<Type> argTypes;
-					ReadMethodSignature (importer, ref pData, out cconv, out retType, out argTypes);
+					ReadMethodSignature (moduleToken, importer, ref pData, out cconv, out retType, out argTypes);
 					return MetadataExtensions.MakeDelegate (retType, argTypes);
 				}
 
 			case CorElementType.ELEMENT_TYPE_CMOD_REQD:
 			case CorElementType.ELEMENT_TYPE_CMOD_OPT:
-				return ReadType (importer, ref pData);
+				return ReadType (moduleToken, importer, ref pData);
 			}
 			throw new NotSupportedException ("Unknown sig element type: " + et);
 		}

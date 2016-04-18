@@ -17,20 +17,17 @@ namespace Consulo.Internal.Mssdw.Server.Event
 
 			public SourcePosition Position = new SourcePosition();
 
-			public int ModuleToken;
-
-			public int ClassToken;
+			public TypeRef Type;
 
 			public int FunctionToken;
 		}
 
 		public List<FrameInfo> Frames = new List<FrameInfo>();
 
-		public void Add(string filePath, int line, int column, int moduleToken, int classToken, int functionToken)
+		public void Add(string filePath, int line, int column, TypeRef typeRef, int functionToken)
 		{
 			FrameInfo frameInfo = new FrameInfo();
-			frameInfo.ModuleToken = moduleToken;
-			frameInfo.ClassToken = classToken;
+			frameInfo.Type = typeRef;
 			frameInfo.FunctionToken = functionToken;
 
 			frameInfo.Position.Line = line;

@@ -1,18 +1,18 @@
 using System;
 using System.Text;
+using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using DotNetty.Transport.Channels;
 using DotNetty.Buffers;
-using Newtonsoft.Json;
 using Consulo.Internal.Mssdw.Server.Event;
-using Consulo.Internal.Mssdw.Server.Request;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.CorMetadata;
-using System.Reflection;
+using Consulo.Internal.Mssdw.Server.Request;
 
 namespace Consulo.Internal.Mssdw.Server
 {
@@ -38,6 +38,11 @@ namespace Consulo.Internal.Mssdw.Server
 		{
 			debugSession.Client = null;
 
+			StopWaitors();
+		}
+
+		private void StopWaitors()
+		{
 			// force paused threads
 			foreach (KeyValuePair<string, Action<ClientMessage>> keyValue in queries)
 			{
@@ -58,7 +63,7 @@ namespace Consulo.Internal.Mssdw.Server
 				{
 					string jsonContext = buffer.ToString(Encoding.UTF8);
 
-					Console.WriteLine("receive: " + jsonContext);
+					//Console.WriteLine("receive: " + jsonContext);
 					try
 					{
 						ClientMessage clientMessage = JsonConvert.DeserializeObject<ClientMessage>(jsonContext, new ClientMessageConverter());
@@ -67,84 +72,102 @@ namespace Consulo.Internal.Mssdw.Server
 						if(!queries.TryGetValue(clientMessage.Id, out action))
 						{
 							object messageObject = clientMessage.Object;
-							if(messageObject is InsertBreakpointRequest)
-							{
-								InsertBreakpointRequestResult result = debugSession.InsertBreakpoint((InsertBreakpointRequest)messageObject);
+							object temp = null;
 
-								await SendMessage<InsertBreakpointRequestResult>(clientMessage, result);
-							}
-							else if(messageObject is GetThreadsRequest)
+							try
 							{
-								GetThreadsRequestResult result = new GetThreadsRequestResult();
-
-								foreach (CorThread thread in debugSession.Process.Threads)
+								if(messageObject is InsertBreakpointRequest)
 								{
-									result.Add(thread.Id);
+									InsertBreakpointRequestResult result = debugSession.InsertBreakpoint((InsertBreakpointRequest)messageObject);
+
+									temp = result;
 								}
-
-								await SendMessage<GetThreadsRequestResult>(clientMessage, result);
-							}
-							else if(messageObject is GetFramesRequest)
-							{
-								GetFramesRequestResult result = new GetFramesRequestResult();
-
-								CorThread current = debugSession.Process.Threads.Where(x => x.Id == ((GetFramesRequest)messageObject).ThreadId).First();
-								if(current != null)
+								else if(messageObject is GetThreadsRequest)
 								{
-									IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
-									foreach (CorFrame corFrame in frames)
+									GetThreadsRequestResult result = new GetThreadsRequestResult();
+
+									foreach (CorThread thread in debugSession.Process.Threads)
 									{
-										AddFrame(debugSession, corFrame, result);
+										result.Add(thread.Id);
 									}
-								}
-								await SendMessage<GetFramesRequestResult>(clientMessage, result);
-							}
-							else if(messageObject is GetMethodInfoRequest)
-							{
-								GetMethodInfoRequest request = (GetMethodInfoRequest) messageObject;
 
-								string name = "<unknown>";
-								CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.ModuleToken);
-								if(metadataForModule != null)
+									temp = result;
+								}
+								else if(messageObject is GetFramesRequest)
 								{
-									MethodInfo methodInfo = metadataForModule.GetMethodInfo(request.FunctionToken);
-									if(methodInfo != null)
+									GetFramesRequestResult result = new GetFramesRequestResult();
+
+									CorThread current = debugSession.Process.Threads.Where(x => x.Id == ((GetFramesRequest)messageObject).ThreadId).First();
+									if(current != null)
 									{
-										name = methodInfo.Name;
+										IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
+										foreach (CorFrame corFrame in frames)
+										{
+											AddFrame(debugSession, corFrame, result);
+										}
 									}
+
+									temp = result;
 								}
-
-								GetMethodInfoRequestResult result = new GetMethodInfoRequestResult();
-								result.Name = name;
-
-								await SendMessage<GetMethodInfoRequestResult>(clientMessage, result);
-							}
-							else if(messageObject is GetTypeInfoRequest)
-							{
-								GetTypeInfoRequest request = (GetTypeInfoRequest) messageObject;
-
-								string name = "<unknown>";
-								CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.ModuleToken);
-								if(metadataForModule != null)
+								else if(messageObject is GetMethodInfoRequest)
 								{
-									Type type = metadataForModule.GetType(request.ClassToken);
-									if(type != null)
+									GetMethodInfoRequest request = (GetMethodInfoRequest) messageObject;
+
+									GetMethodInfoRequestResult result = new GetMethodInfoRequestResult();
+									result.Name = "<unknown>";
+
+									CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleToken);
+									if(metadataForModule != null)
 									{
-										name = type.Name;
+										MethodInfo methodInfo = metadataForModule.GetMethodInfo(request.FunctionToken);
+										if(methodInfo != null)
+										{
+											result.Name = methodInfo.Name;
+											foreach (ParameterInfo o in methodInfo.GetParameters())
+											{
+												string parameterName = o.Name;
+
+												result.AddParameter(parameterName, new TypeRef(o.ParameterType));
+											}
+										}
 									}
+
+									temp = result;
 								}
+								else if(messageObject is GetTypeInfoRequest)
+								{
+									GetTypeInfoRequest request = (GetTypeInfoRequest) messageObject;
 
-								GetTypeInfoRequestResult result = new GetTypeInfoRequestResult();
-								result.Name = name;
+									GetTypeInfoRequestResult result = new GetTypeInfoRequestResult();
 
-								await SendMessage<GetTypeInfoRequestResult>(clientMessage, result);
+									result.Name = "<unknown>";
+
+									CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleToken);
+									if(metadataForModule != null)
+									{
+										Type type = metadataForModule.GetType(request.Type.ClassToken);
+										if(type != null)
+										{
+											result.Name = type.Name;
+										}
+									}
+
+									temp = result;
+								}
 							}
-							else
+							catch(Exception e)
 							{
-								Console.WriteLine("Uknoown object: " + messageObject.GetType());
-
-								await SendMessage<BadRequestResult>(clientMessage, new BadRequestResult());
+								Console.WriteLine(e.Message);
+								Console.WriteLine(e.StackTrace);
 							}
+
+							if(temp == null)
+							{
+								temp = new {Type = "Failed"};
+								Console.WriteLine("Unknown object: " + (messageObject == null ? "null" : messageObject.GetType().FullName));
+							}
+
+							await SendMessage<object>(clientMessage, temp);
 						}
 						else
 						{
@@ -176,6 +199,7 @@ namespace Consulo.Internal.Mssdw.Server
 		public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
 		{
 			Console.WriteLine("Exception: " + exception);
+			StopWaitors();
 		}
 
 		public void PutWaiter(string id, Action<ClientMessage> action)
@@ -261,7 +285,7 @@ namespace Consulo.Internal.Mssdw.Server
 			{
 			}
 
-			result.Add(file, line, column, moduleToken, classToken, functionToken);
+			result.Add(file, line, column, new TypeRef(moduleToken, classToken), functionToken);
 		}
 
 		private const int SpecialSequencePoint = 0xfeefee;

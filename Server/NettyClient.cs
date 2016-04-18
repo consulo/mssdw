@@ -66,7 +66,7 @@ namespace Consulo.Internal.Mssdw.Server
 				buffer.WriteBytes(messageBytes);
 				await myChannel.WriteAndFlushAsync(buffer);
 
-				Console.WriteLine("send1: " + serializeObject);
+				//Console.WriteLine("send1: " + serializeObject);
 			});
 		}
 	}
