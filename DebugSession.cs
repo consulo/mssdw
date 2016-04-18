@@ -476,6 +476,31 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
+		internal CorMetadataImport GetMSCorLibModule()
+		{
+			lock (documents)
+			{
+				CorModule corModule = null;
+				foreach (ModuleInfo value in modules.Values)
+				{
+					CorModule module = value.Module;
+					if("mscorlib.dll".Equals(Path.GetFileName(module.Name), StringComparison.InvariantCultureIgnoreCase))
+					{
+						corModule = module;
+					}
+				}
+				if(corModule == null)
+				{
+					return null;
+				}
+
+				ModuleInfo mod;
+				if(!modules.TryGetValue(System.IO.Path.GetFullPath(corModule.Name), out mod))
+					return null;
+				return mod.Importer;
+			}
+		}
+
 		internal CorMetadataImport GetMetadataForModule (int token)
 		{
 			lock (documents)

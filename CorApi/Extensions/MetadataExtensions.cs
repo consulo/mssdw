@@ -33,6 +33,8 @@ using System.Runtime.InteropServices;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.CorMetadata;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
+using Consulo.Internal.Mssdw;
+using System.Diagnostics;
 
 namespace Microsoft.Samples.Debugging.Extensions
 {
@@ -173,7 +175,8 @@ namespace Microsoft.Samples.Debugging.Extensions
 				case CorElementType.ELEMENT_TYPE_U1: return typeof (byte);
 				case CorElementType.ELEMENT_TYPE_I2: return typeof (short);
 				case CorElementType.ELEMENT_TYPE_U2: return typeof (ushort);
-				case CorElementType.ELEMENT_TYPE_I4: return typeof (int);
+				case CorElementType.ELEMENT_TYPE_I4:
+					return FixedType(corMetadataImport, typeof(int));
 				case CorElementType.ELEMENT_TYPE_U4: return typeof (uint);
 				case CorElementType.ELEMENT_TYPE_I8: return typeof (long);
 				case CorElementType.ELEMENT_TYPE_U8: return typeof (ulong);
@@ -262,6 +265,15 @@ namespace Microsoft.Samples.Debugging.Extensions
 					return ReadType(corMetadataImport, importer, ref pData);
 			}
 			throw new NotSupportedException("Unknown sig element type: " + et);
+		}
+
+		private static Type FixedType(CorMetadataImport corMetadataImport, Type type)
+		{
+			DebugSession session = corMetadataImport.DebugSession;
+			CorMetadataImport module = session.GetMSCorLibModule();
+			Debug.Assert(module != null);
+			int fromName = module.GetTypeTokenFromName(type.Name);
+			return new MetadataType(module, module.m_importer, fromName);
 		}
 
 		static readonly object[] emptyAttributes = new object[0];
