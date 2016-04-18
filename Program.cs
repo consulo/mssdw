@@ -41,23 +41,11 @@ public class Program
 			// w8 client
 			while(session.Client == null)
 			{
-				Thread.Sleep(500);
+				Thread.Sleep(100);
 			}
 			Console.WriteLine("Client connected");
 
 			session.Start(arguments); // we can failed if file is not exists
-
-			/*session.OnStop += delegate(DebugSession obj)
-			{
-				List<CorFrame> frames = obj.FrameList;
-
-				foreach (CorFrame f in frames)
-				{
-					StackFrame frame = CreateFrame(obj, f);
-
-					Console.WriteLine(frame.Location.Method + ":" + frame.Language);
-				}
-			};     */
 
 			Semaphore semaphore = new  Semaphore(0, 1);
 
