@@ -8,17 +8,46 @@ using System.Text;
 using System.Diagnostics;
 
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
+using System.Collections.Generic;
 
 namespace Microsoft.Samples.Debugging.CorDebug
 {
+	public static class CorValueRegistrator
+	{
+		private static Dictionary<int, CorValue> values = new Dictionary<int, CorValue>();
+		private static int nextId;
 
+		public static int Register(CorValue corValue)
+		{
+			int value;
+			lock (values)
+			{
+				values.Add(value = nextId ++, corValue);
+			}
+			return value;
+		}
+
+		public static CorValue Get(int id)
+		{
+			lock (values)
+			{
+				CorValue value = null;
+				values.TryGetValue(id, out value);
+				return value;
+			}
+		}
+	}
 
 	/** A value in the remote process. */
 	public class CorValue : WrapperBase
 	{
+		public readonly int Id;
+
 		internal CorValue (ICorDebugValue value) : base(value)
 		{
 			m_val = value;
+
+			Id = CorValueRegistrator.Register(this);
 		}
 
 		/** The simple type of the value. */

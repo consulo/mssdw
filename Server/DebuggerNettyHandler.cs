@@ -14,6 +14,8 @@ using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.CorMetadata;
 using Consulo.Internal.Mssdw.Server.Request;
 
+using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
+
 namespace Consulo.Internal.Mssdw.Server
 {
 	public class DebuggerNettyHandler : ChannelHandlerAdapter
@@ -88,7 +90,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 									foreach (CorThread thread in debugSession.Process.Threads)
 									{
-										result.Add(thread.Id);
+										result.Add(thread.Id, GetThreadName(thread));
 									}
 
 									temp = result;
@@ -154,6 +156,37 @@ namespace Consulo.Internal.Mssdw.Server
 
 									temp = result;
 								}
+								else if(messageObject is GetArgumentRequest)
+								{
+									GetArgumentRequest argumentRequest = (GetArgumentRequest)messageObject;
+									CorThread current = debugSession.Process.Threads.Where(x => x.Id == argumentRequest.ThreadId).First();
+									if(current != null)
+									{
+										IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
+										int i = 0;
+										CorFrame corFrame = null;
+										foreach (CorFrame frame in frames)
+										{
+											if(i == argumentRequest.StackFrameIndex)
+											{
+												corFrame = frame;
+												break;
+											}
+											i++;
+										}
+
+										if(corFrame != null)
+										{
+											CorValue corFrameGetArgument = corFrame.GetArgument(argumentRequest.Index);
+
+											temp = CreateValueResult(corFrameGetArgument);
+										}
+									}
+									if(temp == null)
+									{
+										temp = new UnknownValueResult();
+									}
+								}
 								else if(messageObject is ContinueRequest)
 								{
 									debugSession.Process.Continue(false);
@@ -169,7 +202,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 							if(temp == null)
 							{
-								temp = new {Type = "Failed"};
+								temp = new BadRequestResult();
 								Console.WriteLine("Unknown object: " + (messageObject == null ? "null" : messageObject.GetType().FullName));
 							}
 
@@ -187,6 +220,28 @@ namespace Consulo.Internal.Mssdw.Server
 					}
 				});
 			}
+		}
+
+		private static object CreateValueResult(CorValue corValue)
+		{
+			if(corValue == null)
+			{
+				return new UnknownValueResult();
+			}
+
+			CorReferenceValue toReferenceValue = corValue.CastToReferenceValue();
+			if(toReferenceValue != null)
+			{
+				return CreateValueResult(toReferenceValue.Dereference());
+			}
+
+			CorElType corValueType = corValue.Type;
+			switch(corValueType)
+			{
+				case CorElType.ELEMENT_TYPE_STRING:
+					return new StringValueResult(corValue.CastToStringValue());
+			}
+			return new UnknownValueResult();
 		}
 
 		private async Task SendMessage<T>(ClientMessage clientMessage, T value) where T : class
@@ -211,6 +266,41 @@ namespace Consulo.Internal.Mssdw.Server
 		public void PutWaiter(string id, Action<ClientMessage> action)
 		{
 			queries.Add(id, action);
+		}
+
+		string GetThreadName(CorThread thread)
+		{
+			// From http://social.msdn.microsoft.com/Forums/en/netfxtoolsdev/thread/461326fe-88bd-4a6b-82a9-1a66b8e65116
+			try
+			{
+				CorReferenceValue refVal = thread.ThreadVariable.CastToReferenceValue();
+				if(refVal.IsNull)
+					return string.Empty;
+
+				CorObjectValue val = refVal.Dereference().CastToObjectValue();
+				if(val != null)
+				{
+					Type classType = val.ExactType.GetTypeInfo(debugSession);
+					// Loop through all private instance fields in the thread class
+					foreach (FieldInfo fi in classType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+					{
+						if(fi.Name == "m_Name")
+						{
+							CorReferenceValue fieldValue = val.GetFieldValue(val.Class, fi.MetadataToken).CastToReferenceValue();
+
+							if(fieldValue.IsNull)
+								return string.Empty;
+							else
+								return fieldValue.Dereference().CastToStringValue().String;
+						}
+					}
+				}
+			} catch(Exception)
+			{
+				// Ignore
+			}
+
+			return string.Empty;
 		}
 
 		internal static void AddFrame(DebugSession session, CorFrame frame, GetFramesRequestResult result)
