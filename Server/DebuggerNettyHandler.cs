@@ -152,6 +152,7 @@ namespace Consulo.Internal.Mssdw.Server
 										if(type != null)
 										{
 											result.Name = type.Name;
+											result.isArray = type.IsArray;
 											foreach (FieldInfo o in type.GetFields())
 											{
 												result.AddField((MetadataFieldInfo)o);
@@ -189,7 +190,7 @@ namespace Consulo.Internal.Mssdw.Server
 									}
 									if(temp == null)
 									{
-										temp = new UnknownValueResult();
+										temp = new UnknownValueResult("temp = null");
 									}
 								}
 								else if(messageObject is GetLocalsRequest)
@@ -259,7 +260,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 									if(temp == null)
 									{
-										temp = new UnknownValueResult();
+										temp = new UnknownValueResult("temp = null");
 									}
 								}
 								else if(messageObject is ContinueRequest)
@@ -319,18 +320,24 @@ namespace Consulo.Internal.Mssdw.Server
 		{
 			if(corValue == null)
 			{
-				return new UnknownValueResult();
+				return new UnknownValueResult("corValue = null");
 			}
 
 			CorReferenceValue toReferenceValue = corValue.CastToReferenceValue();
 			if(toReferenceValue != null)
 			{
+				if(toReferenceValue.IsNull)
+				{
+					return new NullValueRequest();
+				}
 				return CreateValueResult(originalValue, toReferenceValue.Dereference());
 			}
 
 			CorElType corValueType = corValue.Type;
 			switch(corValueType)
 			{
+				case CorElType.ELEMENT_TYPE_VOID:
+					return new NullValueRequest();
 				case CorElType.ELEMENT_TYPE_CLASS:
 				case CorElType.ELEMENT_TYPE_VALUETYPE:
 					return new ObjectValueResult(originalValue, debugSession, corValue.CastToObjectValue());
@@ -338,8 +345,10 @@ namespace Consulo.Internal.Mssdw.Server
 					return new StringValueResult(originalValue, corValue.CastToStringValue());
 				case CorElType.ELEMENT_TYPE_BOOLEAN:
 					return new BooleanValueResult(originalValue, corValue.CastToGenericValue());
+				case CorElType.ELEMENT_TYPE_SZARRAY:
+					return new ArrayValueResult(originalValue, debugSession, corValue.CastToArrayValue());
 			}
-			return new UnknownValueResult();
+			return new UnknownValueResult("corValueType: " + string.Format("{0:X}", corValueType));
 		}
 
 		private async Task SendMessage<T>(ClientMessage clientMessage, T value) where T : class

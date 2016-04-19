@@ -17,6 +17,7 @@ namespace Consulo.Internal.Mssdw.Server.Event
 		}
 
 		public List<FieldInfo> Fields = new List<FieldInfo>();
+		public bool isArray;
 		public string Name;
 
 		public void AddField(MetadataFieldInfo metadataFieldInfo)
