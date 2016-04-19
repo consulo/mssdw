@@ -225,6 +225,38 @@ namespace Consulo.Internal.Mssdw.Server
 
 									temp = result;
 								}
+								else if(messageObject is GetLocalValueRequest)
+								{
+									GetLocalValueRequest localRequest = (GetLocalValueRequest)messageObject;
+									CorThread current = debugSession.Process.Threads.Where(x => x.Id == localRequest.ThreadId).FirstOrDefault();
+									if(current != null)
+									{
+										IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
+										int i = 0;
+										CorFrame corFrame = null;
+										foreach (CorFrame frame in frames)
+										{
+											if(i == localRequest.StackFrameIndex)
+											{
+												corFrame = frame;
+												break;
+											}
+											i++;
+										}
+
+										if(corFrame != null)
+										{
+											CorValue value = corFrame.GetLocalVariable(localRequest.Index);
+
+											temp = CreateValueResult(value == null ? -1 : value.Id, value);
+										}
+									}
+
+									if(temp == null)
+									{
+										temp = new UnknownValueResult();
+									}
+								}
 								else if(messageObject is ContinueRequest)
 								{
 									debugSession.Process.Continue(false);
