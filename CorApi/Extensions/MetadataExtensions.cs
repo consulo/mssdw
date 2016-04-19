@@ -282,7 +282,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 			DebugSession session = corMetadataImport.DebugSession;
 			CorMetadataImport module = session.GetMSCorLibModule();
 			Debug.Assert(module != null);
-			int fromName = module.GetTypeTokenFromName(type.Name);
+			int fromName = module.GetTypeTokenFromName(type.FullName);
 			return new MetadataType(module, module.m_importer, fromName);
 		}
 

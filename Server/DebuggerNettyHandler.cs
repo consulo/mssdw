@@ -152,6 +152,7 @@ namespace Consulo.Internal.Mssdw.Server
 										if(type != null)
 										{
 											result.Name = type.Name;
+											result.FullName = type.FullName;
 											result.isArray = type.IsArray;
 											foreach (FieldInfo o in type.GetFields())
 											{
