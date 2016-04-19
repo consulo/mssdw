@@ -6,14 +6,13 @@
 using System;
 using System.Reflection;
 using System.Text;
-using System.Runtime.Serialization;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
 
 namespace Microsoft.Samples.Debugging.CorMetadata
 {
 	public sealed class MetadataParameterInfo : ParameterInfo
 	{
-		internal MetadataParameterInfo(IMetadataImport importer, int paramToken, MemberInfo memberImpl, Type typeImpl)
+		internal MetadataParameterInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int paramToken, MemberInfo memberImpl, Type typeImpl)
 		{
 			int parentToken;
 			uint pulSequence, pdwAttr, pdwCPlusTypeFlag, pcchValue, size;
@@ -50,9 +49,12 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			MemberImpl = memberImpl;
 		}
 
-		private MetadataParameterInfo(SerializationInfo info, StreamingContext context)
+		public System.Type ParameterType
 		{
-
+			get
+			{
+				return ClassImpl;
+			}
 		}
 
 		public override string Name

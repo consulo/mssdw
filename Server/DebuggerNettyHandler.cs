@@ -153,10 +153,15 @@ namespace Consulo.Internal.Mssdw.Server
 										{
 											result.Name = type.Name;
 											result.FullName = type.FullName;
-											result.isArray = type.IsArray;
+											result.IsArray = type.IsArray;
 											foreach (FieldInfo o in type.GetFields())
 											{
 												result.AddField((MetadataFieldInfo)o);
+											}
+
+											foreach (PropertyInfo o in type.GetProperties())
+											{
+												result.AddProperty((MetadataPropertyInfo)o);
 											}
 										}
 									}

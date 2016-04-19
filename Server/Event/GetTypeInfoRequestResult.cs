@@ -1,5 +1,6 @@
 using Microsoft.Samples.Debugging.CorMetadata;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Consulo.Internal.Mssdw.Server.Event
 {
@@ -16,8 +17,23 @@ namespace Consulo.Internal.Mssdw.Server.Event
 			public int Attributes;
 		}
 
+		public class PropertyInfo
+		{
+			public string Name;
+
+			public TypeRef Type;
+
+			public int Attributes;
+
+			public int GetterToken;
+
+			public int SetterToken;
+		}
+
 		public List<FieldInfo> Fields = new List<FieldInfo>();
-		public bool isArray;
+		public List<PropertyInfo> Properties = new List<PropertyInfo>();
+
+		public bool IsArray;
 		public string Name;
 		public string FullName;
 
@@ -30,6 +46,27 @@ namespace Consulo.Internal.Mssdw.Server.Event
 			fieldInfo.Type = new TypeRef(metadataFieldInfo.FieldType);
 
 			Fields.Add(fieldInfo);
+		}
+
+		public void AddProperty(MetadataPropertyInfo metadataFieldInfo)
+		{
+			PropertyInfo propertyInfo = new PropertyInfo();
+			propertyInfo.Name = metadataFieldInfo.Name;
+			propertyInfo.Attributes = (int) metadataFieldInfo.Attributes;
+			propertyInfo.Type = new TypeRef(metadataFieldInfo.PropertyType);
+
+			MethodInfo getGetMethod = metadataFieldInfo.GetGetMethod(true);
+			if(getGetMethod != null)
+			{
+				propertyInfo.GetterToken = getGetMethod.MetadataToken;
+			}
+
+			MethodInfo setGetMethod = metadataFieldInfo.GetSetMethod(true);
+			if(setGetMethod != null)
+			{
+				propertyInfo.SetterToken = setGetMethod.MetadataToken;
+			}
+			Properties.Add(propertyInfo);
 		}
 	}
 }

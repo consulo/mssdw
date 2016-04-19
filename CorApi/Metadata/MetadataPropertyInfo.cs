@@ -21,14 +21,10 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		int m_pmdSetter;
 		int m_pmdGetter;
 
-		MetadataMethodInfo m_setter;
-		MetadataMethodInfo m_getter;
+		MetadataMethodInfo mySetter;
+		MetadataMethodInfo myGetter;
 
-		public CorMetadataImport CorMetadataImport
-		{
-			get;
-			set;
-		}
+		public CorMetadataImport CorMetadataImport;
 
 		internal MetadataPropertyInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int propertyToken, MetadataType declaringType)
 		{
@@ -84,7 +80,6 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					out rmdOtherMethod,
 					0,
 					out pcOtherMethod);
-
 			m_propAttributes = (PropertyAttributes) pdwPropFlags;
 			m_name = szProperty.ToString();
 			MetadataHelperFunctionsExtensions.GetCustomAttribute(importer, propertyToken, typeof (System.Diagnostics.DebuggerBrowsableAttribute));
@@ -130,11 +125,11 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			if(m_pmdGetter == 0)
 				return null;
 
-			if(m_getter == null)
-				m_getter = new MetadataMethodInfo(CorMetadataImport, m_importer, m_pmdGetter);
+			if(myGetter == null)
+				myGetter = new MetadataMethodInfo(CorMetadataImport, m_importer, m_pmdGetter);
 
-			if(nonPublic || m_getter.IsPublic)
-				return m_getter;
+			if(nonPublic || myGetter.IsPublic)
+				return myGetter;
 			return null;
 		}
 
@@ -151,11 +146,11 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			if(m_pmdSetter == 0)
 				return null;
 
-			if(m_setter == null)
-				m_setter = new MetadataMethodInfo(CorMetadataImport, m_importer, m_pmdSetter);
+			if(mySetter == null)
+				mySetter = new MetadataMethodInfo(CorMetadataImport, m_importer, m_pmdSetter);
 
-			if(nonPublic || m_setter.IsPublic)
-				return m_setter;
+			if(nonPublic || mySetter.IsPublic)
+				return mySetter;
 			return null;
 		}
 
@@ -168,7 +163,14 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		{
 			get
 			{
-				throw new NotImplementedException();
+				if(myGetter != null)
+				{
+					return myGetter.ReturnType;
+				}
+				else
+				{
+					return mySetter.GetParameters()[0].ParameterType;
+				}
 			}
 		}
 
