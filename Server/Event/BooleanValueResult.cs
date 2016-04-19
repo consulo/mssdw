@@ -5,11 +5,14 @@ namespace Consulo.Internal.Mssdw.Server.Event
 	public class BooleanValueResult
 	{
 		public int Id;
+		public long Address;
 		public bool Value;
 
-		public BooleanValueResult(int id, CorGenericValue value)
+		public BooleanValueResult(CorValue original, CorGenericValue value)
 		{
-			Id = id;
+			Id = original == null ? -1 : original.Id;
+			Address = original == null ? -1 : original.Address;
+
 			Value = (bool)value.GetValue();
 		}
 	}

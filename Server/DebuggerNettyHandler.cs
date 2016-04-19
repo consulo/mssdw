@@ -125,6 +125,7 @@ namespace Consulo.Internal.Mssdw.Server
 										if(methodInfo != null)
 										{
 											result.Name = methodInfo.Name;
+											result.Attributes = (int) methodInfo.Attributes;
 											foreach (ParameterInfo o in methodInfo.GetParameters())
 											{
 												string parameterName = o.Name;
@@ -183,7 +184,7 @@ namespace Consulo.Internal.Mssdw.Server
 										{
 											CorValue value = corFrame.GetArgument(argumentRequest.Index);
 
-											temp = CreateValueResult(value == null ? -1 : value.Id, value);
+											temp = CreateValueResult(value, value);
 										}
 									}
 									if(temp == null)
@@ -252,7 +253,7 @@ namespace Consulo.Internal.Mssdw.Server
 										{
 											CorValue value = corFrame.GetLocalVariable(localRequest.Index);
 
-											temp = CreateValueResult(value == null ? -1 : value.Id, value);
+											temp = CreateValueResult(value, value);
 										}
 									}
 
@@ -314,7 +315,7 @@ namespace Consulo.Internal.Mssdw.Server
 			}
 		}
 
-		private static object CreateValueResult(int id, CorValue corValue)
+		private object CreateValueResult(CorValue originalValue, CorValue corValue)
 		{
 			if(corValue == null)
 			{
@@ -324,16 +325,19 @@ namespace Consulo.Internal.Mssdw.Server
 			CorReferenceValue toReferenceValue = corValue.CastToReferenceValue();
 			if(toReferenceValue != null)
 			{
-				return CreateValueResult(id, toReferenceValue.Dereference());
+				return CreateValueResult(originalValue, toReferenceValue.Dereference());
 			}
 
 			CorElType corValueType = corValue.Type;
 			switch(corValueType)
 			{
+				case CorElType.ELEMENT_TYPE_CLASS:
+				case CorElType.ELEMENT_TYPE_VALUETYPE:
+					return new ObjectValueResult(originalValue, debugSession, corValue.CastToObjectValue());
 				case CorElType.ELEMENT_TYPE_STRING:
-					return new StringValueResult(id, corValue.CastToStringValue());
+					return new StringValueResult(originalValue, corValue.CastToStringValue());
 				case CorElType.ELEMENT_TYPE_BOOLEAN:
-					return new BooleanValueResult(id, corValue.CastToGenericValue());
+					return new BooleanValueResult(originalValue, corValue.CastToGenericValue());
 			}
 			return new UnknownValueResult();
 		}

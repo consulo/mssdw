@@ -13,6 +13,8 @@ namespace Consulo.Internal.Mssdw.Server.Event
 
 		public string Name;
 
+		public int Attributes;
+
 		public List<ParameterInfo> Parameters = new List<ParameterInfo>();
 
 		public void AddParameter(string name, TypeRef typeRef)

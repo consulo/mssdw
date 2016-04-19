@@ -297,6 +297,9 @@ namespace Microsoft.Samples.Debugging.CorDebug
 
 	public sealed class CorObjectValue : CorValue
 	{
+		// public Object GetManagedCopy() -- deprecated, therefore we won't make it available at all.
+		private ICorDebugObjectValue m_objVal = null;
+
 		internal CorObjectValue(ICorDebugObjectValue objectValue) : base(objectValue)
 		{
 			m_objVal = objectValue;
@@ -341,9 +344,6 @@ namespace Microsoft.Samples.Debugging.CorDebug
 				return bIsValueClass != 0;
 			}
 		}
-
-		// public Object GetManagedCopy() -- deprecated, therefore we won't make it available at all.
-		private ICorDebugObjectValue m_objVal = null;
 	}
 
 	public sealed class CorGenericValue : CorValue
