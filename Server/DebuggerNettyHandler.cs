@@ -159,7 +159,7 @@ namespace Consulo.Internal.Mssdw.Server
 								else if(messageObject is GetArgumentRequest)
 								{
 									GetArgumentRequest argumentRequest = (GetArgumentRequest)messageObject;
-									CorThread current = debugSession.Process.Threads.Where(x => x.Id == argumentRequest.ThreadId).First();
+									CorThread current = debugSession.Process.Threads.Where(x => x.Id == argumentRequest.ThreadId).FirstOrDefault();
 									if(current != null)
 									{
 										IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
@@ -187,6 +187,44 @@ namespace Consulo.Internal.Mssdw.Server
 										temp = new UnknownValueResult();
 									}
 								}
+								else if(messageObject is GetLocalsRequest)
+								{
+									GetLocalsRequestResult result = new GetLocalsRequestResult();
+
+									GetLocalsRequest localsRequest = (GetLocalsRequest)messageObject;
+									CorThread current = debugSession.Process.Threads.Where(x => x.Id == localsRequest.ThreadId).FirstOrDefault();
+									if(current != null)
+									{
+										IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
+										int i = 0;
+										CorFrame corFrame = null;
+										foreach (CorFrame frame in frames)
+										{
+											if(i == localsRequest.StackFrameIndex)
+											{
+												corFrame = frame;
+												break;
+											}
+											i++;
+										}
+
+										if(corFrame != null)
+										{
+											uint offset;
+											CorDebugMappingResult mr;
+
+											corFrame.GetIP(out offset, out mr);
+
+											ISymbolMethod met = corFrame.Function.GetSymbolMethod(debugSession);
+
+											ISymbolScope scope = met.RootScope;
+
+											collectLocals(scope, (int) offset, result);
+										}
+									}
+
+									temp = result;
+								}
 								else if(messageObject is ContinueRequest)
 								{
 									debugSession.Process.Continue(false);
@@ -203,7 +241,7 @@ namespace Consulo.Internal.Mssdw.Server
 							if(temp == null)
 							{
 								temp = new BadRequestResult();
-								Console.WriteLine("Unknown object: " + (messageObject == null ? "null" : messageObject.GetType().FullName));
+								Console.WriteLine("Bad handle for object: " + (messageObject == null ? "null" : messageObject.GetType().FullName));
 							}
 
 							await SendMessage<object>(clientMessage, temp);
@@ -219,6 +257,24 @@ namespace Consulo.Internal.Mssdw.Server
 						Console.WriteLine(e.StackTrace);
 					}
 				});
+			}
+		}
+
+		private static void collectLocals(ISymbolScope scope, int offset, GetLocalsRequestResult result)
+		{
+			ISymbolVariable[] locals = scope.GetLocals();
+			foreach (ISymbolVariable local in locals)
+			{
+				int index = local.AddressField1;
+				//if (local.StartOffset <= offset && local.EndOffset >= offset)
+				{
+					result.Add(index, local.Name);
+				}
+			}
+
+			foreach (ISymbolScope o in scope.GetChildren())
+			{
+				collectLocals(o, offset, result);
 			}
 		}
 

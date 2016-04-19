@@ -151,7 +151,7 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		void SetActiveThread (CorThread t)
+		void SetActiveThread(CorThread t)
 		{
 			activeThread = t;
 			if(stepper != null && stepper.IsActive())
@@ -178,7 +178,8 @@ namespace Consulo.Internal.Mssdw
 			try
 			{
 				line = doc.Document.FindClosestLine(request.Line);
-			} catch
+			}
+			catch
 			{
 				// Invalid line
 				result.SetStatus(BreakEventStatus.Invalid, null);
@@ -187,7 +188,7 @@ namespace Consulo.Internal.Mssdw
 			ISymbolMethod met = null;
 			if(doc.Reader is ISymbolReader2)
 			{
-				var methods = ((ISymbolReader2)doc.Reader).GetMethodsFromDocumentPosition(doc.Document, line, 0);
+				ISymbolMethod[] methods = ((ISymbolReader2)doc.Reader).GetMethodsFromDocumentPosition(doc.Document, line, 0);
 				if(methods != null && methods.Any())
 				{
 					if(methods.Count() == 1)
@@ -197,7 +198,7 @@ namespace Consulo.Internal.Mssdw
 					else
 					{
 						int deepest = -1;
-						foreach (var method in methods)
+						foreach (ISymbolMethod method in methods)
 						{
 							var firstSequence = method.GetSequencePoints().FirstOrDefault((sp) => sp.StartLine != 0xfeefee);
 							if(firstSequence != null && firstSequence.StartLine >= deepest)
@@ -256,7 +257,7 @@ namespace Consulo.Internal.Mssdw
 			return result;
 		}
 
-		void OnBreakpoint (object sender, CorBreakpointEventArgs e)
+		void OnBreakpoint(object sender, CorBreakpointEventArgs e)
 		{
 			lock (debugLock)
 			{
@@ -407,7 +408,7 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		private void OnModuleUnload (object sender, CorModuleEventArgs e)
+		private void OnModuleUnload(object sender, CorModuleEventArgs e)
 		{
 			lock (documents)
 			{
@@ -501,7 +502,7 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		internal CorMetadataImport GetMetadataForModule (int token)
+		internal CorMetadataImport GetMetadataForModule(int token)
 		{
 			lock (documents)
 			{
@@ -526,7 +527,7 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		internal CorMetadataImport GetMetadataForModule (string file)
+		internal CorMetadataImport GetMetadataForModule(string file)
 		{
 			lock (documents)
 			{
@@ -537,7 +538,7 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		internal ISymbolReader GetReaderForModule (string file)
+		internal ISymbolReader GetReaderForModule(string file)
 		{
 			lock (documents)
 			{
@@ -548,7 +549,7 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		public bool IsExternalCode (string fileName)
+		public bool IsExternalCode(string fileName)
 		{
 			return string.IsNullOrWhiteSpace(fileName)
 			|| !documents.ContainsKey(fileName);

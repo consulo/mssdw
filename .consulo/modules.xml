@@ -20,7 +20,7 @@
           <orderEntry type="module-library">
             <library name="nuget: Newtonsoft.Json.8.0.3">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/Newtonsoft.Json.8.0.3/lib/net45/Newtonsoft.Json.dll!/" />
+                <root url="netdll://$MODULE_DIR$/packages/Newtonsoft.Json.8.0.3/lib/net45/Newtonsoft.Json.dll!/" />
               </binaries>
               <documentation>
                 <root url="file://$MODULE_DIR$/packages/Newtonsoft.Json.8.0.3/lib/net45/Newtonsoft.Json.xml" />
@@ -30,7 +30,7 @@
           <orderEntry type="module-library">
             <library name="nuget: EnterpriseLibrary.SemanticLogging.2.0.1406.1">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/EnterpriseLibrary.SemanticLogging.2.0.1406.1/lib/net45/Microsoft.Practices.EnterpriseLibrary.SemanticLogging.dll!/" />
+                <root url="netdll://$MODULE_DIR$/packages/EnterpriseLibrary.SemanticLogging.2.0.1406.1/lib/net45/Microsoft.Practices.EnterpriseLibrary.SemanticLogging.dll!/" />
               </binaries>
               <documentation>
                 <root url="file://$MODULE_DIR$/packages/EnterpriseLibrary.SemanticLogging.2.0.1406.1/lib/net45/Microsoft.Practices.EnterpriseLibrary.SemanticLogging.XML" />
@@ -40,35 +40,35 @@
           <orderEntry type="module-library">
             <library name="nuget: DotNetty.Common.0.2.5">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Common.0.2.5/lib/net45/DotNetty.Common.dll!/" />
+                <root url="netdll://$MODULE_DIR$/packages/DotNetty.Common.0.2.5/lib/net45/DotNetty.Common.dll!/" />
               </binaries>
             </library>
           </orderEntry>
           <orderEntry type="module-library">
             <library name="nuget: DotNetty.Buffers.0.2.5">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Buffers.0.2.5/lib/net45/DotNetty.Buffers.dll!/" />
+                <root url="netdll://$MODULE_DIR$/packages/DotNetty.Buffers.0.2.5/lib/net45/DotNetty.Buffers.dll!/" />
               </binaries>
             </library>
           </orderEntry>
           <orderEntry type="module-library">
             <library name="nuget: DotNetty.Transport.0.2.5">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Transport.0.2.5/lib/net45/DotNetty.Transport.dll!/" />
+                <root url="netdll://$MODULE_DIR$/packages/DotNetty.Transport.0.2.5/lib/net45/DotNetty.Transport.dll!/" />
               </binaries>
             </library>
           </orderEntry>
           <orderEntry type="module-library">
             <library name="nuget: DotNetty.Codecs.0.2.5">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Codecs.0.2.5/lib/net45/DotNetty.Codecs.dll!/" />
+                <root url="netdll://$MODULE_DIR$/packages/DotNetty.Codecs.0.2.5/lib/net45/DotNetty.Codecs.dll!/" />
               </binaries>
             </library>
           </orderEntry>
           <orderEntry type="module-library">
             <library name="nuget: DotNetty.Handlers.0.2.5">
               <binaries>
-                <root url="netdll://R:/_github.com/consulo/MonoDevelop.Debugger.Win32/packages/DotNetty.Handlers.0.2.5/lib/net45/DotNetty.Handlers.dll!/" />
+                <root url="netdll://$MODULE_DIR$/packages/DotNetty.Handlers.0.2.5/lib/net45/DotNetty.Handlers.dll!/" />
               </binaries>
             </library>
           </orderEntry>

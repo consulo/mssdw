@@ -156,7 +156,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 			// Used as marker for generic method args
 		}
 
-		static Type ReadType (CorMetadataImport corMetadataImport, IMetadataImport importer, ref IntPtr pData)
+		static Type ReadType(CorMetadataImport corMetadataImport, IMetadataImport importer, ref IntPtr pData)
 		{
 			CorElementType et;
 			unsafe
