@@ -549,6 +549,22 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
+		internal int[] FindTypeByName(string name)
+		{
+			lock (documents)
+			{
+				foreach (ModuleInfo value in modules.Values)
+				{
+					int tokenFromName = value.Importer.GetTypeTokenFromName(name);
+					if(tokenFromName > 0)
+					{
+						return new int[]{value.Module.Token, tokenFromName};
+					}
+				}
+				return new int[2];
+			}
+		}
+
 		public bool IsExternalCode(string fileName)
 		{
 			return string.IsNullOrWhiteSpace(fileName)

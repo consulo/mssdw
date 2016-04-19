@@ -285,6 +285,16 @@ namespace Consulo.Internal.Mssdw.Server
 										temp = new UnknownValueResult("temp = null");
 									}
 								}
+								else if(messageObject is FindTypeInfoRequest)
+								{
+									int[] findTypeByName = debugSession.FindTypeByName(((FindTypeInfoRequest) messageObject).VmQName);
+									TypeRef typeRef = null;
+									if(findTypeByName[0] > 0)
+									{
+										typeRef = new TypeRef(findTypeByName[0], findTypeByName[1]);
+									}
+									temp = new FindTypeInfoRequestResult(typeRef);
+								}
 								else if(messageObject is ContinueRequest)
 								{
 									debugSession.Process.Continue(false);
