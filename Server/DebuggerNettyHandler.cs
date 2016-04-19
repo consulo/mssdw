@@ -142,28 +142,32 @@ namespace Consulo.Internal.Mssdw.Server
 									GetTypeInfoRequest request = (GetTypeInfoRequest) messageObject;
 
 									GetTypeInfoRequestResult result = new GetTypeInfoRequestResult();
-
-									result.Name = "<unknown>";
-
-									CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleToken);
-									if(metadataForModule != null)
+									try
 									{
-										Type type = metadataForModule.GetType(request.Type.ClassToken);
-										if(type != null)
+										CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleToken);
+										if(metadataForModule != null)
 										{
-											result.Name = type.Name;
-											result.FullName = type.FullName;
-											result.IsArray = type.IsArray;
-											foreach (FieldInfo o in type.GetFields())
+											Type type = metadataForModule.GetType(request.Type.ClassToken);
+											if(type != null)
 											{
-												result.AddField((MetadataFieldInfo)o);
-											}
+												result.Name = type.Name;
+												result.FullName = type.FullName;
+												result.IsArray = type.IsArray;
+												foreach (FieldInfo o in type.GetFields())
+												{
+													result.AddField((MetadataFieldInfo)o);
+												}
 
-											foreach (PropertyInfo o in type.GetProperties())
-											{
-												result.AddProperty((MetadataPropertyInfo)o);
+												foreach (PropertyInfo o in type.GetProperties())
+												{
+													result.AddProperty((MetadataPropertyInfo)o);
+												}
 											}
 										}
+									}
+									catch
+									{
+										// ignored all exceptions - if can be failed when no image, etc, send empty result
 									}
 
 									temp = result;
