@@ -232,6 +232,27 @@ namespace Consulo.Internal.Mssdw.Server
 
 									temp = result;
 								}
+								else if(messageObject is GetFieldValueRequest)
+								{
+									GetFieldValueRequest fieldValueRequest = (GetFieldValueRequest)messageObject;
+
+									CorValue cor = CorValueRegistrator.Get(fieldValueRequest.ObjectId);
+									if(cor is CorObjectValue)
+									{
+										CorObjectValue objectValue = (CorObjectValue) cor;
+										if(objectValue.Address == 0)
+										{
+											temp = new NullValueResult();
+										}
+										else
+										{
+											CorClass corClass = objectValue.Class;
+											int fieldToken = fieldValueRequest.FieldToken;
+											CorValue value = objectValue.GetFieldValue(corClass, fieldToken);
+											temp = CreateValueResult(value, value);
+										}
+									}
+								}
 								else if(messageObject is GetLocalValueRequest)
 								{
 									GetLocalValueRequest localRequest = (GetLocalValueRequest)messageObject;
@@ -329,7 +350,7 @@ namespace Consulo.Internal.Mssdw.Server
 			{
 				if(toReferenceValue.IsNull)
 				{
-					return new NullValueRequest();
+					return new NullValueResult();
 				}
 				return CreateValueResult(originalValue, toReferenceValue.Dereference());
 			}
@@ -338,7 +359,7 @@ namespace Consulo.Internal.Mssdw.Server
 			switch(corValueType)
 			{
 				case CorElType.ELEMENT_TYPE_VOID:
-					return new NullValueRequest();
+					return new NullValueResult();
 				case CorElType.ELEMENT_TYPE_CLASS:
 				case CorElType.ELEMENT_TYPE_VALUETYPE:
 					return new ObjectValueResult(originalValue, debugSession, corValue.CastToObjectValue());

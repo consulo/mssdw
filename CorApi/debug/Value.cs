@@ -42,6 +42,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 	public class CorValue : WrapperBase
 	{
 		public readonly int Id;
+		internal ICorDebugValue m_val = null;
 
 		internal CorValue(ICorDebugValue value) : base(value)
 		{
@@ -161,10 +162,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 			else
 				return null;
 		}
-
-		internal ICorDebugValue m_val = null;
-
-	} /* class Value */
+	}
 
 
 	public class CorReferenceValue : CorValue
