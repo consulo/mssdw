@@ -292,11 +292,12 @@ namespace Consulo.Internal.Mssdw.Server
 								}
 								else if(messageObject is FindTypeInfoRequest)
 								{
-									int[] findTypeByName = debugSession.FindTypeByName(((FindTypeInfoRequest) messageObject).VmQName);
+									string vmQName = ((FindTypeInfoRequest) messageObject).VmQName;
+									int[] findTypeByName = debugSession.FindTypeByName(vmQName);
 									TypeRef typeRef = null;
 									if(findTypeByName[0] > 0)
 									{
-										typeRef = new TypeRef(findTypeByName[0], findTypeByName[1]);
+										typeRef = new TypeRef(findTypeByName[0], findTypeByName[1], vmQName);
 									}
 									temp = new FindTypeInfoRequestResult(typeRef);
 								}
@@ -468,6 +469,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 			int moduleToken = -1;
 			int classToken = -1;
+			string vqName = "#AddFrame";
 			int functionToken = -1;
 
 			if(frame.FrameType == CorFrameType.ILFrame)
@@ -525,7 +527,7 @@ namespace Consulo.Internal.Mssdw.Server
 			{
 			}
 
-			result.Add(file, line, column, new TypeRef(moduleToken, classToken), functionToken);
+			result.Add(file, line, column, new TypeRef(moduleToken, classToken, vqName), functionToken);
 		}
 
 		private const int SpecialSequencePoint = 0xfeefee;
