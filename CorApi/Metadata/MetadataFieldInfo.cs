@@ -19,7 +19,19 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 {
 	public sealed class MetadataFieldInfo : FieldInfo
 	{
-		internal MetadataFieldInfo(IMetadataImport importer, int fieldToken, MetadataType declaringType)
+		private Type myFieldType;
+
+		private IMetadataImport m_importer;
+		private int m_fieldToken;
+		private MetadataType m_declaringType;
+
+		private string m_name;
+		private FieldAttributes m_fieldAttributes;
+		private object m_value;
+		// [Xamarin] Expression evaluator.
+		private object[] m_customAttributes;
+
+		internal MetadataFieldInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int fieldToken, MetadataType declaringType)
 		{
 			m_importer = importer;
 			m_fieldToken = fieldToken;
@@ -65,6 +77,9 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			{
 				m_value = ParseDefaultValue(declaringType, ppvSigBlob, ppvRawValue);
 			}
+
+			myFieldType = MetadataHelperFunctionsExtensions.ReadType(corMetadataImport, m_importer, ref ppvSigBlob);
+
 			// [Xamarin] Expression evaluator.
 			MetadataHelperFunctionsExtensions.GetCustomAttribute(m_importer, m_fieldToken, typeof (DebuggerBrowsableAttribute));
 		}
@@ -178,7 +193,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		{
 			get
 			{
-				throw new NotImplementedException();
+				return myFieldType;
 			}
 		}
 
@@ -237,15 +252,5 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				return m_fieldToken;
 			}
 		}
-
-		private IMetadataImport m_importer;
-		private int m_fieldToken;
-		private MetadataType m_declaringType;
-
-		private string m_name;
-		private FieldAttributes m_fieldAttributes;
-		private object m_value;
-		// [Xamarin] Expression evaluator.
-		private object[] m_customAttributes;
 	}
 }

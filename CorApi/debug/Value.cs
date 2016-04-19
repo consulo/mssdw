@@ -22,7 +22,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 			int value;
 			lock (values)
 			{
-				values.Add(value = nextId ++, corValue);
+				values.Add(value = nextId++, corValue);
 			}
 			return value;
 		}
@@ -43,7 +43,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 	{
 		public readonly int Id;
 
-		internal CorValue (ICorDebugValue value) : base(value)
+		internal CorValue(ICorDebugValue value) : base(value)
 		{
 			m_val = value;
 
@@ -96,7 +96,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 
 		/** Breakpoint triggered when the value is modified. */
-		public CorValueBreakpoint CreateBreakpoint ()
+		public CorValueBreakpoint CreateBreakpoint()
 		{
 			ICorDebugValueBreakpoint bp = null;
 			m_val.CreateBreakpoint(out bp);

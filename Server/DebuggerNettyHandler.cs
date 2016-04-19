@@ -151,6 +151,10 @@ namespace Consulo.Internal.Mssdw.Server
 										if(type != null)
 										{
 											result.Name = type.Name;
+											foreach (FieldInfo o in type.GetFields())
+											{
+												result.AddField((MetadataFieldInfo)o);
+											}
 										}
 									}
 

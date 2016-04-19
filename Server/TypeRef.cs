@@ -9,7 +9,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 		public int ClassToken;
 
-		public string VmQName;
+		//public string VmQName;
 
 		public TypeRef()
 		{
@@ -24,7 +24,7 @@ namespace Consulo.Internal.Mssdw.Server
 			}
 			else
 			{
-				VmQName = type.FullName;
+				throw new Exception("We cant send not metadata type: " + type.FullName);
 			}
 		}
 

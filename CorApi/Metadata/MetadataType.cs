@@ -21,6 +21,22 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 {
 	public sealed class MetadataType : Type
 	{
+		// member variables
+		private string m_name;
+		private IMetadataImport m_importer;
+		private int m_typeToken;
+		private bool m_isEnum;
+		private bool m_isFlagsEnum;
+		private CorElementType m_enumUnderlyingType;
+		private List<KeyValuePair<string, ulong>> m_enumValues;
+		// [Xamarin] Expression evaluator.
+		private object[] m_customAttributes;
+		private Type m_declaringType;
+		internal List<int> m_arraySizes;
+		internal List<int> m_arrayLoBounds;
+		internal bool m_isByRef, m_isPtr;
+		internal List<Type> m_typeArgs;
+
 		public CorMetadataImport CorMetadataImport
 		{
 			get;
@@ -572,7 +588,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					if(size == 0)
 						break;
 					// [Xamarin] Expression evaluator.
-					var field = new MetadataFieldInfo(m_importer, fieldToken, this);
+					var field = new MetadataFieldInfo(CorMetadataImport, m_importer, fieldToken, this);
 					if(MetadataExtensions.TypeFlagsMatch(field.IsPublic, field.IsStatic, bindingAttr))
 						al.Add(field);
 				}
@@ -719,22 +735,6 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			else
 				return string.Empty;
 		}
-
-		// member variables
-		private string m_name;
-		private IMetadataImport m_importer;
-		private int m_typeToken;
-		private bool m_isEnum;
-		private bool m_isFlagsEnum;
-		private CorElementType m_enumUnderlyingType;
-		private List<KeyValuePair<string, ulong>> m_enumValues;
-		// [Xamarin] Expression evaluator.
-		private object[] m_customAttributes;
-		private Type m_declaringType;
-		internal List<int> m_arraySizes;
-		internal List<int> m_arrayLoBounds;
-		internal bool m_isByRef, m_isPtr;
-		internal List<Type> m_typeArgs;
 	}
 
 	// Sorts KeyValuePair<string,ulong>'s in increasing order by the value

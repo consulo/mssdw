@@ -41,7 +41,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 	// [Xamarin] Expression evaluator.
 	public static class MetadataExtensions
 	{
-		internal static bool TypeFlagsMatch (bool isPublic, bool isStatic, BindingFlags flags)
+		internal static bool TypeFlagsMatch(bool isPublic, bool isStatic, BindingFlags flags)
 		{
 			if(isPublic && (flags & BindingFlags.Public) == 0)
 				return false;
@@ -54,12 +54,12 @@ namespace Microsoft.Samples.Debugging.Extensions
 			return true;
 		}
 
-		internal static Type MakeDelegate (Type retType, List<Type> argTypes)
+		internal static Type MakeDelegate(Type retType, List<Type> argTypes)
 		{
 			throw new NotImplementedException();
 		}
 
-		public static Type MakeArray (Type t, List<int> sizes, List<int> loBounds)
+		public static Type MakeArray(Type t, List<int> sizes, List<int> loBounds)
 		{
 			var mt = t as MetadataType;
 			if(mt != null)
@@ -78,7 +78,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 			return t.MakeArrayType(sizes.Capacity);
 		}
 
-		public static Type MakeByRef (Type t)
+		public static Type MakeByRef(Type t)
 		{
 			var mt = t as MetadataType;
 			if(mt != null)
@@ -89,7 +89,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 			return t.MakeByRefType();
 		}
 
-		public static Type MakePointer (Type t)
+		public static Type MakePointer(Type t)
 		{
 			var mt = t as MetadataType;
 			if(mt != null)
@@ -100,7 +100,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 			return t.MakeByRefType();
 		}
 
-		public static Type MakeGeneric (Type t, List<Type> typeArgs)
+		public static Type MakeGeneric(Type t, List<Type> typeArgs)
 		{
 			var mt = (MetadataType)t;
 			mt.m_typeArgs = typeArgs;
@@ -114,7 +114,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 	{
 		public static Dictionary<CorElementType, Type> CoreTypes = new Dictionary<CorElementType, Type>();
 
-		static MetadataHelperFunctionsExtensions ()
+		static MetadataHelperFunctionsExtensions()
 		{
 			CoreTypes.Add(CorElementType.ELEMENT_TYPE_BOOLEAN, typeof (bool));
 			CoreTypes.Add(CorElementType.ELEMENT_TYPE_CHAR, typeof (char));
@@ -133,7 +133,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 			CoreTypes.Add(CorElementType.ELEMENT_TYPE_U, typeof (UIntPtr));
 		}
 
-		internal static void ReadMethodSignature (CorMetadataImport corMetadataImport, IMetadataImport importer, ref IntPtr pData, out CorCallingConvention cconv, out Type retType, out List<Type> argTypes)
+		internal static void ReadMethodSignature(CorMetadataImport corMetadataImport, IMetadataImport importer, ref IntPtr pData, out CorCallingConvention cconv, out Type retType, out List<Type> argTypes)
 		{
 			cconv = MetadataHelperFunctions.CorSigUncompressCallingConv(ref pData);
 			uint numArgs = 0;
@@ -151,12 +151,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 				argTypes.Add(ReadType(corMetadataImport, importer, ref pData));
 		}
 
-		class GenericType
-		{
-			// Used as marker for generic method args
-		}
-
-		static Type ReadType(CorMetadataImport corMetadataImport, IMetadataImport importer, ref IntPtr pData)
+		public static Type ReadType(CorMetadataImport corMetadataImport, IMetadataImport importer, ref IntPtr pData)
 		{
 			CorElementType et;
 			unsafe
@@ -168,30 +163,45 @@ namespace Microsoft.Samples.Debugging.Extensions
 
 			switch(et)
 			{
-				case CorElementType.ELEMENT_TYPE_VOID: return typeof (void);
-				case CorElementType.ELEMENT_TYPE_BOOLEAN: return typeof (bool);
-				case CorElementType.ELEMENT_TYPE_CHAR: return typeof (char);
-				case CorElementType.ELEMENT_TYPE_I1: return typeof (sbyte);
-				case CorElementType.ELEMENT_TYPE_U1: return typeof (byte);
-				case CorElementType.ELEMENT_TYPE_I2: return typeof (short);
-				case CorElementType.ELEMENT_TYPE_U2: return typeof (ushort);
+				case CorElementType.ELEMENT_TYPE_VOID:
+					return FixedType(corMetadataImport, typeof(void));
+				case CorElementType.ELEMENT_TYPE_BOOLEAN:
+					return FixedType(corMetadataImport, typeof(bool));
+				case CorElementType.ELEMENT_TYPE_CHAR:
+					return FixedType(corMetadataImport, typeof(char));
+				case CorElementType.ELEMENT_TYPE_I1:
+					return FixedType(corMetadataImport, typeof(sbyte));
+				case CorElementType.ELEMENT_TYPE_U1:
+					return FixedType(corMetadataImport, typeof(byte));
+				case CorElementType.ELEMENT_TYPE_I2:
+					return FixedType(corMetadataImport, typeof(short));
+				case CorElementType.ELEMENT_TYPE_U2:
+					return FixedType(corMetadataImport, typeof(ushort));
 				case CorElementType.ELEMENT_TYPE_I4:
 					return FixedType(corMetadataImport, typeof(int));
-				case CorElementType.ELEMENT_TYPE_U4: return typeof (uint);
-				case CorElementType.ELEMENT_TYPE_I8: return typeof (long);
-				case CorElementType.ELEMENT_TYPE_U8: return typeof (ulong);
-				case CorElementType.ELEMENT_TYPE_R4: return typeof (float);
-				case CorElementType.ELEMENT_TYPE_R8: return typeof (double);
-				case CorElementType.ELEMENT_TYPE_STRING: return typeof (string);
-				case CorElementType.ELEMENT_TYPE_I: return typeof (IntPtr);
-				case CorElementType.ELEMENT_TYPE_U: return typeof (UIntPtr);
-				case CorElementType.ELEMENT_TYPE_OBJECT: return typeof (object);
-
+				case CorElementType.ELEMENT_TYPE_U4:
+					return FixedType(corMetadataImport, typeof(uint));
+				case CorElementType.ELEMENT_TYPE_I8:
+					return FixedType(corMetadataImport, typeof(long));
+				case CorElementType.ELEMENT_TYPE_U8:
+					return FixedType(corMetadataImport, typeof(ulong));
+				case CorElementType.ELEMENT_TYPE_R4:
+					return FixedType(corMetadataImport, typeof(float));
+				case CorElementType.ELEMENT_TYPE_R8:
+					return FixedType(corMetadataImport, typeof(double));
+				case CorElementType.ELEMENT_TYPE_STRING:
+					return FixedType(corMetadataImport, typeof(string));
+				case CorElementType.ELEMENT_TYPE_I:
+					return FixedType(corMetadataImport, typeof(IntPtr));
+				case CorElementType.ELEMENT_TYPE_U:
+					return FixedType(corMetadataImport, typeof(UIntPtr));
+				case CorElementType.ELEMENT_TYPE_OBJECT:
+					return FixedType(corMetadataImport, typeof(object));
 				case CorElementType.ELEMENT_TYPE_VAR:
 				case CorElementType.ELEMENT_TYPE_MVAR:
 					// Generic args in methods not supported. Return a dummy type.
 					MetadataHelperFunctions.CorSigUncompressData(ref pData);
-					return typeof(GenericType);
+					return FixedType(corMetadataImport, typeof(object));
 
 				case CorElementType.ELEMENT_TYPE_GENERICINST:
 				{
@@ -278,7 +288,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 
 		static readonly object[] emptyAttributes = new object[0];
 
-		static internal object[] GetDebugAttributes (IMetadataImport importer, int token)
+		static internal object[] GetDebugAttributes(IMetadataImport importer, int token)
 		{
 			var attributes = new ArrayList();
 			object attr = GetCustomAttribute(importer, token, typeof (System.Diagnostics.DebuggerTypeProxyAttribute));
@@ -310,7 +320,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 		}
 
 		// [Xamarin] Expression evaluator.
-		static internal object GetCustomAttribute (IMetadataImport importer, int token, Type type)
+		static internal object GetCustomAttribute(IMetadataImport importer, int token, Type type)
 		{
 			uint sigSize;
 			IntPtr ppvSig;
@@ -366,7 +376,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 		}
 
 		// [Xamarin] Expression evaluator.
-		static object ReadValue (BinaryReader br, Type type)
+		static object ReadValue(BinaryReader br, Type type)
 		{
 			if(type.IsEnum)
 			{
