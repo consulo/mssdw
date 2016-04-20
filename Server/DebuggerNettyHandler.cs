@@ -378,6 +378,8 @@ namespace Consulo.Internal.Mssdw.Server
 			CorElType corValueType = corValue.Type;
 			switch(corValueType)
 			{
+				case CorElType.ELEMENT_TYPE_CHAR:
+					return new CharValueResult(originalValue,corValue.CastToGenericValue());
 				case CorElType.ELEMENT_TYPE_I:
 				case CorElType.ELEMENT_TYPE_U:
 				case CorElType.ELEMENT_TYPE_I1:
