@@ -168,10 +168,8 @@ namespace Consulo.Internal.Mssdw.Server
 											}
 										}
 									}
-									catch(Exception e)
+									catch
 									{
-										Console.WriteLine(e.Message);
-										Console.WriteLine(e.StackTrace);
 										// ignored all exceptions - if can be failed when no image, etc, send empty result
 									}
 
