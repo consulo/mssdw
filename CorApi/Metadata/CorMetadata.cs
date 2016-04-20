@@ -4,19 +4,16 @@
 //  Copyright (C) Microsoft Corporation.  All rights reserved.
 //---------------------------------------------------------------------
 using System;
-using System.Reflection;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.Globalization;
 using System.Collections;
 using System.Diagnostics;
-
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using Consulo.Internal.Mssdw;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
-using Microsoft.Samples.Debugging.CorDebug.NativeApi; // we neeed this - due consulo resolve bug
-using Microsoft.Samples.Debugging.Extensions;
-using System.Collections.Generic;
-using Consulo.Internal.Mssdw;
+
+using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
 
 namespace Microsoft.Samples.Debugging.CorMetadata
 {
@@ -566,14 +563,14 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 
 		// uncompress encoded element type
-		internal static CorElementType CorSigUncompressElementType(//Element type
+		internal static CorElType CorSigUncompressElementType(//Element type
 				ref IntPtr pData)             // [IN,OUT] compressed data
 		{
 			unsafe
 			{
 				byte *pBytes = (byte*)pData;
 
-				CorElementType retval = (CorElementType)(*pBytes++);
+				CorElType retval = (CorElType)(*pBytes++);
 				pData = (IntPtr)pBytes;
 				return retval;
 			}
@@ -582,12 +579,12 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		// Function translated directly from cor.h but never tested; included here in case someone wants to use it in future
 		/*        internal static uint CorSigUncompressElementType(// return number of bytes of that compressed data occupied in pData
 					IntPtr pData,              // [IN] compressed data
-					out CorElementType pElementType)       // [OUT] the expanded *pData
+					out CorElType pElementType)       // [OUT] the expanded *pData
 				{
 					unsafe
 					{
 						byte *pBytes = (byte*)pData;
-						pElementType = (CorElementType)(*pBytes & 0x7f);
+						pElementType = (CorElType)(*pBytes & 0x7f);
 						return 1;
 					}
 				}*/
