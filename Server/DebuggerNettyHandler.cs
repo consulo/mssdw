@@ -378,6 +378,19 @@ namespace Consulo.Internal.Mssdw.Server
 			CorElType corValueType = corValue.Type;
 			switch(corValueType)
 			{
+				case CorElType.ELEMENT_TYPE_I:
+				case CorElType.ELEMENT_TYPE_U:
+				case CorElType.ELEMENT_TYPE_I1:
+				case CorElType.ELEMENT_TYPE_U1:
+				case CorElType.ELEMENT_TYPE_I2:
+				case CorElType.ELEMENT_TYPE_U2:
+				case CorElType.ELEMENT_TYPE_I4:
+				case CorElType.ELEMENT_TYPE_U4:
+				case CorElType.ELEMENT_TYPE_I8:
+				case CorElType.ELEMENT_TYPE_U8:
+				case CorElType.ELEMENT_TYPE_R4:
+				case CorElType.ELEMENT_TYPE_R8:
+					return new NumberValueResult(originalValue, corValueType, corValue.CastToGenericValue());
 				case CorElType.ELEMENT_TYPE_VOID:
 					return new NullValueResult();
 				case CorElType.ELEMENT_TYPE_CLASS:
@@ -389,8 +402,9 @@ namespace Consulo.Internal.Mssdw.Server
 					return new BooleanValueResult(originalValue, corValue.CastToGenericValue());
 				case CorElType.ELEMENT_TYPE_SZARRAY:
 					return new ArrayValueResult(originalValue, debugSession, corValue.CastToArrayValue());
+				default:
+					return new UnknownValueResult("corValueType: " + string.Format("{0:X}", corValueType));
 			}
-			return new UnknownValueResult("corValueType: " + string.Format("{0:X}", corValueType));
 		}
 
 		private async Task SendMessage<T>(ClientMessage clientMessage, T value) where T : class
