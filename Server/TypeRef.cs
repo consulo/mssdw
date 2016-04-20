@@ -5,7 +5,7 @@ namespace Consulo.Internal.Mssdw.Server
 {
 	public class TypeRef
 	{
-		public int ModuleToken;
+		public string ModuleName;
 
 		public int ClassToken;
 
@@ -19,7 +19,7 @@ namespace Consulo.Internal.Mssdw.Server
 		{
 			if(type is MetadataType)
 			{
-				ModuleToken = ((MetadataType) type).CorMetadataImport.ModuleToken;
+				ModuleName = ((MetadataType) type).CorMetadataImport.ModuleName;
 				ClassToken = ((MetadataType) type).MetadataToken;
 				VmQName = type.FullName;
 			}
@@ -29,9 +29,9 @@ namespace Consulo.Internal.Mssdw.Server
 			}
 		}
 
-		public TypeRef(int moduleToken, int classToken, string vmQName)
+		public TypeRef(string moduleName, int classToken, string vmQName)
 		{
-			ModuleToken = moduleToken;
+			ModuleName = moduleName;
 			ClassToken = classToken;
 			VmQName = vmQName;
 		}

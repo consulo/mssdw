@@ -18,7 +18,7 @@ namespace Consulo.Internal.Mssdw.Server.Event
 			ObjectId = value.Id;
 			CorClass valueClass = value.Class;
 
-			CorMetadataImport module = debugSession.GetMetadataForModule(valueClass.Module.Token);
+			CorMetadataImport module = debugSession.GetMetadataForModule(valueClass.Module.Name);
 
 			Type type = module.GetType(valueClass.Token);
 			Type = new TypeRef(type);

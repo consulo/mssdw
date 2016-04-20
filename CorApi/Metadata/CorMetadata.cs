@@ -25,17 +25,13 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			private set;
 		}
 
-		public int ModuleToken
-		{
-			get;
-			private set;
-		}
+		public String ModuleName;
 
 		internal IMetadataImport m_importer;
 
 		public CorMetadataImport(DebugSession debugSession, CorModule managedModule)
 		{
-			ModuleToken = managedModule.Token;
+			ModuleName = managedModule.Name;
 			DebugSession = debugSession;
 			m_importer = managedModule.GetMetaDataInterface <IMetadataImport>();
 			Debug.Assert(m_importer != null);

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Consulo.Internal.Mssdw.Server.Event
@@ -8,15 +9,17 @@ namespace Consulo.Internal.Mssdw.Server.Event
 		{
 			public int Index;
 			public string Name;
+			public TypeRef Type;
 		}
 
 		public List<LocalInfo> Locals = new List<LocalInfo>();
 
-		public void Add(int index, string name)
+		public void Add(int index, Type type, string name)
 		{
 			LocalInfo localInfo = new LocalInfo();
 			localInfo.Index = index;
 			localInfo.Name = name;
+			localInfo.Type = new TypeRef(type);
 
 			Locals.Add(localInfo);
 		}

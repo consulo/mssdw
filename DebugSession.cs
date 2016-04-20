@@ -502,28 +502,20 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		internal CorMetadataImport GetMetadataForModule(int token)
+		internal CorModule GetCorModuleForToken(int token)
 		{
 			lock (documents)
 			{
-				CorModule corModule = null;
+				ModuleInfo moduleInfo = null;
 				foreach (ModuleInfo value in modules.Values)
 				{
 					CorModule module = value.Module;
 					if(module.Token == token)
 					{
-						corModule = module;
+						moduleInfo = value;
 					}
 				}
-				if(corModule == null)
-				{
-					return null;
-				}
-
-				ModuleInfo mod;
-				if(!modules.TryGetValue(System.IO.Path.GetFullPath(corModule.Name), out mod))
-					return null;
-				return mod.Importer;
+				return moduleInfo == null ? null : moduleInfo.Module;
 			}
 		}
 
@@ -549,7 +541,7 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		internal int[] FindTypeByName(string name)
+		internal TypeRef FindTypeByName(string name)
 		{
 			lock (documents)
 			{
@@ -558,10 +550,10 @@ namespace Consulo.Internal.Mssdw
 					int tokenFromName = value.Importer.GetTypeTokenFromName(name);
 					if(tokenFromName > 0)
 					{
-						return new int[]{value.Module.Token, tokenFromName};
+						return new TypeRef(value.Module.Name, tokenFromName, name);
 					}
 				}
-				return new int[2];
+				return null;
 			}
 		}
 

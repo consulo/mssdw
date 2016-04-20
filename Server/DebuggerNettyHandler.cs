@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,7 @@ using DotNetty.Transport.Channels;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.CorMetadata;
+using Microsoft.Samples.Debugging.Extensions;
 using Newtonsoft.Json;
 
 using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
@@ -118,7 +120,7 @@ namespace Consulo.Internal.Mssdw.Server
 									GetMethodInfoRequestResult result = new GetMethodInfoRequestResult();
 									result.Name = "<unknown>";
 
-									CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleToken);
+									CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleName);
 									if(metadataForModule != null)
 									{
 										MethodInfo methodInfo = metadataForModule.GetMethodInfo(request.FunctionToken);
@@ -144,10 +146,11 @@ namespace Consulo.Internal.Mssdw.Server
 									GetTypeInfoRequestResult result = new GetTypeInfoRequestResult();
 									try
 									{
-										CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleToken);
+										CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleName);
 										if(metadataForModule != null)
 										{
 											Type type = metadataForModule.GetType(request.Type.ClassToken);
+
 											if(type != null)
 											{
 												result.Name = type.Name;
@@ -165,8 +168,10 @@ namespace Consulo.Internal.Mssdw.Server
 											}
 										}
 									}
-									catch
+									catch(Exception e)
 									{
+										Console.WriteLine(e.Message);
+										Console.WriteLine(e.StackTrace);
 										// ignored all exceptions - if can be failed when no image, etc, send empty result
 									}
 
@@ -235,7 +240,9 @@ namespace Consulo.Internal.Mssdw.Server
 
 											ISymbolScope scope = met.RootScope;
 
-											collectLocals(scope, (int) offset, result);
+											CorMetadataImport module = debugSession.GetMetadataForModule(corFrame.Function.Module.Name);
+											Debug.Assert(module != null);
+											collectLocals(scope, module, (int) offset, result);
 										}
 									}
 
@@ -297,12 +304,7 @@ namespace Consulo.Internal.Mssdw.Server
 								else if(messageObject is FindTypeInfoRequest)
 								{
 									string vmQName = ((FindTypeInfoRequest) messageObject).VmQName;
-									int[] findTypeByName = debugSession.FindTypeByName(vmQName);
-									TypeRef typeRef = null;
-									if(findTypeByName[0] > 0)
-									{
-										typeRef = new TypeRef(findTypeByName[0], findTypeByName[1], vmQName);
-									}
+									TypeRef typeRef = debugSession.FindTypeByName(vmQName);
 									temp = new FindTypeInfoRequestResult(typeRef);
 								}
 								else if(messageObject is ContinueRequest)
@@ -340,7 +342,7 @@ namespace Consulo.Internal.Mssdw.Server
 			}
 		}
 
-		private static void collectLocals(ISymbolScope scope, int offset, GetLocalsRequestResult result)
+		private static void collectLocals(ISymbolScope scope, CorMetadataImport metadataImport, int offset, GetLocalsRequestResult result)
 		{
 			ISymbolVariable[] locals = scope.GetLocals();
 			foreach (ISymbolVariable local in locals)
@@ -348,13 +350,24 @@ namespace Consulo.Internal.Mssdw.Server
 				int index = local.AddressField1;
 				//if (local.StartOffset <= offset && local.EndOffset >= offset)
 				{
-					result.Add(index, local.Name);
+					Type type = null;
+					byte[] signature = local.GetSignature();
+					unsafe
+					{
+						fixed (byte* p = signature)
+						{
+							IntPtr ptr = (IntPtr) p;
+							type = MetadataHelperFunctionsExtensions.ReadType(metadataImport, metadataImport.m_importer, ref ptr);
+						}
+					}
+
+					result.Add(index, type, local.Name);
 				}
 			}
 
 			foreach (ISymbolScope o in scope.GetChildren())
 			{
-				collectLocals(o, offset, result);
+				collectLocals(o, metadataImport, offset, result);
 			}
 		}
 
@@ -379,7 +392,7 @@ namespace Consulo.Internal.Mssdw.Server
 			switch(corValueType)
 			{
 				case CorElType.ELEMENT_TYPE_CHAR:
-					return new CharValueResult(originalValue,corValue.CastToGenericValue());
+					return new CharValueResult(originalValue, corValue.CastToGenericValue());
 				case CorElType.ELEMENT_TYPE_I:
 				case CorElType.ELEMENT_TYPE_U:
 				case CorElType.ELEMENT_TYPE_I1:
@@ -487,7 +500,7 @@ namespace Consulo.Internal.Mssdw.Server
 			//bool hidden = false;
 			//bool external = true;
 
-			int moduleToken = -1;
+			string moduleName = null;
 			int classToken = -1;
 			string vqName = "#AddFrame";
 			int functionToken = -1;
@@ -496,7 +509,7 @@ namespace Consulo.Internal.Mssdw.Server
 			{
 				if(frame.Function != null)
 				{
-					moduleToken = frame.Function.Module.Token;
+					moduleName = frame.Function.Module.Name;
 					classToken = frame.Function.Class.Token;
 					functionToken = frame.FunctionToken;
 
@@ -547,7 +560,7 @@ namespace Consulo.Internal.Mssdw.Server
 			{
 			}
 
-			result.Add(file, line, column, new TypeRef(moduleToken, classToken, vqName), functionToken);
+			result.Add(file, line, column, new TypeRef(moduleName, classToken, vqName), functionToken);
 		}
 
 		private const int SpecialSequencePoint = 0xfeefee;
