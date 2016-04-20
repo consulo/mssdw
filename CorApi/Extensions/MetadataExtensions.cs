@@ -55,14 +55,14 @@ namespace Microsoft.Samples.Debugging.Extensions
 			return true;
 		}
 
-		internal static Type MakeDelegate(Type retType, List<Type> argTypes)
+		internal static MetadataTypeInfo MakeDelegate(MetadataTypeInfo retType, List<MetadataTypeInfo> argTypes)
 		{
 			throw new NotImplementedException();
 		}
 
-		public static Type MakeArray(Type t, List<int> sizes, List<int> loBounds)
+		public static MetadataTypeInfo MakeArray(MetadataTypeInfo t, List<int> sizes, List<int> loBounds)
 		{
-			var mt = t as MetadataType;
+			var mt = t as MetadataTypeInfo;
 			if(mt != null)
 			{
 				if(sizes == null)
@@ -74,38 +74,35 @@ namespace Microsoft.Samples.Debugging.Extensions
 				mt.m_arrayLoBounds = loBounds;
 				return mt;
 			}
-			if(sizes == null || sizes.Count == 1)
-				return t.MakeArrayType();
-			return t.MakeArrayType(sizes.Capacity);
+			throw new NotImplementedException();
 		}
 
-		public static Type MakeByRef(Type t)
+		public static MetadataTypeInfo MakeByRef(MetadataTypeInfo t)
 		{
-			var mt = t as MetadataType;
+			var mt = t as MetadataTypeInfo;
 			if(mt != null)
 			{
 				mt.m_isByRef = true;
 				return mt;
 			}
-			return t.MakeByRefType();
+			throw new NotImplementedException();
 		}
 
-		public static Type MakePointer(Type t)
+		public static MetadataTypeInfo MakePointer(MetadataTypeInfo t)
 		{
-			var mt = t as MetadataType;
+			var mt = t as MetadataTypeInfo;
 			if(mt != null)
 			{
 				mt.m_isPtr = true;
 				return mt;
 			}
-			return t.MakeByRefType();
+			throw new NotImplementedException();
 		}
 
-		public static Type MakeGeneric(Type t, List<Type> typeArgs)
+		public static MetadataTypeInfo MakeGeneric(MetadataTypeInfo t, List<MetadataTypeInfo> typeArgs)
 		{
-			var mt = (MetadataType)t;
-			mt.m_typeArgs = typeArgs;
-			return mt;
+			t.m_typeArgs = typeArgs;
+			return t;
 		}
 	}
 
@@ -134,7 +131,7 @@ namespace Microsoft.Samples.Debugging.Extensions
 			CoreTypes.Add(CorElType.ELEMENT_TYPE_U, typeof (UIntPtr));
 		}
 
-		internal static void ReadMethodSignature(CorMetadataImport corMetadataImport, IMetadataImport importer, ref IntPtr pData, out CorCallingConvention cconv, out Type retType, out List<Type> argTypes)
+		internal static void ReadMethodSignature(CorMetadataImport corMetadataImport, IMetadataImport importer, ref IntPtr pData, out CorCallingConvention cconv, out MetadataTypeInfo retType, out List<MetadataTypeInfo> argTypes)
 		{
 			cconv = MetadataHelperFunctions.CorSigUncompressCallingConv(ref pData);
 			uint numArgs = 0;
@@ -147,12 +144,12 @@ namespace Microsoft.Samples.Debugging.Extensions
 				numArgs = MetadataHelperFunctions.CorSigUncompressData(ref pData);
 
 			retType = ReadType(corMetadataImport, importer, ref pData);
-			argTypes = new List<Type>();
+			argTypes = new List<MetadataTypeInfo>();
 			for(int n = 0; n < numArgs; n++)
 				argTypes.Add(ReadType(corMetadataImport, importer, ref pData));
 		}
 
-		public static Type ReadType(CorMetadataImport corMetadataImport, IMetadataImport importer, ref IntPtr pData)
+		public static MetadataTypeInfo ReadType(CorMetadataImport corMetadataImport, IMetadataImport importer, ref IntPtr pData)
 		{
 			CorElType et;
 			unsafe
@@ -165,49 +162,49 @@ namespace Microsoft.Samples.Debugging.Extensions
 			switch(et)
 			{
 				case CorElType.ELEMENT_TYPE_VOID:
-					return FixedType(corMetadataImport, typeof(void));
+					return FixedType(corMetadataImport.DebugSession, typeof(void));
 				case CorElType.ELEMENT_TYPE_BOOLEAN:
-					return FixedType(corMetadataImport, typeof(bool));
+					return FixedType(corMetadataImport.DebugSession, typeof(bool));
 				case CorElType.ELEMENT_TYPE_CHAR:
-					return FixedType(corMetadataImport, typeof(char));
+					return FixedType(corMetadataImport.DebugSession, typeof(char));
 				case CorElType.ELEMENT_TYPE_I1:
-					return FixedType(corMetadataImport, typeof(sbyte));
+					return FixedType(corMetadataImport.DebugSession, typeof(sbyte));
 				case CorElType.ELEMENT_TYPE_U1:
-					return FixedType(corMetadataImport, typeof(byte));
+					return FixedType(corMetadataImport.DebugSession, typeof(byte));
 				case CorElType.ELEMENT_TYPE_I2:
-					return FixedType(corMetadataImport, typeof(short));
+					return FixedType(corMetadataImport.DebugSession, typeof(short));
 				case CorElType.ELEMENT_TYPE_U2:
-					return FixedType(corMetadataImport, typeof(ushort));
+					return FixedType(corMetadataImport.DebugSession, typeof(ushort));
 				case CorElType.ELEMENT_TYPE_I4:
-					return FixedType(corMetadataImport, typeof(int));
+					return FixedType(corMetadataImport.DebugSession, typeof(int));
 				case CorElType.ELEMENT_TYPE_U4:
-					return FixedType(corMetadataImport, typeof(uint));
+					return FixedType(corMetadataImport.DebugSession, typeof(uint));
 				case CorElType.ELEMENT_TYPE_I8:
-					return FixedType(corMetadataImport, typeof(long));
+					return FixedType(corMetadataImport.DebugSession, typeof(long));
 				case CorElType.ELEMENT_TYPE_U8:
-					return FixedType(corMetadataImport, typeof(ulong));
+					return FixedType(corMetadataImport.DebugSession, typeof(ulong));
 				case CorElType.ELEMENT_TYPE_R4:
-					return FixedType(corMetadataImport, typeof(float));
+					return FixedType(corMetadataImport.DebugSession, typeof(float));
 				case CorElType.ELEMENT_TYPE_R8:
-					return FixedType(corMetadataImport, typeof(double));
+					return FixedType(corMetadataImport.DebugSession, typeof(double));
 				case CorElType.ELEMENT_TYPE_STRING:
-					return FixedType(corMetadataImport, typeof(string));
+					return FixedType(corMetadataImport.DebugSession, typeof(string));
 				case CorElType.ELEMENT_TYPE_I:
-					return FixedType(corMetadataImport, typeof(IntPtr));
+					return FixedType(corMetadataImport.DebugSession, typeof(IntPtr));
 				case CorElType.ELEMENT_TYPE_U:
-					return FixedType(corMetadataImport, typeof(UIntPtr));
+					return FixedType(corMetadataImport.DebugSession, typeof(UIntPtr));
 				case CorElType.ELEMENT_TYPE_OBJECT:
-					return FixedType(corMetadataImport, typeof(object));
+					return FixedType(corMetadataImport.DebugSession, typeof(object));
 				case CorElType.ELEMENT_TYPE_VAR:
 				case CorElType.ELEMENT_TYPE_MVAR:
 					// Generic args in methods not supported. Return a dummy type.
 					MetadataHelperFunctions.CorSigUncompressData(ref pData);
-					return FixedType(corMetadataImport, typeof(object));
+					return FixedType(corMetadataImport.DebugSession, typeof(object));
 
 				case CorElType.ELEMENT_TYPE_GENERICINST:
 				{
-					Type t = ReadType(corMetadataImport, importer, ref pData);
-					var typeArgs = new List<Type>();
+					MetadataTypeInfo t = ReadType(corMetadataImport, importer, ref pData);
+					var typeArgs = new List<MetadataTypeInfo>();
 					uint num = MetadataHelperFunctions.CorSigUncompressData(ref pData);
 					for(int n = 0; n < num; n++)
 					{
@@ -218,13 +215,13 @@ namespace Microsoft.Samples.Debugging.Extensions
 
 				case CorElType.ELEMENT_TYPE_PTR:
 				{
-					Type t = ReadType(corMetadataImport, importer, ref pData);
+					MetadataTypeInfo t = ReadType(corMetadataImport, importer, ref pData);
 					return MetadataExtensions.MakePointer(t);
 				}
 
 				case CorElType.ELEMENT_TYPE_BYREF:
 				{
-					Type t = ReadType(corMetadataImport, importer, ref pData);
+					MetadataTypeInfo t = ReadType(corMetadataImport, importer, ref pData);
 					return MetadataExtensions.MakeByRef(t);
 				}
 
@@ -233,12 +230,12 @@ namespace Microsoft.Samples.Debugging.Extensions
 				case CorElType.ELEMENT_TYPE_CLASS:
 				{
 					uint token = MetadataHelperFunctions.CorSigUncompressToken(ref pData);
-					return new MetadataType(corMetadataImport, importer, (int) token);
+					return new MetadataTypeInfo(corMetadataImport, importer, (int) token);
 				}
 
 				case CorElType.ELEMENT_TYPE_ARRAY:
 				{
-					Type t = ReadType(corMetadataImport, importer, ref pData);
+					MetadataTypeInfo t = ReadType(corMetadataImport, importer, ref pData);
 					int rank = (int)MetadataHelperFunctions.CorSigUncompressData(ref pData);
 					if(rank == 0)
 						return MetadataExtensions.MakeArray(t, null, null);
@@ -258,15 +255,15 @@ namespace Microsoft.Samples.Debugging.Extensions
 
 				case CorElType.ELEMENT_TYPE_SZARRAY:
 				{
-					Type t = ReadType(corMetadataImport, importer, ref pData);
+					MetadataTypeInfo t = ReadType(corMetadataImport, importer, ref pData);
 					return MetadataExtensions.MakeArray(t, null, null);
 				}
 
 				case CorElType.ELEMENT_TYPE_FNPTR:
 				{
 					CorCallingConvention cconv;
-					Type retType;
-					List<Type> argTypes;
+					MetadataTypeInfo retType;
+					List<MetadataTypeInfo> argTypes;
 					ReadMethodSignature(corMetadataImport, importer, ref pData, out cconv, out retType, out argTypes);
 					return MetadataExtensions.MakeDelegate(retType, argTypes);
 				}
@@ -278,13 +275,12 @@ namespace Microsoft.Samples.Debugging.Extensions
 			throw new NotSupportedException("Unknown sig element type: " + et);
 		}
 
-		private static Type FixedType(CorMetadataImport corMetadataImport, Type type)
+		public static MetadataTypeInfo FixedType(DebugSession debugSession, Type type)
 		{
-			DebugSession session = corMetadataImport.DebugSession;
-			CorMetadataImport module = session.GetMSCorLibModule();
+			CorMetadataImport module = debugSession.GetMSCorLibModule();
 			Debug.Assert(module != null);
 			int fromName = module.GetTypeTokenFromName(type.FullName);
-			return new MetadataType(module, module.m_importer, fromName);
+			return new MetadataTypeInfo(module, module.m_importer, fromName);
 		}
 
 		static readonly object[] emptyAttributes = new object[0];

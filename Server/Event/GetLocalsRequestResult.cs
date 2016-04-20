@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using Microsoft.Samples.Debugging.CorMetadata;
 
 namespace Consulo.Internal.Mssdw.Server.Event
 {
@@ -14,7 +14,7 @@ namespace Consulo.Internal.Mssdw.Server.Event
 
 		public List<LocalInfo> Locals = new List<LocalInfo>();
 
-		public void Add(int index, Type type, string name)
+		public void Add(int index, MetadataTypeInfo type, string name)
 		{
 			LocalInfo localInfo = new LocalInfo();
 			localInfo.Index = index;

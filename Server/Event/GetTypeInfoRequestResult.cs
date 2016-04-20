@@ -55,13 +55,13 @@ namespace Consulo.Internal.Mssdw.Server.Event
 			propertyInfo.Attributes = (int) metadataFieldInfo.Attributes;
 			propertyInfo.Type = new TypeRef(metadataFieldInfo.PropertyType);
 
-			MethodInfo getGetMethod = metadataFieldInfo.GetGetMethod(true);
+			MetadataMethodInfo getGetMethod = metadataFieldInfo.GetGetMethod();
 			if(getGetMethod != null)
 			{
 				propertyInfo.GetterToken = getGetMethod.MetadataToken;
 			}
 
-			MethodInfo setGetMethod = metadataFieldInfo.GetSetMethod(true);
+			MetadataMethodInfo setGetMethod = metadataFieldInfo.GetSetMethod();
 			if(setGetMethod != null)
 			{
 				propertyInfo.SetterToken = setGetMethod.MetadataToken;

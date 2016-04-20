@@ -36,12 +36,15 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		public static Type GetTypeInfo(this CorType type, DebugSession session)
+		public static MetadataTypeInfo GetTypeInfo(this CorType type, DebugSession session)
 		{
-			Type t;
-			if(MetadataHelperFunctionsExtensions.CoreTypes.TryGetValue(type.Type, out t))
-				return t;
+			Type nativeType;
+			if(MetadataHelperFunctionsExtensions.CoreTypes.TryGetValue(type.Type, out nativeType))
+			{
+				return MetadataHelperFunctionsExtensions.FixedType(session, nativeType);
+			}
 
+			MetadataTypeInfo t;
 			if(type.Type == CorElType.ELEMENT_TYPE_ARRAY || type.Type == CorElType.ELEMENT_TYPE_SZARRAY)
 			{
 				List<int> sizes = new List<int>();
@@ -67,7 +70,7 @@ namespace Consulo.Internal.Mssdw
 				CorType[] targs = type.TypeParameters;
 				if(targs.Length > 0)
 				{
-					List<Type> types = new List<Type>();
+					List<MetadataTypeInfo> types = new List<MetadataTypeInfo>();
 					foreach (CorType ct in targs)
 						types.Add(ct.GetTypeInfo(session));
 					return MetadataExtensions.MakeGeneric(t, types);
@@ -87,7 +90,7 @@ namespace Consulo.Internal.Mssdw
 			return reader.GetMethod(new SymbolToken(func.Token));
 		}
 
-		public static MethodInfo GetMethodInfo(this CorFunction func, DebugSession session)
+		public static MetadataMethodInfo GetMethodInfo(this CorFunction func, DebugSession session)
 		{
 			CorMetadataImport mi = session.GetMetadataForModule(func.Module.Name);
 			if(mi != null)

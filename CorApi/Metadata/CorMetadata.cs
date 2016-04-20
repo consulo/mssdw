@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Consulo.Internal.Mssdw;
+using Consulo.Internal.Mssdw.CorApi.Metadata;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
 
@@ -38,14 +39,14 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		}
 
 		// methods
-		public MethodInfo GetMethodInfo(int methodToken)
+		public MetadataMethodInfo GetMethodInfo(int methodToken)
 		{
 			return new MetadataMethodInfo(this, m_importer, methodToken);
 		}
 
-		public Type GetType(int typeToken)
+		public MetadataTypeInfo GetType(int typeToken)
 		{
-			return new MetadataType(this, m_importer, typeToken);
+			return new MetadataTypeInfo(this, m_importer, typeToken);
 		}
 
 

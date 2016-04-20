@@ -123,12 +123,12 @@ namespace Consulo.Internal.Mssdw.Server
 									CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleName);
 									if(metadataForModule != null)
 									{
-										MethodInfo methodInfo = metadataForModule.GetMethodInfo(request.FunctionToken);
+										MetadataMethodInfo methodInfo = metadataForModule.GetMethodInfo(request.FunctionToken);
 										if(methodInfo != null)
 										{
 											result.Name = methodInfo.Name;
 											result.Attributes = (int) methodInfo.Attributes;
-											foreach (ParameterInfo o in methodInfo.GetParameters())
+											foreach (MetadataParameterInfo o in methodInfo.GetParameters())
 											{
 												string parameterName = o.Name;
 
@@ -149,27 +149,29 @@ namespace Consulo.Internal.Mssdw.Server
 										CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleName);
 										if(metadataForModule != null)
 										{
-											Type type = metadataForModule.GetType(request.Type.ClassToken);
+											MetadataTypeInfo type = metadataForModule.GetType(request.Type.ClassToken);
 
 											if(type != null)
 											{
 												result.Name = type.Name;
 												result.FullName = type.FullName;
 												result.IsArray = type.IsArray;
-												foreach (FieldInfo o in type.GetFields())
+												foreach (MetadataFieldInfo o in type.GetFields())
 												{
-													result.AddField((MetadataFieldInfo)o);
+													result.AddField(o);
 												}
 
-												foreach (PropertyInfo o in type.GetProperties())
+												foreach (MetadataPropertyInfo o in type.GetProperties())
 												{
-													result.AddProperty((MetadataPropertyInfo)o);
+													result.AddProperty(o);
 												}
 											}
 										}
 									}
-									catch
+									catch(Exception e)
 									{
+										Console.WriteLine(e.Message);
+										Console.WriteLine(e.StackTrace);
 										// ignored all exceptions - if can be failed when no image, etc, send empty result
 									}
 
@@ -348,7 +350,7 @@ namespace Consulo.Internal.Mssdw.Server
 				int index = local.AddressField1;
 				//if (local.StartOffset <= offset && local.EndOffset >= offset)
 				{
-					Type type = null;
+					MetadataTypeInfo type = null;
 					byte[] signature = local.GetSignature();
 					unsafe
 					{
@@ -456,9 +458,9 @@ namespace Consulo.Internal.Mssdw.Server
 				CorObjectValue val = refVal.Dereference().CastToObjectValue();
 				if(val != null)
 				{
-					Type classType = val.ExactType.GetTypeInfo(debugSession);
+					MetadataTypeInfo classType = val.ExactType.GetTypeInfo(debugSession);
 					// Loop through all private instance fields in the thread class
-					foreach (FieldInfo fi in classType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+					foreach (MetadataFieldInfo fi in classType.GetFields())
 					{
 						if(fi.Name == "m_Name")
 						{

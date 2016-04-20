@@ -8,11 +8,11 @@ using Microsoft.Samples.Debugging.Extensions;
 
 namespace Microsoft.Samples.Debugging.CorMetadata
 {
-	public class MetadataPropertyInfo : PropertyInfo
+	public class MetadataPropertyInfo
 	{
 		private IMetadataImport m_importer;
 		private int m_propertyToken;
-		private MetadataType m_declaringType;
+		private MetadataTypeInfo m_declaringType;
 		private object[] m_customAttributes;
 
 		private string m_name;
@@ -26,7 +26,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 		public CorMetadataImport CorMetadataImport;
 
-		internal MetadataPropertyInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int propertyToken, MetadataType declaringType)
+		internal MetadataPropertyInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int propertyToken, MetadataTypeInfo declaringType)
 		{
 			CorMetadataImport = corMetadataImport;
 			m_importer = importer;
@@ -91,7 +91,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				m_pmdSetter = 0;
 		}
 
-		public override PropertyAttributes Attributes
+		public PropertyAttributes Attributes
 		{
 			get
 			{
@@ -99,7 +99,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override bool CanRead
+		public bool CanRead
 		{
 			get
 			{
@@ -107,7 +107,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override bool CanWrite
+		public bool CanWrite
 		{
 			get
 			{
@@ -115,12 +115,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override MethodInfo[] GetAccessors(bool nonPublic)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override MethodInfo GetGetMethod(bool nonPublic)
+		public MetadataMethodInfo GetGetMethod()
 		{
 			if(m_pmdGetter == 0)
 				return null;
@@ -128,20 +123,18 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			if(myGetter == null)
 				myGetter = new MetadataMethodInfo(CorMetadataImport, m_importer, m_pmdGetter);
 
-			if(nonPublic || myGetter.IsPublic)
-				return myGetter;
-			return null;
+			return myGetter;
 		}
 
-		public override ParameterInfo[] GetIndexParameters()
+		public MetadataParameterInfo[] GetIndexParameters()
 		{
-			MethodInfo mi = GetGetMethod();
+			MetadataMethodInfo mi = GetGetMethod();
 			if(mi == null)
-				return new ParameterInfo[0];
+				return new MetadataParameterInfo[0];
 			return mi.GetParameters();
 		}
 
-		public override MethodInfo GetSetMethod(bool nonPublic)
+		public MetadataMethodInfo GetSetMethod()
 		{
 			if(m_pmdSetter == 0)
 				return null;
@@ -149,17 +142,10 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			if(mySetter == null)
 				mySetter = new MetadataMethodInfo(CorMetadataImport, m_importer, m_pmdSetter);
 
-			if(nonPublic || mySetter.IsPublic)
-				return mySetter;
-			return null;
+			return mySetter;
 		}
 
-		public override object GetValue(object obj, BindingFlags invokeAttr, Binder binder, object[] index, System.Globalization.CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override Type PropertyType
+		public MetadataTypeInfo PropertyType
 		{
 			get
 			{
@@ -174,12 +160,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override void SetValue(object obj, object value, BindingFlags invokeAttr, Binder binder, object[] index, System.Globalization.CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override Type DeclaringType
+		public MetadataTypeInfo DeclaringType
 		{
 			get
 			{
@@ -187,12 +168,12 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override bool IsDefined(Type attributeType, bool inherit)
+		public bool IsDefined(Type attributeType, bool inherit)
 		{
 			return GetCustomAttributes(attributeType, inherit).Length > 0;
 		}
 
-		public override object[] GetCustomAttributes(Type attributeType, bool inherit)
+		public object[] GetCustomAttributes(Type attributeType, bool inherit)
 		{
 			ArrayList list = new ArrayList();
 			foreach (object ob in GetCustomAttributes(inherit))
@@ -203,26 +184,18 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			return list.ToArray();
 		}
 
-		public override object[] GetCustomAttributes(bool inherit)
+		public object[] GetCustomAttributes(bool inherit)
 		{
 			if(m_customAttributes == null)
 				m_customAttributes = MetadataHelperFunctionsExtensions.GetDebugAttributes(m_importer, m_propertyToken);
 			return m_customAttributes;
 		}
 
-		public override string Name
+		public string Name
 		{
 			get
 			{
 				return m_name;
-			}
-		}
-
-		public override Type ReflectedType
-		{
-			get
-			{
-				throw new NotImplementedException();
 			}
 		}
 	}

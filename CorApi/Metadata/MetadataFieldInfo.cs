@@ -4,26 +4,26 @@
 //  Copyright (C) Microsoft Corporation.  All rights reserved.
 //---------------------------------------------------------------------
 using System;
-using System.Reflection;
 using System.Collections;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.Globalization;
 using System.Diagnostics;
-
+using System.Globalization;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
-using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.Extensions;
+
+using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
 
 namespace Microsoft.Samples.Debugging.CorMetadata
 {
-	public sealed class MetadataFieldInfo : FieldInfo
+	public sealed class MetadataFieldInfo
 	{
-		private Type myFieldType;
+		private MetadataTypeInfo myFieldType;
 
 		private IMetadataImport m_importer;
 		private int m_fieldToken;
-		private MetadataType m_declaringType;
+		private MetadataTypeInfo m_declaringType;
 
 		private string m_name;
 		private FieldAttributes m_fieldAttributes;
@@ -31,7 +31,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		// [Xamarin] Expression evaluator.
 		private object[] m_customAttributes;
 
-		internal MetadataFieldInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int fieldToken, MetadataType declaringType)
+		internal MetadataFieldInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int fieldToken, MetadataTypeInfo declaringType)
 		{
 			m_importer = importer;
 			m_fieldToken = fieldToken;
@@ -84,14 +84,14 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			MetadataHelperFunctionsExtensions.GetCustomAttribute(m_importer, m_fieldToken, typeof (DebuggerBrowsableAttribute));
 		}
 
-		private static object ParseDefaultValue(MetadataType declaringType, IntPtr ppvSigBlob, IntPtr ppvRawValue)
+		private static object ParseDefaultValue(MetadataTypeInfo declaringType, IntPtr ppvSigBlob, IntPtr ppvRawValue)
 		{
 			IntPtr ppvSigTemp = ppvSigBlob;
 			CorCallingConvention callingConv = MetadataHelperFunctions.CorSigUncompressCallingConv(ref ppvSigTemp);
 			Debug.Assert(callingConv == CorCallingConvention.Field);
 
-			CorElementType elementType = MetadataHelperFunctions.CorSigUncompressElementType(ref ppvSigTemp);
-			if(elementType == CorElementType.ELEMENT_TYPE_VALUETYPE)
+			CorElType elementType = MetadataHelperFunctions.CorSigUncompressElementType(ref ppvSigTemp);
+			if(elementType == CorElType.ELEMENT_TYPE_VALUETYPE)
 			{
 				uint token = MetadataHelperFunctions.CorSigUncompressToken(ref ppvSigTemp);
 
@@ -111,36 +111,36 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 			switch(elementType)
 			{
-				case CorElementType.ELEMENT_TYPE_CHAR:
+				case CorElType.ELEMENT_TYPE_CHAR:
 					return (char)Marshal.ReadByte(ppvRawValue);
-				case CorElementType.ELEMENT_TYPE_I1:
+				case CorElType.ELEMENT_TYPE_I1:
 					return (sbyte)Marshal.ReadByte(ppvRawValue);
-				case CorElementType.ELEMENT_TYPE_U1:
+				case CorElType.ELEMENT_TYPE_U1:
 					return Marshal.ReadByte(ppvRawValue);
-				case CorElementType.ELEMENT_TYPE_I2:
+				case CorElType.ELEMENT_TYPE_I2:
 					return Marshal.ReadInt16(ppvRawValue);
-				case CorElementType.ELEMENT_TYPE_U2:
+				case CorElType.ELEMENT_TYPE_U2:
 					return (ushort)Marshal.ReadInt16(ppvRawValue);
-				case CorElementType.ELEMENT_TYPE_I4:
+				case CorElType.ELEMENT_TYPE_I4:
 					return Marshal.ReadInt32(ppvRawValue);
-				case CorElementType.ELEMENT_TYPE_U4:
+				case CorElType.ELEMENT_TYPE_U4:
 					return (uint)Marshal.ReadInt32(ppvRawValue);
-				case CorElementType.ELEMENT_TYPE_I8:
+				case CorElType.ELEMENT_TYPE_I8:
 					return Marshal.ReadInt64(ppvRawValue);
-				case CorElementType.ELEMENT_TYPE_U8:
+				case CorElType.ELEMENT_TYPE_U8:
 					return (ulong)Marshal.ReadInt64(ppvRawValue);
-				case CorElementType.ELEMENT_TYPE_I:
+				case CorElType.ELEMENT_TYPE_I:
 					return Marshal.ReadIntPtr(ppvRawValue);
-				case CorElementType.ELEMENT_TYPE_U:
-				case CorElementType.ELEMENT_TYPE_R4:
-				case CorElementType.ELEMENT_TYPE_R8:
+				case CorElType.ELEMENT_TYPE_U:
+				case CorElType.ELEMENT_TYPE_R4:
+				case CorElType.ELEMENT_TYPE_R8:
 					// Technically U and the floating-point ones are options in the CLI, but not in the CLS or C#, so these are NYI
 				default:
 					return null;
 			}
 		}
 
-		public override object GetValue(object obj)
+		public object GetValue(object obj)
 		{
 			FieldAttributes staticLiteralField = FieldAttributes.Static | FieldAttributes.HasDefault | FieldAttributes.Literal;
 			if((m_fieldAttributes & staticLiteralField) != staticLiteralField)
@@ -157,13 +157,8 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override void SetValue(object obj, object value, BindingFlags invokeAttr, Binder binder, CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
-
 		// [Xamarin] Expression evaluator.
-		public override object[] GetCustomAttributes(bool inherit)
+		public object[] GetCustomAttributes(bool inherit)
 		{
 			if(m_customAttributes == null)
 				m_customAttributes = MetadataHelperFunctionsExtensions.GetDebugAttributes(m_importer, m_fieldToken);
@@ -171,7 +166,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		}
 
 		// [Xamarin] Expression evaluator.
-		public override object[] GetCustomAttributes(Type attributeType, bool inherit)
+		public object[] GetCustomAttributes(Type attributeType, bool inherit)
 		{
 			ArrayList list = new ArrayList();
 			foreach (object ob in GetCustomAttributes(inherit))
@@ -183,13 +178,12 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		}
 
 		// [Xamarin] Expression evaluator.
-		public override bool IsDefined(Type attributeType, bool inherit)
+		public bool IsDefined(Type attributeType, bool inherit)
 		{
 			return GetCustomAttributes(attributeType, inherit).Length > 0;
 		}
 
-
-		public override Type FieldType
+		public MetadataTypeInfo FieldType
 		{
 			get
 			{
@@ -197,15 +191,8 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override RuntimeFieldHandle FieldHandle
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
 
-		public override FieldAttributes Attributes
+		public FieldAttributes Attributes
 		{
 			get
 			{
@@ -213,15 +200,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override MemberTypes MemberType
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		public override string Name
+		public string Name
 		{
 			get
 			{
@@ -229,23 +208,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override Type DeclaringType
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		public override Type ReflectedType
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		public override int MetadataToken
+		public int MetadataToken
 		{
 			get
 			{

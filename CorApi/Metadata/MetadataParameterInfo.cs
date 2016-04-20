@@ -10,9 +10,15 @@ using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
 
 namespace Microsoft.Samples.Debugging.CorMetadata
 {
-	public sealed class MetadataParameterInfo : ParameterInfo
+	public sealed class MetadataParameterInfo
 	{
-		internal MetadataParameterInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int paramToken, MemberInfo memberImpl, Type typeImpl)
+		private MetadataTypeInfo myType;
+		private string myName;
+		private int myPosition;
+		private MetadataMethodInfo myMethod;
+		private ParameterAttributes myAttributes;
+
+		internal MetadataParameterInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int paramToken, MetadataMethodInfo memberImpl, MetadataTypeInfo typeImpl)
 		{
 			int parentToken;
 			uint pulSequence, pdwAttr, pdwCPlusTypeFlag, pcchValue, size;
@@ -41,35 +47,50 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					out ppValue,
 					out pcchValue
 			);
-			NameImpl = szName.ToString();
-			ClassImpl = typeImpl;
-			PositionImpl = (int)pulSequence;
-			AttrsImpl = (ParameterAttributes)pdwAttr;
-
-			MemberImpl = memberImpl;
+			myName = szName.ToString();
+			myType = typeImpl;
+			myPosition = (int)pulSequence;
+			myAttributes = (ParameterAttributes)pdwAttr;
+			myMethod = memberImpl;
 		}
 
-		public System.Type ParameterType
+		public ParameterAttributes Attributes
 		{
 			get
 			{
-				return ClassImpl;
+				return myAttributes;
 			}
 		}
 
-		public override string Name
+		public MetadataMethodInfo Method
 		{
 			get
 			{
-				return NameImpl;
+				return myMethod;
 			}
 		}
 
-		public override int Position
+		public MetadataTypeInfo ParameterType
 		{
 			get
 			{
-				return PositionImpl;
+				return myType;
+			}
+		}
+
+		public string Name
+		{
+			get
+			{
+				return myName;
+			}
+		}
+
+		public int Position
+		{
+			get
+			{
+				return myPosition;
 			}
 		}
 	}

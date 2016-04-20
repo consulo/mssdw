@@ -15,18 +15,11 @@ namespace Consulo.Internal.Mssdw.Server
 		{
 		}
 
-		public TypeRef(Type type)
+		public TypeRef(MetadataTypeInfo type)
 		{
-			if(type is MetadataType)
-			{
-				ModuleName = ((MetadataType) type).CorMetadataImport.ModuleName;
-				ClassToken = ((MetadataType) type).MetadataToken;
-				VmQName = type.FullName;
-			}
-			else
-			{
-				throw new Exception("We cant send not metadata type: " + type.FullName);
-			}
+			ModuleName = type.CorMetadataImport.ModuleName;
+			ClassToken = type.MetadataToken;
+			VmQName = type.FullName;
 		}
 
 		public TypeRef(string moduleName, int classToken, string vmQName)

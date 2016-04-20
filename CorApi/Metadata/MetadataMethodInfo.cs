@@ -11,13 +11,18 @@ using System.Collections.Generic;
 
 namespace Microsoft.Samples.Debugging.CorMetadata
 {
-	public sealed class MetadataMethodInfo : MethodInfo
+	public sealed class MetadataMethodInfo
 	{
-		public CorMetadataImport CorMetadataImport
-		{
-			get;
-			private set;
-		}
+		public readonly CorMetadataImport CorMetadataImport;
+		private IMetadataImport m_importer;
+		private string m_name;
+		private int m_classToken;
+		private int m_methodToken;
+		private MethodAttributes m_methodAttributes;
+		// [Xamarin] Expression evaluator.
+		private List<MetadataTypeInfo> m_argTypes;
+		private MetadataTypeInfo m_retType;
+		private object[] m_customAttributes;
 
 		internal MetadataMethodInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int methodToken)
 		{
@@ -65,7 +70,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		}
 
 		// [Xamarin] Expression evaluator.
-		public override Type ReturnType
+		public MetadataTypeInfo ReturnType
 		{
 			get
 			{
@@ -73,34 +78,18 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override ICustomAttributeProvider ReturnTypeCustomAttributes
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		public override Type ReflectedType
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		public override Type DeclaringType
+		public MetadataTypeInfo DeclaringType
 		{
 			get
 			{
 				if(TokenUtils.IsNullToken(m_classToken))
 					return null;                            // this is method outside of class
 
-				return new MetadataType(CorMetadataImport, m_importer, m_classToken);
+				return new MetadataTypeInfo(CorMetadataImport, m_importer, m_classToken);
 			}
 		}
 
-		public override string Name
+		public string Name
 		{
 			get
 			{
@@ -108,7 +97,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override MethodAttributes Attributes
+		public MethodAttributes Attributes
 		{
 			get
 			{
@@ -116,27 +105,14 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public override RuntimeMethodHandle MethodHandle
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		public override MethodInfo GetBaseDefinition()
-		{
-			throw new NotImplementedException();
-		}
-
 		// [Xamarin] Expression evaluator.
-		public override bool IsDefined(Type attributeType, bool inherit)
+		public bool IsDefined(Type attributeType, bool inherit)
 		{
 			return GetCustomAttributes(attributeType, inherit).Length > 0;
 		}
 
 		// [Xamarin] Expression evaluator.
-		public override object[] GetCustomAttributes(Type attributeType, bool inherit)
+		public object[] GetCustomAttributes(Type attributeType, bool inherit)
 		{
 			ArrayList list = new ArrayList();
 			foreach (object ob in GetCustomAttributes(inherit))
@@ -148,27 +124,17 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		}
 
 		// [Xamarin] Expression evaluator.
-		public override object[] GetCustomAttributes(bool inherit)
+		public object[] GetCustomAttributes(bool inherit)
 		{
 			if(m_customAttributes == null)
 				m_customAttributes = MetadataHelperFunctionsExtensions.GetDebugAttributes(m_importer, m_methodToken);
 			return m_customAttributes;
 		}
 
-		public override object Invoke(object obj, BindingFlags invokeAttr, Binder binder, object[] parameters, CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override System.Reflection.MethodImplAttributes GetMethodImplementationFlags()
-		{
-			throw new NotImplementedException();
-		}
-
 		// [Xamarin] Expression evaluator.
-		public override System.Reflection.ParameterInfo[] GetParameters()
+		public MetadataParameterInfo[] GetParameters()
 		{
-			ArrayList al = new ArrayList();
+			List<MetadataParameterInfo> al = new List<MetadataParameterInfo>();
 			IntPtr hEnum = new IntPtr();
 			int nArg = 0;
 			try
@@ -189,10 +155,10 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			{
 				m_importer.CloseEnum(hEnum);
 			}
-			return (ParameterInfo[]) al.ToArray(typeof(ParameterInfo));
+			return al.ToArray();
 		}
 
-		public override int MetadataToken
+		public int MetadataToken
 		{
 			get
 			{
@@ -204,15 +170,5 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		{
 			return MetadataHelperFunctions.GetGenericArgumentNames(m_importer, m_methodToken);
 		}
-
-		private IMetadataImport m_importer;
-		private string m_name;
-		private int m_classToken;
-		private int m_methodToken;
-		private MethodAttributes m_methodAttributes;
-		// [Xamarin] Expression evaluator.
-		private List<Type> m_argTypes;
-		private Type m_retType;
-		private object[] m_customAttributes;
 	}
 }
