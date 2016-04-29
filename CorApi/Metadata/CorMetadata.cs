@@ -38,7 +38,6 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			Debug.Assert(m_importer != null);
 		}
 
-		// methods
 		public MetadataMethodInfo GetMethodInfo(int methodToken)
 		{
 			return new MetadataMethodInfo(this, m_importer, methodToken);

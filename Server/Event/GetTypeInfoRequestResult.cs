@@ -12,9 +12,9 @@ namespace Consulo.Internal.Mssdw.Server.Event
 
 			public string Name;
 
-			public TypeRef Type;
+			/*public TypeRef Type;
 
-			public int Attributes;
+			public int Attributes;  */
 		}
 
 		public class PropertyInfo
@@ -41,16 +41,16 @@ namespace Consulo.Internal.Mssdw.Server.Event
 		{
 			FieldInfo fieldInfo = new FieldInfo();
 			fieldInfo.Name = metadataFieldInfo.Name;
-			fieldInfo.Attributes = (int) metadataFieldInfo.Attributes;
+			//fieldInfo.Attributes = (int) metadataFieldInfo.Attributes;
 			fieldInfo.Token = metadataFieldInfo.MetadataToken;
-			fieldInfo.Type = new TypeRef(metadataFieldInfo.FieldType);
+			//fieldInfo.Type = new TypeRef(metadataFieldInfo.FieldType);
 
 			Fields.Add(fieldInfo);
 		}
 
 		public void AddProperty(MetadataPropertyInfo metadataFieldInfo)
 		{
-			PropertyInfo propertyInfo = new PropertyInfo();
+			/*PropertyInfo propertyInfo = new PropertyInfo();
 			propertyInfo.Name = metadataFieldInfo.Name;
 			propertyInfo.Attributes = (int) metadataFieldInfo.Attributes;
 			propertyInfo.Type = new TypeRef(metadataFieldInfo.PropertyType);
@@ -66,7 +66,7 @@ namespace Consulo.Internal.Mssdw.Server.Event
 			{
 				propertyInfo.SetterToken = setGetMethod.MetadataToken;
 			}
-			Properties.Add(propertyInfo);
+			Properties.Add(propertyInfo);*/
 		}
 	}
 }

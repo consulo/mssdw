@@ -139,6 +139,32 @@ namespace Consulo.Internal.Mssdw.Server
 
 									temp = result;
 								}
+								else if(messageObject is GetFieldInfoRequest)
+								{
+									GetFieldInfoRequest request = (GetFieldInfoRequest) messageObject;
+
+									GetFieldInfoRequestResult result = new GetFieldInfoRequestResult();
+
+									CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleName);
+									if(metadataForModule != null)
+									{
+										MetadataTypeInfo type = metadataForModule.GetType(request.Type.ClassToken);
+										if(type != null)
+										{
+											foreach (MetadataFieldInfo field in type.GetFields())
+											{
+												if(field.MetadataToken == request.Token)
+												{
+													result.Attributes = (int) field.Attributes;
+													result.Type = new TypeRef(field.FieldType);
+
+													break;
+												}
+											}
+										}
+									}
+									temp = result;
+								}
 								else if(messageObject is GetTypeInfoRequest)
 								{
 									GetTypeInfoRequest request = (GetTypeInfoRequest) messageObject;

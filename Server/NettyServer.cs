@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using DotNetty.Codecs;
 using DotNetty.Handlers.Logging;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
