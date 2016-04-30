@@ -26,7 +26,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			private set;
 		}
 
-		public String ModuleName;
+		public string ModuleName;
 
 		internal IMetadataImport m_importer;
 
