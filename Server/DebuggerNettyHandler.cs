@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Consulo.Internal.Mssdw.Server.Event;
@@ -145,23 +144,12 @@ namespace Consulo.Internal.Mssdw.Server
 
 									GetFieldInfoRequestResult result = new GetFieldInfoRequestResult();
 
-									CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleName);
-									if(metadataForModule != null)
+									MetadataFieldInfo field = SearchUtil.FindField(debugSession, request.Type, request.Token);
+									if(field != null)
+									if(field.MetadataToken == request.Token)
 									{
-										MetadataTypeInfo type = metadataForModule.GetType(request.Type.ClassToken);
-										if(type != null)
-										{
-											foreach (MetadataFieldInfo field in type.GetFields())
-											{
-												if(field.MetadataToken == request.Token)
-												{
-													result.Attributes = (int) field.Attributes;
-													result.Type = new TypeRef(field.FieldType);
-
-													break;
-												}
-											}
-										}
+										result.Attributes = (int) field.Attributes;
+										result.Type = new TypeRef(field.FieldType);
 									}
 									temp = result;
 								}
@@ -276,22 +264,36 @@ namespace Consulo.Internal.Mssdw.Server
 								}
 								else if(messageObject is GetFieldValueRequest)
 								{
-									GetFieldValueRequest fieldValueRequest = (GetFieldValueRequest)messageObject;
+									GetFieldValueRequest request = (GetFieldValueRequest)messageObject;
 
-									CorValue cor = CorValueRegistrator.Get(fieldValueRequest.ObjectId);
-									if(cor is CorObjectValue)
+									MetadataFieldInfo field = SearchUtil.FindField(debugSession, request.Type, request.FieldToken);
+									if(field != null)
 									{
-										CorObjectValue objectValue = (CorObjectValue) cor;
-										if(objectValue.Address == 0)
+										if(request.ObjectId == 0)
 										{
-											temp = new NullValueResult();
+											Console.WriteLine(field.Name);
+											MetadataTypeInfo type = field.FieldType;
+											CorValue value = type.GetFieldValue(field, null);
+											temp = CreateValueResult(value, value);
 										}
 										else
 										{
-											CorClass corClass = objectValue.Class;
-											int fieldToken = fieldValueRequest.FieldToken;
-											CorValue value = objectValue.GetFieldValue(corClass, fieldToken);
-											temp = CreateValueResult(value, value);
+											CorValue cor = CorValueRegistrator.Get(request.ObjectId);
+											if(cor is CorObjectValue)
+											{
+												CorObjectValue objectValue = (CorObjectValue) cor;
+												if(objectValue.Address == 0)
+												{
+													temp = new NullValueResult();
+												}
+												else
+												{
+													CorClass corClass = objectValue.Class;
+													int fieldToken = request.FieldToken;
+													CorValue value = objectValue.GetFieldValue(corClass, fieldToken);
+													temp = CreateValueResult(value, value);
+												}
+											}
 										}
 									}
 								}

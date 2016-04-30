@@ -30,9 +30,12 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 		internal IMetadataImport m_importer;
 
+		public readonly CorModule Module;
+
 		public CorMetadataImport(DebugSession debugSession, CorModule managedModule)
 		{
 			ModuleName = managedModule.Name;
+			Module = managedModule;
 			DebugSession = debugSession;
 			m_importer = managedModule.GetMetaDataInterface <IMetadataImport>();
 			Debug.Assert(m_importer != null);

@@ -72,13 +72,6 @@
               </binaries>
             </library>
           </orderEntry>
-          <orderEntry type="module-library">
-            <library>
-              <binaries>
-                <root url="netdll://$MODULE_DIR$/Libraries/thrift.dll!/" />
-              </binaries>
-            </library>
-          </orderEntry>
         </module-layer>
         <module-layer name="Release">
           <extension id="microsoft-csharp" unsafe-code="false" language-version-module-name="" language-version-name="" optimize-code="true" platform="ANY_CPU" custom-compiler-sdk-module-name="" custom-compiler-sdk-name="" />

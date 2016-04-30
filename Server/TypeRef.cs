@@ -17,7 +17,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 		public TypeRef(MetadataTypeInfo type)
 		{
-			ModuleName = type.CorMetadataImport.ModuleName;
+			ModuleName = type.MetadataImport.ModuleName;
 			ClassToken = type.MetadataToken;
 			VmQName = type.FullName;
 		}

@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
 using Microsoft.Samples.Debugging.Extensions;
 
@@ -55,13 +56,13 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		internal bool m_isByRef, m_isPtr;
 		internal List<MetadataTypeInfo> m_typeArgs;
 
-		public readonly CorMetadataImport CorMetadataImport;
+		public readonly CorMetadataImport MetadataImport;
 
 		internal MetadataTypeInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int classToken)
 		{
 			Debug.Assert(importer != null);
 
-			CorMetadataImport = corMetadataImport;
+			MetadataImport = corMetadataImport;
 			m_importer = importer;
 			m_typeToken = classToken;
 
@@ -241,8 +242,17 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			throw new ArgumentException("Non-enum passed to GetEnumUnderlyingType.");
 		}
 
-		// properties
+		public CorValue GetFieldValue(MetadataFieldInfo fieldInfo, CorFrame corFrame)
+		{
+			CorModule metadataImportModule = MetadataImport.Module;
 
+			CorClass corClass = metadataImportModule.GetClassFromToken(m_typeToken);
+
+			Console.WriteLine(MetadataToken + " " + corClass.Token + " ^ ");
+			return corClass.GetStaticFieldValue(fieldInfo.MetadataToken, corFrame);
+		}
+
+		// properties
 		public int MetadataToken
 		{
 			get
@@ -302,7 +312,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				if(ptkExtends == 0)
 					return null;
 
-				return new MetadataTypeInfo(CorMetadataImport, m_importer, ptkExtends);
+				return new MetadataTypeInfo(MetadataImport, m_importer, ptkExtends);
 			}
 		}
 
@@ -432,7 +442,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					m_importer.EnumProperties(ref hEnum, (int) m_typeToken, out methodToken, 1, out size);
 					if(size == 0)
 						break;
-					var prop = new MetadataPropertyInfo(CorMetadataImport, m_importer, methodToken, this);
+					var prop = new MetadataPropertyInfo(MetadataImport, m_importer, methodToken, this);
 					try
 					{
 						MetadataMethodInfo mi = prop.GetGetMethod() ?? prop.GetSetMethod();
@@ -471,7 +481,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					int classTk;
 					int intfTk;
 					m_importer.GetInterfaceImplProps(impl, out classTk, out intfTk);
-					al.Add(new MetadataTypeInfo(CorMetadataImport, m_importer, intfTk));
+					al.Add(new MetadataTypeInfo(MetadataImport, m_importer, intfTk));
 				}
 			}
 			finally
@@ -496,7 +506,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					if(size == 0)
 						break;
 					// [Xamarin] Expression evaluator.
-					MetadataFieldInfo field = new MetadataFieldInfo(CorMetadataImport, m_importer, fieldToken, this);
+					MetadataFieldInfo field = new MetadataFieldInfo(MetadataImport, m_importer, fieldToken, this);
 					al.Add(field);
 				}
 			}
@@ -522,7 +532,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					if(size == 0)
 						break;
 					// [Xamarin] Expression evaluator.
-					var met = new MetadataMethodInfo(CorMetadataImport, m_importer, methodToken);
+					var met = new MetadataMethodInfo(MetadataImport, m_importer, methodToken);
 					al.Add(met);
 				}
 			}
@@ -579,7 +589,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 						MetadataFieldInfo field = fields[i] as MetadataFieldInfo;
 						if((field.Attributes & staticLiteralField) == staticLiteralField)
 						{
-							m_enumValues.Add(new KeyValuePair<string, ulong>(field.Name, Convert.ToUInt64(field.GetValue(null), CultureInfo.InvariantCulture)));
+							m_enumValues.Add(new KeyValuePair<string, ulong>(field.Name, Convert.ToUInt64(field.ConstantValue, CultureInfo.InvariantCulture)));
 						}
 					}
 
@@ -600,7 +610,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				int enclosingClass;
 				importer.GetNestedClassProps(classToken, out enclosingClass);
 				// [Xamarin] Expression evaluator.
-				m_declaringType = new MetadataTypeInfo(CorMetadataImport, importer, enclosingClass);
+				m_declaringType = new MetadataTypeInfo(MetadataImport, importer, enclosingClass);
 				return m_declaringType.FullName + "+";
 				//MetadataType mt = new MetadataType(importer,enclosingClass);
 				//return mt.Name+".";

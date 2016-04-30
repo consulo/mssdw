@@ -6,7 +6,6 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
-using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -72,8 +71,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			m_name = szField.ToString();
 
 			// Get the values for static literal fields with primitive types
-			FieldAttributes staticLiteralField = FieldAttributes.Static | FieldAttributes.HasDefault | FieldAttributes.Literal;
-			if((m_fieldAttributes & staticLiteralField) == staticLiteralField)
+			if(IsConstant)
 			{
 				m_value = ParseDefaultValue(declaringType, ppvSigBlob, ppvRawValue);
 			}
@@ -140,20 +138,31 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public object GetValue(object obj)
+		public object ConstantValue
 		{
-			FieldAttributes staticLiteralField = FieldAttributes.Static | FieldAttributes.HasDefault | FieldAttributes.Literal;
-			if((m_fieldAttributes & staticLiteralField) != staticLiteralField)
+			get
 			{
-				throw new InvalidOperationException("Field is not a static literal field.");
+				if(!IsConstant)
+				{
+					throw new InvalidOperationException("Field is not a static literal field.");
+				}
+				if(m_value == null)
+				{
+					throw new NotImplementedException("GetValue not implemented for the given field type.");
+				}
+				else
+				{
+					return m_value;
+				}
 			}
-			if(m_value == null)
+		}
+
+		public bool IsConstant
+		{
+			get
 			{
-				throw new NotImplementedException("GetValue not implemented for the given field type.");
-			}
-			else
-			{
-				return m_value;
+				FieldAttributes attributesLiteral = FieldAttributes.Static | FieldAttributes.HasDefault | FieldAttributes.Literal;
+				return (m_fieldAttributes & attributesLiteral) == attributesLiteral;
 			}
 		}
 
