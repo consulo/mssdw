@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Consulo.Internal.Mssdw;
 using Consulo.Internal.Mssdw.CorApi.Metadata;
+using Consulo.Internal.Mssdw.Server;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
 
@@ -46,11 +47,20 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			return new MetadataMethodInfo(this, m_importer, methodToken);
 		}
 
-		public MetadataTypeInfo GetType(int typeToken)
+		public MetadataTypeInfo CreateMetadataTypeInfo(int typeToken)
 		{
 			return new MetadataTypeInfo(this, m_importer, typeToken);
 		}
 
+		public MetadataTypeInfo CreateMetadataTypeInfo(TypeRef typeRef)
+		{
+			MetadataTypeInfo typeInfo = new MetadataTypeInfo(this, m_importer, typeRef.ClassToken);
+			typeInfo.m_arrayLoBounds = typeRef.ArrayLowerBounds;
+			typeInfo.m_arraySizes = typeRef.ArraySizes;
+			typeInfo.m_isPtr = typeRef.IsPointer;
+			typeInfo.m_isByRef = typeRef.IsByRef;
+			return typeInfo;
+		}
 
 		// Get number of generic parameters on a given type.
 		// Eg, for 'Foo<t, u>', returns 2.

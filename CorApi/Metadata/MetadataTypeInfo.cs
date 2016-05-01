@@ -288,13 +288,16 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		{
 			get
 			{
-				// NOTE: If you ever try to implement this, remember that the base type
-				// can be represented in metadata by a TypeDef, TypeRef, or TypeSpec
-				// token, depending on the nature and location of the base type.
-				//
-				// See ECMA Partition II for more details.
+				// in this case we return null for now
+				if(IsArray || IsPointer || IsByRef)
+				{
+					return null;
+				}
+
 				if(m_typeToken == 0)
+				{
 					throw new NotImplementedException();
+				}
 
 				var token = new MetadataToken(m_typeToken);
 				int size;
@@ -418,7 +421,6 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		// [Xamarin] Expression evaluator.
 		public int GetArrayRank()
 		{
 			if(m_arraySizes != null)
@@ -427,9 +429,13 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				return 0;
 		}
 
-		// [Xamarin] Expression evaluator.
 		public MetadataPropertyInfo[] GetProperties()
 		{
+			if(IsArray || IsPointer || IsByRef)
+			{
+				return null;
+			}
+
 			List<MetadataPropertyInfo> al = new List<MetadataPropertyInfo>();
 			var hEnum = new IntPtr();
 
@@ -493,6 +499,11 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 		public MetadataFieldInfo[] GetFields()
 		{
+			if(IsArray || IsPointer || IsByRef)
+			{
+				return null;
+			}
+
 			List<MetadataFieldInfo> al = new List<MetadataFieldInfo>();
 			var hEnum = new IntPtr();
 
@@ -519,6 +530,11 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 		public MetadataMethodInfo[] GetMethods()
 		{
+			if(IsArray || IsPointer || IsByRef)
+			{
+				return null;
+			}
+
 			List<MetadataMethodInfo> al = new List<MetadataMethodInfo>();
 			IntPtr hEnum = new IntPtr();
 

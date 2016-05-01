@@ -23,12 +23,8 @@ namespace Consulo.Internal.Mssdw.Server.Event
 			ObjectId = value.Id;
 			Length = value.Count;
 
-			/*CorClass valueClass = original.ExactType.Class;
-
-			CorMetadataImport module = debugSession.GetMetadataForModule(valueClass.Module.Token);
-
-			Type type = module.GetType(valueClass.Token);
-			Type = new TypeRef(type);  */
+			MetadataTypeInfo typeInfo = original.ExactType.GetTypeInfo(debugSession);
+			Type = typeInfo == null ? null : new TypeRef(typeInfo);
 		}
 	}
 }

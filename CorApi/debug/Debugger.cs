@@ -83,7 +83,7 @@ namespace Microsoft.Samples.Debugging.CorDebug
 		}
 
 		/// <summary>Creates a debugger interface that is able debug requested verison of CLR</summary>
-		/// <param name="debuggerVerison">Version number of the debugging interface.</param>
+		/// <param name="debuggerVersion">Version number of the debugging interface.</param>
 		/// <remarks>The version number is usually retrieved either by calling one of following mscoree functions:
 		/// GetCorVerison, GetRequestedRuntimeVersion or GetVersionFromProcess.</remarks>
 		public CorDebugger (string debuggerVersion)

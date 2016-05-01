@@ -9,7 +9,7 @@ namespace Consulo.Internal.Mssdw.Server
 			CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(typeRef.ModuleName);
 			if(metadataForModule != null)
 			{
-				return metadataForModule.GetType(typeRef.ClassToken);
+				return metadataForModule.CreateMetadataTypeInfo(typeRef);
 			}
 			return null;
 		}

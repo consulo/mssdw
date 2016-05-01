@@ -20,7 +20,7 @@ namespace Consulo.Internal.Mssdw.Server.Event
 
 			CorMetadataImport module = debugSession.GetMetadataForModule(valueClass.Module.Name);
 
-			MetadataTypeInfo type = module.GetType(valueClass.Token);
+			MetadataTypeInfo type = module.CreateMetadataTypeInfo(valueClass.Token);
 			Type = new TypeRef(type);
 		}
 	}

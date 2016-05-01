@@ -66,7 +66,7 @@ namespace Consulo.Internal.Mssdw
 			CorMetadataImport mi = session.GetMetadataForModule(type.Class.Module.Name);
 			if(mi != null)
 			{
-				t = mi.GetType(type.Class.Token);
+				t = mi.CreateMetadataTypeInfo(type.Class.Token);
 				CorType[] targs = type.TypeParameters;
 				if(targs.Length > 0)
 				{

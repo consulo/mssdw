@@ -50,7 +50,7 @@ namespace Consulo.Internal.Mssdw.CorApi.Metadata
 
 			m_corMeta.m_importer.EnumTypeDefs(ref m_enum, out token, 1, out c);
 			if(c == 1) // 1 new element
-				m_type = m_corMeta.GetType(token);
+				m_type = m_corMeta.CreateMetadataTypeInfo(token);
 			else
 				m_type = null;
 			return m_type != null;
