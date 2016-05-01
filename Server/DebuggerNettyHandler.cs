@@ -119,7 +119,7 @@ namespace Consulo.Internal.Mssdw.Server
 									GetMethodInfoRequestResult result = new GetMethodInfoRequestResult();
 									result.Name = "<unknown>";
 
-									CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleName);
+									CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.GetModuleName());
 									if(metadataForModule != null)
 									{
 										MetadataMethodInfo methodInfo = metadataForModule.GetMethodInfo(request.FunctionToken);
@@ -160,7 +160,7 @@ namespace Consulo.Internal.Mssdw.Server
 									GetTypeInfoRequestResult result = new GetTypeInfoRequestResult();
 									try
 									{
-										CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.ModuleName);
+										CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.GetModuleName());
 										if(metadataForModule != null)
 										{
 											MetadataTypeInfo type = metadataForModule.CreateMetadataTypeInfo(request.Type);
@@ -169,10 +169,16 @@ namespace Consulo.Internal.Mssdw.Server
 											{
 												result.Name = type.Name;
 												result.FullName = type.FullName;
+												result.BaseType = type.BaseType == null ? null : new TypeRef(type.BaseType);
 												result.IsArray = type.IsArray;
 												foreach (MetadataFieldInfo o in type.GetFields())
 												{
 													result.AddField(o);
+												}
+
+												foreach (MetadataMethodInfo o in type.GetMethods())
+												{
+													result.AddMethod(o);
 												}
 
 												foreach (MetadataPropertyInfo o in type.GetProperties())

@@ -6,7 +6,7 @@ namespace Consulo.Internal.Mssdw.Server
 	{
 		public static MetadataTypeInfo FindType(DebugSession debugSession, TypeRef typeRef)
 		{
-			CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(typeRef.ModuleName);
+			CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(typeRef.GetModuleName());
 			if(metadataForModule != null)
 			{
 				return metadataForModule.CreateMetadataTypeInfo(typeRef);

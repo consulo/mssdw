@@ -439,16 +439,16 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			List<MetadataPropertyInfo> al = new List<MetadataPropertyInfo>();
 			var hEnum = new IntPtr();
 
-			int methodToken;
+			int propertyToken;
 			try
 			{
 				while(true)
 				{
 					uint size;
-					m_importer.EnumProperties(ref hEnum, (int) m_typeToken, out methodToken, 1, out size);
+					m_importer.EnumProperties(ref hEnum, (int) m_typeToken, out propertyToken, 1, out size);
 					if(size == 0)
 						break;
-					var prop = new MetadataPropertyInfo(MetadataImport, m_importer, methodToken, this);
+					var prop = new MetadataPropertyInfo(MetadataImport, m_importer, propertyToken, this);
 					try
 					{
 						MetadataMethodInfo mi = prop.GetGetMethod() ?? prop.GetSetMethod();
