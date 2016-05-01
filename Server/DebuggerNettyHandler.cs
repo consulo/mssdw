@@ -297,6 +297,17 @@ namespace Consulo.Internal.Mssdw.Server
 										}
 									}
 								}
+								else if(messageObject is GetOrSetArrayValueAtRequest)
+								{
+									GetOrSetArrayValueAtRequest request = (GetOrSetArrayValueAtRequest)messageObject;
+
+									CorArrayValue cor = CorValueRegistrator.Get(request.ObjectId) as CorArrayValue;
+									if(cor != null)
+									{
+										CorValue value = cor.GetElement(new int[]{request.Index});
+										temp = CreateValueResult(value);
+									}
+								}
 								else if(messageObject is GetLocalValueRequest)
 								{
 									GetLocalValueRequest localRequest = (GetLocalValueRequest)messageObject;
@@ -397,6 +408,11 @@ namespace Consulo.Internal.Mssdw.Server
 			{
 				collectLocals(o, metadataImport, offset, result);
 			}
+		}
+
+		private object CreateValueResult(CorValue originalValue)
+		{
+			return CreateValueResult(originalValue, originalValue);
 		}
 
 		private object CreateValueResult(CorValue originalValue, CorValue corValue)
