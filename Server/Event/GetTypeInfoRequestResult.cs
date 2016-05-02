@@ -57,7 +57,7 @@ namespace Consulo.Internal.Mssdw.Server.Event
 
 		public void AddMethod(MetadataMethodInfo metadataMethodInfo)
 		{
-			Methods.Add(metadataMethodInfo.MetadataToken);
+		//	Methods.Add(metadataMethodInfo.MetadataToken);
 		}
 
 		public void AddProperty(MetadataPropertyInfo metadataFieldInfo)
