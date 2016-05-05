@@ -128,8 +128,6 @@ namespace Consulo.Internal.Mssdw
 			  process.OnException2 += new CorException2EventHandler(OnException2);
 	*/
 			//process.RegisterStdOutput(OnStdOutput);
-
-			process.Continue(false);
 		}
 
 		public CorProcess Process

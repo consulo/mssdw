@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Consulo.Internal.Mssdw;
-using Consulo.Internal.Mssdw.Server;
+using Consulo.Internal.Mssdw.Network;
 
 public class Program
 {
@@ -27,39 +25,21 @@ public class Program
 			return;
 		}
 
-		Console.WriteLine("Port: " + port);
+		JdwpConnection conn = new JdwpConnection(port);
+		#if DEBUG
+		Console.WriteLine("Waiting client at port: " + port);
+		#endif
+		conn.Bind();
 
 		DebugSession session = new DebugSession();
+		session.Start(arguments);
 
-		try
+		session.OnProcessExit += delegate(DebugSession obj)
 		{
-			NettyServer server = new NettyServer(port);
+			conn.Close();
+		};
 
-			Task.Run(() => server.RunServer(session)).Wait();
-
-			Console.WriteLine("Waiting client");
-			// w8 client
-			while(session.Client == null)
-			{
-				Thread.Sleep(100);
-			}
-			Console.WriteLine("Client connected");
-
-			session.Start(arguments); // we can failed if file is not exists
-
-			Semaphore semaphore = new  Semaphore(0, 1);
-
-			session.OnProcessExit += delegate(DebugSession obj)
-			{
-				server.Close();
-				semaphore.Release();
-			};
-
-			semaphore.WaitOne();
-		}
-		catch(Exception)
-		{
-			throw;
-		}
+		JdwpHandler handler = new JdwpHandler(conn);
+		handler.Run();
 	}
 }
