@@ -23,16 +23,21 @@
 */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Samples.Debugging.CorDebug;
 
 namespace Consulo.Internal.Mssdw.Network
 {
 	class JdwpHandler
 	{
 		private readonly JdwpConnection conn;
+		private readonly DebugSession myDebugSession;
 
-		internal JdwpHandler(JdwpConnection conn)
+		internal JdwpHandler(JdwpConnection conn, DebugSession debugSession)
 		{
 			this.conn = conn;
+			myDebugSession = debugSession;
 		}
 
 		internal void Run()
@@ -46,6 +51,9 @@ namespace Consulo.Internal.Mssdw.Network
 					case CommandSet.VirtualMachine:
 						CommandSetVirtualMachine(packet);
 						break;
+					case CommandSet.Thread:
+						CommandThreadMachine(packet);
+						break;;
 					case CommandSet.EventRequest:
 						CommandSetEventRequest(packet);
 						break;
@@ -57,10 +65,6 @@ namespace Consulo.Internal.Mssdw.Network
 			}
 		}
 
-		/// <summary>
-		/// http://java.sun.com/javase/6/docs/platform/jpda/jdwp/jdwp-protocol.html#JDWP_VirtualMachine
-		/// </summary>
-		/// <param name="packet"></param>
 		private void CommandSetVirtualMachine(Packet packet)
 		{
 			switch(packet.Command)
@@ -70,18 +74,65 @@ namespace Consulo.Internal.Mssdw.Network
 					packet.WriteInt(1);
 					packet.WriteInt(0);
 					break;
-
+				case VirtualMachine.AllThreads:
+					IEnumerable<CorThread> threads = myDebugSession.Process.Threads;
+					List<CorThread> list = new List<CorThread>(threads);
+					packet.WriteInt(list.Count);
+					foreach (CorThread corThread in list)
+					{
+						packet.WriteInt(corThread.Id);
+					}
+					break;
+				case VirtualMachine.Suspend:
+					myDebugSession.Process.Stop(-1);
+					break;
+				case VirtualMachine.Resume:
+					myDebugSession.Process.Continue(false);
+					break;
 				default:
 					NotImplementedPacket(packet); // include a SendPacket
 					break;
 			}
 		}
 
+		private void CommandThreadMachine(Packet packet)
+		{
+			switch(packet.Command)
+			{
+				case Thread.Name:
+				{
+					int threadId = packet.ReadInt();
+					string threadName = "<invalid>";
+					CorThread corThread = myDebugSession.Process.Threads.Where(x => x.Id == threadId).FirstOrDefault();
+					if(corThread != null)
+					{
+						threadName = myDebugSession.GetThreadName(corThread);
+					}
 
-		/// <summary>
-		/// http://java.sun.com/javase/6/docs/platform/jpda/jdwp/jdwp-protocol.html#JDWP_EventRequest
-		/// </summary>
-		/// <param name="packet"></param>
+					packet.WriteString(threadName);
+					break;
+				}
+				case Thread.GetState:
+				{
+					int threadId = packet.ReadInt();
+					int state = 0;
+					int userState = 0;
+					CorThread corThread = myDebugSession.Process.Threads.Where(x => x.Id == threadId).FirstOrDefault();
+					if(corThread != null)
+					{
+						state = (int) corThread.DebugState;
+						userState = (int) corThread.UserState;
+					}
+					packet.WriteInt(state);
+					packet.WriteInt(userState);
+					break;
+				}
+				default:
+					NotImplementedPacket(packet);
+					break;
+			}
+		}
+
 		private void CommandSetEventRequest(Packet packet)
 		{
 			switch(packet.Command)
@@ -95,7 +146,7 @@ namespace Consulo.Internal.Mssdw.Network
 					}
 					else
 					{
-						//FIXME target.AddEventRequest(eventRequest);
+						myDebugSession.AddEventRequest(eventRequest);
 						packet.WriteInt(eventRequest.RequestId);
 					}
 					break;

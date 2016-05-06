@@ -19,6 +19,7 @@ using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
 
 namespace Consulo.Internal.Mssdw.Server
 {
+	[Obsolete]
 	public class DebuggerNettyHandler : ChannelHandlerAdapter
 	{
 		private NettyClient client;
@@ -79,7 +80,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 							try
 							{
-								if(messageObject is InsertBreakpointRequest)
+								/*if(messageObject is InsertBreakpointRequest)
 								{
 									InsertBreakpointRequestResult result = debugSession.InsertBreakpoint((InsertBreakpointRequest)messageObject);
 
@@ -96,7 +97,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 									temp = result;
 								}
-								else if(messageObject is GetFramesRequest)
+								else*/ if(messageObject is GetFramesRequest)
 								{
 									GetFramesRequestResult result = new GetFramesRequestResult();
 
@@ -352,12 +353,12 @@ namespace Consulo.Internal.Mssdw.Server
 									TypeRef typeRef = debugSession.FindTypeByName(vmQName);
 									temp = new FindTypeInfoRequestResult(typeRef);
 								}
-								else if(messageObject is ContinueRequest)
+								/*else if(messageObject is ContinueRequest)
 								{
 									debugSession.Process.Continue(false);
 
 									temp = new ContinueRequestResult();
-								}
+								}*/
 							}
 							catch(Exception e)
 							{
@@ -496,7 +497,7 @@ namespace Consulo.Internal.Mssdw.Server
 			queries.Add(id, action);
 		}
 
-		string GetThreadName(CorThread thread)
+		public string GetThreadName(CorThread thread)
 		{
 			// From http://social.msdn.microsoft.com/Forums/en/netfxtoolsdev/thread/461326fe-88bd-4a6b-82a9-1a66b8e65116
 			try

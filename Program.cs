@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Consulo.Internal.Mssdw;
 using Consulo.Internal.Mssdw.Network;
 
@@ -31,15 +32,24 @@ public class Program
 		#endif
 		conn.Bind();
 
-		DebugSession session = new DebugSession();
+		DebugSession session = new DebugSession(conn);
 		session.Start(arguments);
 
-		session.OnProcessExit += delegate(DebugSession obj)
-		{
-			conn.Close();
-		};
 
-		JdwpHandler handler = new JdwpHandler(conn);
-		handler.Run();
+		JdwpHandler handler = new JdwpHandler(conn, session);
+		try
+		{
+			handler.Run();
+		}
+		catch(IOException)
+		{
+			Environment.Exit(-1);
+		}
+		catch(Exception e)
+		{
+			Console.WriteLine(e.GetType());
+			Console.WriteLine(e.Message);
+			Console.WriteLine(e.StackTrace);
+		}
 	}
 }

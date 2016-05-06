@@ -164,24 +164,6 @@ namespace Consulo.Internal.Mssdw.Network
 			return new String(chars);
 		}
 
-
-		internal int ReadObjectID()
-		{
-			return ReadInt();
-		}
-
-		internal Location ReadLocation()
-		{
-			Location loc = new Location();
-			loc.tagType = ReadByte();
-			loc.classID = ReadObjectID();
-			loc.methodID = ReadObjectID();
-			loc.index = new byte[8];
-			Array.Copy(data, offset, loc.index, 0, 8);
-			offset += 8;
-			return loc;
-		}
-
 		internal int Id
 		{
 			get { return id; }
@@ -240,13 +222,5 @@ namespace Consulo.Internal.Mssdw.Network
 			WriteInt(value);
 		}
 
-	}
-
-	struct Location
-	{
-		internal byte tagType;
-		internal int classID;
-		internal int methodID;
-		internal byte[] index;
 	}
 }

@@ -7,7 +7,9 @@ namespace Consulo.Internal.Mssdw.Server.Event
 	{
 		Bound,
 		Invalid,
-		NotBound
+		NotBound,
+		NoDoc,
+		NoMethod
 	}
 
 	public class InsertBreakpointRequestResult
@@ -16,17 +18,6 @@ namespace Consulo.Internal.Mssdw.Server.Event
 		{
 			get;
 			set;
-		}
-
-		public InsertBreakpointRequest Request
-		{
-			get;
-			set;
-		}
-
-		public InsertBreakpointRequestResult(InsertBreakpointRequest breakpointRequest)
-		{
-			Request = breakpointRequest;
 		}
 
 		public void SetStatus(BreakEventStatus status, object o)

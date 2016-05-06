@@ -53,7 +53,7 @@ namespace Consulo.Internal.Mssdw.Network
 			stream = client.GetStream(); //TODO Bug in BufferedStream, work not asynchron
 			//stream = new BufferedStream(client.GetStream());
 			System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-			byte[] hello = encoding.GetBytes("DWP-Handshake");
+			byte[] hello = encoding.GetBytes("MDWP-Handshake");
 			stream.Write(hello, 0, hello.Length);
 			byte[] b = new byte[hello.Length];
 			int received = 0;
@@ -64,17 +64,18 @@ namespace Consulo.Internal.Mssdw.Network
 				{
 					client.Close();
 					Console.WriteLine("handshake failed - connection prematurally closed");
-					Environment.Exit(2);
+					Environment.Exit(-1);
 				}
 				received += n;
 			}
+
 			for (int j = 0; j < hello.Length; j++)
 			{
 				if (b[j] != hello[j])
 				{
 					client.Close();
 					Console.WriteLine("handshake failed - unrecognized message from target VM");
-					Environment.Exit(2);
+					Environment.Exit(-1);
 				}
 			}
 		}

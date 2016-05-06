@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Consulo.Internal.Mssdw.Network;
 using Consulo.Internal.Mssdw.Server;
 using Consulo.Internal.Mssdw.Server.Event;
 using Consulo.Internal.Mssdw.Server.Request;
@@ -38,11 +39,10 @@ namespace Consulo.Internal.Mssdw
 		private readonly Dictionary<string, DocInfo> documents = new Dictionary<string, DocInfo>(StringComparer.CurrentCultureIgnoreCase);
 		private readonly Dictionary<string, ModuleInfo> modules = new Dictionary<string, ModuleInfo>();
 		private readonly SymbolBinder symbolBinder = new SymbolBinder();
-		readonly Dictionary<CorBreakpoint, InsertBreakpointRequestResult> breakpoints = new Dictionary<CorBreakpoint, InsertBreakpointRequestResult>();
+		readonly Dictionary<CorBreakpoint, EventRequest> breakpoints = new Dictionary<CorBreakpoint, EventRequest>();
+		private readonly List<EventRequest> myEventRequests = new List<EventRequest>();
 
-		public event Action<DebugSession> OnProcessExit = delegate(DebugSession arg1)
-		{
-		};
+		private EventRequest myModuleLoadRequest;
 
 		private CorProcess process;
 		private CorDebugger dbg;
@@ -63,6 +63,29 @@ namespace Consulo.Internal.Mssdw
 			get
 			{
 				return activeThread;
+			}
+		}
+
+		private readonly JdwpConnection myConnection;
+
+		internal DebugSession(JdwpConnection connection)
+		{
+			myConnection = connection;
+		}
+
+		public void AddEventRequest(EventRequest eventRequest)
+		{
+			myEventRequests.Add(eventRequest);
+
+			int requestEventKind = eventRequest.EventKind;
+			switch(requestEventKind)
+			{
+				case EventKind.BREAKPOINT:
+					InsertBreakpoint(eventRequest);
+					break;
+				case EventKind.MODULE_LOAD:
+					myModuleLoadRequest = eventRequest;
+					break;
 			}
 		}
 
@@ -118,7 +141,7 @@ namespace Consulo.Internal.Mssdw
 			process.OnProcessExit += new CorProcessEventHandler(OnProcessExitImpl);
 			/*  process.OnUpdateModuleSymbols += new UpdateModuleSymbolsEventHandler(OnUpdateModuleSymbols);
 			  process.OnDebuggerError += new DebuggerErrorEventHandler(OnDebuggerError);*/
-			process.OnBreakpoint += new BreakpointEventHandler(OnBreakpoint);
+			process.OnBreakpoint += new BreakpointEventHandler(OnBreakpointImpl);
 			/*  process.OnStepComplete += new StepCompleteEventHandler(OnStepComplete);
 			  process.OnBreak += new CorThreadEventHandler(OnBreak);
 			  process.OnNameChange += new CorThreadEventHandler(OnNameChange);
@@ -161,21 +184,23 @@ namespace Consulo.Internal.Mssdw
 			stepper.SetJmcStatus(true);
 		}
 
-		public InsertBreakpointRequestResult InsertBreakpoint(InsertBreakpointRequest request)
+		public InsertBreakpointRequestResult InsertBreakpoint(EventRequest request)
 		{
-			InsertBreakpointRequestResult result = new InsertBreakpointRequestResult(request);
+			BreakpointLocation location = request.FindModifier<BreakpointLocation>();
+
+			InsertBreakpointRequestResult result = new InsertBreakpointRequestResult();
 
 			DocInfo doc;
-			if(!documents.TryGetValue(System.IO.Path.GetFullPath(request.FilePath), out doc))
+			if(!documents.TryGetValue(System.IO.Path.GetFullPath(location.FilePath), out doc))
 			{
-				result.SetStatus(BreakEventStatus.NotBound, null);
+				result.SetStatus(BreakEventStatus.NoDoc, null);
 				return result;
 			}
 
 			int line;
 			try
 			{
-				line = doc.Document.FindClosestLine(request.Line);
+				line = doc.Document.FindClosestLine(location.Line);
 			}
 			catch
 			{
@@ -214,7 +239,7 @@ namespace Consulo.Internal.Mssdw
 			}
 			if(met == null)
 			{
-				result.SetStatus(BreakEventStatus.Invalid, null);
+				result.SetStatus(BreakEventStatus.NoMethod, null);
 				return result;
 			}
 
@@ -222,23 +247,23 @@ namespace Consulo.Internal.Mssdw
 			int firstSpInLine = -1;
 			foreach (SequencePoint sp in met.GetSequencePoints())
 			{
-				if(sp.IsInside(doc.Document.URL, line, request.Column))
+				if(sp.IsInside(doc.Document.URL, line, location.Column))
 				{
 					offset = sp.Offset;
 					break;
 				}
-				else if(firstSpInLine == -1
-				&& sp.StartLine == line
-				&& sp.Document.URL.Equals(doc.Document.URL, StringComparison.OrdinalIgnoreCase))
+				else if(firstSpInLine == -1 && sp.StartLine == line && sp.Document.URL.Equals(doc.Document.URL, StringComparison.OrdinalIgnoreCase))
 				{
 					firstSpInLine = sp.Offset;
 				}
 			}
+
 			if(offset == -1)
 			{
 				//No exact match? Use first match in that line
 				offset = firstSpInLine;
 			}
+
 			if(offset == -1)
 			{
 				result.SetStatus(BreakEventStatus.Invalid, null);
@@ -248,14 +273,14 @@ namespace Consulo.Internal.Mssdw
 			CorFunction func = doc.Module.GetFunctionFromToken(met.Token.GetToken());
 			CorFunctionBreakpoint corBp = func.ILCode.CreateBreakpoint(offset);
 			corBp.Activate(true);
-			breakpoints[corBp] = result;
+			breakpoints[corBp] = request;
 
 			//result.Handle = corBp;
 			result.Status = BreakEventStatus.Bound;
 			return result;
 		}
 
-		void OnBreakpoint(object sender, CorBreakpointEventArgs e)
+		void OnBreakpointImpl(object sender, CorBreakpointEventArgs e)
 		{
 			lock (debugLock)
 			{
@@ -266,41 +291,11 @@ namespace Consulo.Internal.Mssdw
 				}
 			}
 
-			InsertBreakpointRequestResult binfo;
-			if(breakpoints.TryGetValue(e.Breakpoint, out binfo))
+			EventRequest eventRequest;
+			if(!breakpoints.TryGetValue(e.Breakpoint, out eventRequest))
 			{
 				e.Continue = true;
-				InsertBreakpointRequest bp = (InsertBreakpointRequest)binfo.Request;
-
-				binfo.IncrementHitCount();
-				//if (!binfo.HitCountReached)
-				//   return;
-
-				/* if (!string.IsNullOrEmpty(bp.ConditionExpression)) {
-					 string res = EvaluateExpression(e.Thread, bp.ConditionExpression);
-					 if (bp.BreakIfConditionChanges) {
-						 if (res == bp.LastConditionValue)
-							 return;
-						 bp.LastConditionValue = res;
-					 } else {
-						 if (res != null && res.ToLower() == "false")
-							 return;
-					 }
-				 }*/
-
-				/*if ((bp.HitAction & HitAction.CustomAction) != HitAction.None) {
-					// If custom action returns true, execution must continue
-					if (binfo.RunCustomBreakpointAction(bp.CustomActionId))
-						return;
-				}
-
-				if ((bp.HitAction & HitAction.PrintExpression) != HitAction.None) {
-					string exp = EvaluateTrace(e.Thread, bp.TraceExpression);
-					binfo.UpdateLastTraceValue(exp);
-				}
-
-				if ((bp.HitAction & HitAction.Break) == HitAction.None)
-					return;*/
+				return;
 			}
 
 			if(e.AppDomain.Process.HasQueuedCallbacks(e.Thread))
@@ -319,15 +314,19 @@ namespace Consulo.Internal.Mssdw
 
 			SetActiveThread(e.Thread);
 
-			ClientMessage result = binfo != null ? Notify(new OnBreakpointFire(e.Thread.Id, binfo.Request.FilePath, binfo.Request.Line)) : null;
-			if(result != null)
-			{
-				e.Continue = result.Continue;
-			}
-			else
-			{
-				e.Continue = true;
-			}
+			e.Continue = false;
+
+			Console.WriteLine("Enter breakpoint");
+
+			Packet packet = Packet.CreateEventPacket();
+			packet.WriteByte(SuspendPolicy.ALL);
+			packet.WriteInt(1); // event size
+
+			packet.WriteByte(eventRequest.EventKind);
+			packet.WriteInt(eventRequest.RequestId);
+			packet.WriteInt(e.Thread.Id);  // thread id
+
+			myConnection.SendPacket(packet);
 		}
 
 		private void OnModuleLoadImpl(object sender, CorModuleEventArgs e)
@@ -395,14 +394,19 @@ namespace Consulo.Internal.Mssdw
 				}
 			}
 
-			ClientMessage result = Notify(new OnModuleLoadEvent(file));
-			if(result != null)
+			e.Continue = false;
+
+			if(myModuleLoadRequest != null)
 			{
-				e.Continue = result.Continue;
-			}
-			else
-			{
-				e.Continue = true;
+				Packet packet = Packet.CreateEventPacket();
+				packet.WriteByte(SuspendPolicy.ALL);
+				packet.WriteInt(1); // event size
+
+				packet.WriteByte(myModuleLoadRequest.EventKind);
+				packet.WriteInt(myModuleLoadRequest.RequestId);
+				packet.WriteString(file);  // file
+
+				myConnection.SendPacket(packet);
 			}
 		}
 
@@ -460,7 +464,8 @@ namespace Consulo.Internal.Mssdw
 					});
 				}
 			}
-			OnProcessExit(this);
+
+			myConnection.Close();
 		}
 
 		private void OnDebuggerOutput(bool error, string message)
@@ -561,20 +566,40 @@ namespace Consulo.Internal.Mssdw
 			|| !documents.ContainsKey(fileName);
 		}
 
-		private ClientMessage Notify<T>(T value) where T : class
+		public string GetThreadName(CorThread thread)
 		{
-			if(Client != null)
+			// From http://social.msdn.microsoft.com/Forums/en/netfxtoolsdev/thread/461326fe-88bd-4a6b-82a9-1a66b8e65116
+			try
 			{
-				Task<ClientMessage> task = Client.Notify(value);
-				task.Wait();
-				return task.Result;
-			}
-			else
-			{
-				return null;
-			}
-		}
+				CorReferenceValue refVal = thread.ThreadVariable.CastToReferenceValue();
+				if(refVal.IsNull)
+					return string.Empty;
 
+				CorObjectValue val = refVal.Dereference().CastToObjectValue();
+				if(val != null)
+				{
+					MetadataTypeInfo classType = val.ExactType.GetTypeInfo(this);
+					// Loop through all private instance fields in the thread class
+					foreach (MetadataFieldInfo fi in classType.GetFields())
+					{
+						if(fi.Name == "m_Name")
+						{
+							CorReferenceValue fieldValue = val.GetFieldValue(val.Class, fi.MetadataToken).CastToReferenceValue();
+
+							if(fieldValue.IsNull)
+								return string.Empty;
+							else
+								return fieldValue.Dereference().CastToStringValue().String;
+						}
+					}
+				}
+			} catch(Exception)
+			{
+				// Ignore
+			}
+
+			return string.Empty;
+		}
 		/*public void OnStdOutput (object sender, CorTargetOutputEventArgs e) {
 			if (e.IsStdError) {
 				Console.Error.WriteLine(e.Text);
