@@ -82,7 +82,7 @@ namespace Consulo.Internal.Mssdw.Network
 				packet.errorCode = packet.ReadShort();
 			}
 			packet.data = new byte[len - 11];
-			DebuggerUtils.ReadFully(stream, packet.data);
+			DebuggerUtil.ReadFully(stream, packet.data);
 			packet.offset = 0;
 			return packet;
 		}

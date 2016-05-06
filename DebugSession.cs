@@ -66,9 +66,9 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
-		private readonly JdwpConnection myConnection;
+		private readonly MdwpConnection myConnection;
 
-		internal DebugSession(JdwpConnection connection)
+		internal DebugSession(MdwpConnection connection)
 		{
 			myConnection = connection;
 		}

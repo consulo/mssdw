@@ -29,12 +29,12 @@ using Microsoft.Samples.Debugging.CorDebug;
 
 namespace Consulo.Internal.Mssdw.Network
 {
-	class JdwpHandler
+	class MdwpHandler
 	{
-		private readonly JdwpConnection conn;
+		private readonly MdwpConnection conn;
 		private readonly DebugSession myDebugSession;
 
-		internal JdwpHandler(JdwpConnection conn, DebugSession debugSession)
+		internal MdwpHandler(MdwpConnection conn, DebugSession debugSession)
 		{
 			this.conn = conn;
 			myDebugSession = debugSession;

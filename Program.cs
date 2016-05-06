@@ -26,7 +26,7 @@ public class Program
 			return;
 		}
 
-		JdwpConnection conn = new JdwpConnection(port);
+		MdwpConnection conn = new MdwpConnection(port);
 		#if DEBUG
 		Console.WriteLine("Waiting client at port: " + port);
 		#endif
@@ -36,7 +36,7 @@ public class Program
 		session.Start(arguments);
 
 
-		JdwpHandler handler = new JdwpHandler(conn, session);
+		MdwpHandler handler = new MdwpHandler(conn, session);
 		try
 		{
 			handler.Run();

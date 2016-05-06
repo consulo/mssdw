@@ -26,7 +26,7 @@ using System.IO;
 
 namespace Consulo.Internal.Mssdw.Network
 {
-	class DebuggerUtils
+	class DebuggerUtil
 	{
 		/// <summary>
 		/// Read the buffer full.

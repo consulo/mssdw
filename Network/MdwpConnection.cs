@@ -25,7 +25,7 @@ using System.Net.Sockets;
 
 namespace Consulo.Internal.Mssdw.Network
 {
-	class JdwpConnection
+	class MdwpConnection
 	{
 		private TcpClient client;
 
@@ -39,7 +39,7 @@ namespace Consulo.Internal.Mssdw.Network
 		private readonly object writeMonitor = new Object();
 		private int myPort;
 
-		internal JdwpConnection(int port)
+		internal MdwpConnection(int port)
 		{
 			myPort = port;
 		}
@@ -89,7 +89,7 @@ namespace Consulo.Internal.Mssdw.Network
 		{
 			lock (readHeader)
 			{
-				DebuggerUtils.ReadFully(stream, readHeader);
+				DebuggerUtil.ReadFully(stream, readHeader);
 				return Packet.Read(readHeader, stream);
 			}
 		}
