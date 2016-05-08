@@ -553,7 +553,7 @@ namespace Consulo.Internal.Mssdw
 					int tokenFromName = value.Importer.GetTypeTokenFromName(name);
 					if(tokenFromName > 0)
 					{
-						return new TypeRef(value.Module.Name, tokenFromName, name);
+						return new TypeRef(value.Module.Name, tokenFromName);
 					}
 				}
 				return null;

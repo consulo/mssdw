@@ -28,10 +28,9 @@ namespace Consulo.Internal.Mssdw.Network
 	{
 		internal const int VirtualMachine = 1;
 		internal const int Thread = 11;
-
 		internal const int EventRequest = 15;
-
-
+		internal const int Method = 22;
+		internal const int Type = 23;
 		internal const int Event = 64;
 	}
 
@@ -41,12 +40,6 @@ namespace Consulo.Internal.Mssdw.Network
 		internal const int AllThreads = 2;
 		internal const int Suspend = 3;
 		internal const int Resume = 4;
-	}
-
-	static class Thread
-	{
-		internal const int Name = 2;
-		internal const int GetState = 3;
 	}
 
 	static class Error

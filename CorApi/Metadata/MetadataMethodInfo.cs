@@ -1,13 +1,12 @@
 using System;
-using System.Reflection;
-using System.Text;
-using System.Globalization;
 using System.Collections;
-
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
 using Microsoft.Samples.Debugging.Extensions;
-using System.Collections.Generic;
 
 namespace Microsoft.Samples.Debugging.CorMetadata
 {
@@ -19,6 +18,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		private int m_classToken;
 		private int m_methodToken;
 		private MethodAttributes m_methodAttributes;
+		private MethodImplAttributes myMethodImplAttributes;
 		// [Xamarin] Expression evaluator.
 		private List<MetadataTypeInfo> m_argTypes;
 		private MetadataTypeInfo m_retType;
@@ -67,6 +67,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			MetadataHelperFunctionsExtensions.ReadMethodSignature(CorMetadataImport, importer, ref ppvSigBlob, out callingConv, out m_retType, out m_argTypes);
 			m_name = szMethodName.ToString();
 			m_methodAttributes = (MethodAttributes)pdwAttr;
+			myMethodImplAttributes = (MethodImplAttributes) pdwImplFlags;
 		}
 
 		// [Xamarin] Expression evaluator.
@@ -94,6 +95,14 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			get
 			{
 				return m_name;
+			}
+		}
+
+		public MethodImplAttributes ImplAttributes
+		{
+			get
+			{
+				return myMethodImplAttributes;
 			}
 		}
 

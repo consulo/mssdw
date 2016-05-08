@@ -97,7 +97,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 									temp = result;
 								}
-								else*/ if(messageObject is GetFramesRequest)
+								else if(messageObject is GetFramesRequest)
 								{
 									GetFramesRequestResult result = new GetFramesRequestResult();
 
@@ -113,7 +113,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 									temp = result;
 								}
-								else if(messageObject is GetMethodInfoRequest)
+								else */if(messageObject is GetMethodInfoRequest)
 								{
 									GetMethodInfoRequest request = (GetMethodInfoRequest) messageObject;
 
@@ -154,7 +154,7 @@ namespace Consulo.Internal.Mssdw.Server
 									}
 									temp = result;
 								}
-								else if(messageObject is GetTypeInfoRequest)
+								/*else if(messageObject is GetTypeInfoRequest)
 								{
 									GetTypeInfoRequest request = (GetTypeInfoRequest) messageObject;
 
@@ -197,7 +197,7 @@ namespace Consulo.Internal.Mssdw.Server
 									}
 
 									temp = result;
-								}
+								}   */
 								else if(messageObject is GetArgumentRequest)
 								{
 									GetArgumentRequest argumentRequest = (GetArgumentRequest)messageObject;
@@ -530,198 +530,6 @@ namespace Consulo.Internal.Mssdw.Server
 			}
 
 			return string.Empty;
-		}
-
-		internal static void AddFrame(DebugSession session, CorFrame frame, GetFramesRequestResult result)
-		{
-			uint address = 0;
-			//string typeFQN;
-			//string typeFullName;
-			//string addressSpace = "";
-			string file = "";
-			int line = 0;
-			int endLine = 0;
-			int column = 0;
-			int endColumn = 0;
-			//string method = "";
-			//string lang = "";
-			//string module = "";
-			//string type = "";
-			bool hasDebugInfo = false;
-			//bool hidden = false;
-			//bool external = true;
-
-			string moduleName = null;
-			int classToken = -1;
-			string vqName = "#AddFrame";
-			int functionToken = -1;
-
-			if(frame.FrameType == CorFrameType.ILFrame)
-			{
-				if(frame.Function != null)
-				{
-					moduleName = frame.Function.Module.Name;
-					classToken = frame.Function.Class.Token;
-					functionToken = frame.FunctionToken;
-
-					//module = frame.Function.Module.Name;
-					//CorMetadataImport importer = new CorMetadataImport(frame.Function.Module);
-					//MethodInfo mi = importer.GetMethodInfo(frame.Function.Token);
-					//method = mi.DeclaringType.FullName + "." + mi.Name;
-					//type = mi.DeclaringType.FullName;
-					//addressSpace = mi.Name;
-
-					var sp = GetSequencePoint(session, frame);
-					if(sp != null)
-					{
-						line = sp.StartLine;
-						column = sp.StartColumn;
-						endLine = sp.EndLine;
-						endColumn = sp.EndColumn;
-						file = sp.Document.URL;
-						address = (uint)sp.Offset;
-					}
-
-					///object[] customAttributes = mi.GetCustomAttributes(true);
-
-					//if(session.IsExternalCode(file))
-					//{
-					//	external = true;
-					//}
-					//else
-					//{
-					/*if (session.Options.ProjectAssembliesOnly) {
-						external = mi.GetCustomAttributes(true).Any(v =>
-						v is System.Diagnostics.DebuggerHiddenAttribute ||
-						v is System.Diagnostics.DebuggerNonUserCodeAttribute);
-					} else */
-					//{
-					//	external = false;// customAttributes.Any(v => v is System.Diagnostics.DebuggerHiddenAttribute);
-					//}
-					//}
-					//hidden = false;// customAttributes.Any(v => v is System.Diagnostics.DebuggerHiddenAttribute);
-				}
-				hasDebugInfo = true;
-			}
-			else if(frame.FrameType == CorFrameType.NativeFrame)
-			{
-				frame.GetNativeIP(out address);
-			}
-			else if(frame.FrameType == CorFrameType.InternalFrame)
-			{
-			}
-
-			result.Add(file, line, column, new TypeRef(moduleName, classToken, vqName), functionToken);
-		}
-
-		private const int SpecialSequencePoint = 0xfeefee;
-
-		public static SequencePoint GetSequencePoint(DebugSession session, CorFrame frame)
-		{
-			ISymbolReader reader = session.GetReaderForModule(frame.Function.Module.Name);
-			if(reader == null)
-				return null;
-
-			ISymbolMethod met = reader.GetMethod(new SymbolToken(frame.Function.Token));
-			if(met == null)
-				return null;
-
-			int SequenceCount = met.SequencePointCount;
-			if(SequenceCount <= 0)
-				return null;
-
-			CorDebugMappingResult mappingResult;
-			uint ip;
-			frame.GetIP(out ip, out mappingResult);
-			if(mappingResult == CorDebugMappingResult.MAPPING_NO_INFO || mappingResult == CorDebugMappingResult.MAPPING_UNMAPPED_ADDRESS)
-				return null;
-
-			int[] offsets = new int[SequenceCount];
-			int[] lines = new int[SequenceCount];
-			int[] endLines = new int[SequenceCount];
-			int[] columns = new int[SequenceCount];
-			int[] endColumns = new int[SequenceCount];
-			ISymbolDocument[] docs = new ISymbolDocument[SequenceCount];
-			met.GetSequencePoints(offsets, docs, lines, columns, endLines, endColumns);
-
-			if((SequenceCount > 0) && (offsets[0] <= ip))
-			{
-				int i;
-				for(i = 0; i < SequenceCount; ++i)
-				{
-					if(offsets[i] >= ip)
-					{
-						break;
-					}
-				}
-
-				if((i == SequenceCount) || (offsets[i] != ip))
-				{
-					--i;
-				}
-
-				if(lines[i] == SpecialSequencePoint)
-				{
-					int j = i;
-					// let's try to find a sequence point that is not special somewhere earlier in the code
-					// stream.
-					while(j > 0)
-					{
-						--j;
-						if(lines[j] != SpecialSequencePoint)
-						{
-							return new SequencePoint()
-							{
-								IsSpecial = true,
-								Offset = offsets[j],
-								StartLine = lines[j],
-								EndLine = endLines[j],
-								StartColumn = columns[j],
-								EndColumn = endColumns[j],
-								Document = docs[j]
-							};
-						}
-					}
-					// we didn't find any non-special seqeunce point before current one, let's try to search
-					// after.
-					j = i;
-					while(++j < SequenceCount)
-					{
-						if(lines[j] != SpecialSequencePoint)
-						{
-							return new SequencePoint()
-							{
-								IsSpecial = true,
-								Offset = offsets[j],
-								StartLine = lines[j],
-								EndLine = endLines[j],
-								StartColumn = columns[j],
-								EndColumn = endColumns[j],
-								Document = docs[j]
-							};
-						}
-					}
-
-					// Even if sp is null at this point, it's a valid scenario to have only special sequence
-					// point in a function.  For example, we can have a compiler-generated default ctor which
-					// doesn't have any source.
-					return null;
-				}
-				else
-				{
-					return new SequencePoint()
-					{
-						IsSpecial = false,
-						Offset = offsets[i],
-						StartLine = lines[i],
-						EndLine = endLines[i],
-						StartColumn = columns[i],
-						EndColumn = endColumns[i],
-						Document = docs[i]
-					};
-				}
-			}
-			return null;
 		}
 	}
 }

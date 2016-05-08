@@ -24,7 +24,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Consulo.Internal.Mssdw.Network.Handle;
 using Microsoft.Samples.Debugging.CorDebug;
 
 namespace Consulo.Internal.Mssdw.Network
@@ -51,9 +51,24 @@ namespace Consulo.Internal.Mssdw.Network
 					case CommandSet.VirtualMachine:
 						CommandSetVirtualMachine(packet);
 						break;
+					case CommandSet.Method:
+						if(!MethodHandle.Handle(packet, myDebugSession))
+						{
+							NotImplementedPacket(packet);
+						}
+						break;
+					case CommandSet.Type:
+						if(!TypeHandle.Handle(packet, myDebugSession))
+						{
+							NotImplementedPacket(packet);
+						}
+						break;
 					case CommandSet.Thread:
-						CommandThreadMachine(packet);
-						break;;
+						if(!ThreadHandle.Handle(packet, myDebugSession))
+						{
+							NotImplementedPacket(packet);
+						}
+						break;
 					case CommandSet.EventRequest:
 						CommandSetEventRequest(packet);
 						break;
@@ -91,44 +106,6 @@ namespace Consulo.Internal.Mssdw.Network
 					break;
 				default:
 					NotImplementedPacket(packet); // include a SendPacket
-					break;
-			}
-		}
-
-		private void CommandThreadMachine(Packet packet)
-		{
-			switch(packet.Command)
-			{
-				case Thread.Name:
-				{
-					int threadId = packet.ReadInt();
-					string threadName = "<invalid>";
-					CorThread corThread = myDebugSession.Process.Threads.Where(x => x.Id == threadId).FirstOrDefault();
-					if(corThread != null)
-					{
-						threadName = myDebugSession.GetThreadName(corThread);
-					}
-
-					packet.WriteString(threadName);
-					break;
-				}
-				case Thread.GetState:
-				{
-					int threadId = packet.ReadInt();
-					int state = 0;
-					int userState = 0;
-					CorThread corThread = myDebugSession.Process.Threads.Where(x => x.Id == threadId).FirstOrDefault();
-					if(corThread != null)
-					{
-						state = (int) corThread.DebugState;
-						userState = (int) corThread.UserState;
-					}
-					packet.WriteInt(state);
-					packet.WriteInt(userState);
-					break;
-				}
-				default:
-					NotImplementedPacket(packet);
 					break;
 			}
 		}

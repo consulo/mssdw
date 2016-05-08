@@ -23,7 +23,9 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using Consulo.Internal.Mssdw.Server;
 
 namespace Consulo.Internal.Mssdw.Network
 {
@@ -52,7 +54,9 @@ namespace Consulo.Internal.Mssdw.Network
 		/// <summary>
 		/// Private constructor, use the factory methods
 		/// </summary>
-		private Packet() { }
+		private Packet()
+		{
+		}
 
 		/// <summary>
 		/// Create a packet from the stream.
@@ -66,13 +70,13 @@ namespace Consulo.Internal.Mssdw.Network
 			Packet packet = new Packet();
 			packet.data = header;
 			int len = packet.ReadInt();
-			if (len < 11)
+			if(len < 11)
 			{
 				throw new IOException("protocol error - invalid length");
 			}
 			packet.id = packet.ReadInt();
 			int flags = packet.ReadByte();
-			if ((flags & Reply) == 0)
+			if((flags & Reply) == 0)
 			{
 				packet.cmdSet = packet.ReadByte();
 				packet.cmd = packet.ReadByte();
@@ -113,7 +117,7 @@ namespace Consulo.Internal.Mssdw.Network
 				output = stream;
 				WriteInt((int)ms.Length + 11);
 				WriteInt(id);
-				if (!isEvent)
+				if(!isEvent)
 				{
 					WriteByte(Reply);
 					WriteShort(errorCode);
@@ -164,25 +168,104 @@ namespace Consulo.Internal.Mssdw.Network
 			return new String(chars);
 		}
 
+		internal TypeRef ReadTypeRef()
+		{
+			TypeRef typeRef = new TypeRef();
+			typeRef.ModuleNameId = ReadInt();
+			typeRef.ClassToken = ReadInt();
+			typeRef.IsPointer = ReadBool();
+			typeRef.IsByRef = ReadBool();
+
+			int arrayLenSize = ReadByte();
+			if(arrayLenSize > 0)
+			{
+				typeRef.ArraySizes = new List<int>();
+				for(int i = 0; i < arrayLenSize; i++)
+				{
+					typeRef.ArraySizes.Add(ReadInt());
+				}
+			}
+
+			int arrayLowerBoundsSize = ReadByte();
+			if(arrayLowerBoundsSize > 0)
+			{
+				typeRef.ArrayLowerBounds = new List<int>();
+				for(int i = 0; i < arrayLowerBoundsSize; i++)
+				{
+					typeRef.ArrayLowerBounds.Add(ReadInt());
+				}
+			}
+
+			return typeRef;
+		}
+
+		internal void WriteTypeRef(TypeRef typeRef)
+		{
+			WriteInt(typeRef == null ? 0 : typeRef.ModuleNameId);
+			WriteInt(typeRef == null ? 0 : typeRef.ClassToken);
+			WriteBool(typeRef != null && typeRef.IsPointer);
+			WriteBool(typeRef != null && typeRef.IsByRef);
+			if(typeRef != null && typeRef.ArraySizes != null)
+			{
+				WriteByte(typeRef.ArraySizes.Count);
+				foreach (int arraySize in typeRef.ArraySizes)
+				{
+					WriteInt(arraySize);
+				}
+			}
+			else
+			{
+				WriteByte(0);
+			}
+
+			if(typeRef != null && typeRef.ArrayLowerBounds != null)
+			{
+				WriteByte(typeRef.ArrayLowerBounds.Count);
+				foreach (int arraySize in typeRef.ArrayLowerBounds)
+				{
+					WriteInt(arraySize);
+				}
+			}
+			else
+			{
+				WriteByte(0);
+			}
+		}
+
 		internal int Id
 		{
-			get { return id; }
+			get
+			{
+				return id;
+			}
 		}
 
 		internal int CommandSet
 		{
-			get { return cmdSet; }
+			get
+			{
+				return cmdSet;
+			}
 		}
 
 		internal int Command
 		{
-			get { return cmd; }
+			get
+			{
+				return cmd;
+			}
 		}
 
 		internal short Error
 		{
-			get { return errorCode; }
-			set { errorCode = value; }
+			get
+			{
+				return errorCode;
+			}
+			set
+			{
+				errorCode = value;
+			}
 		}
 
 		internal void WriteInt(int value)
@@ -216,11 +299,5 @@ namespace Consulo.Internal.Mssdw.Network
 			WriteInt(bytes.Length);
 			output.Write(bytes, 0, bytes.Length);
 		}
-
-		internal void WriteObjectID(int value)
-		{
-			WriteInt(value);
-		}
-
 	}
 }

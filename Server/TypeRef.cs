@@ -9,8 +9,6 @@ namespace Consulo.Internal.Mssdw.Server
 
 		public int ClassToken;
 
-		public string VmQName;
-
 		public bool IsPointer;
 
 		public bool IsByRef;
@@ -27,18 +25,16 @@ namespace Consulo.Internal.Mssdw.Server
 		{
 			ModuleNameId = ModuleNameRegistrator.GetOrRegister(type.MetadataImport.ModuleName);
 			ClassToken = type.MetadataToken;
-			VmQName = type.FullName;
 			IsPointer = type.IsPointer;
 			IsByRef = type.IsByRef;
 			ArraySizes = type.m_arraySizes;
 			ArrayLowerBounds = type.m_arrayLoBounds;
 		}
 
-		public TypeRef(string moduleName, int classToken, string vmQName)
+		public TypeRef(string moduleName, int classToken)
 		{
 			ModuleNameId = ModuleNameRegistrator.GetOrRegister(moduleName);
 			ClassToken = classToken;
-			VmQName = vmQName;
 		}
 
 		public string GetModuleName()

@@ -51,6 +51,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		// [Xamarin] Expression evaluator.
 		private object[] m_customAttributes;
 		private MetadataTypeInfo m_declaringType;
+		private TypeAttributes myTypeAttributes;
 		internal List<int> m_arraySizes;
 		internal List<int> m_arrayLoBounds;
 		internal bool m_isByRef, m_isPtr;
@@ -115,7 +116,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					);
 				}
 				m_name = GetNestedClassPrefix(importer, classToken, pdwTypeDefFlags) + szTypedef.ToString();
-
+				myTypeAttributes = pdwTypeDefFlags;
 				// Check whether the type is an enum
 				string baseTypeName = GetTypeName(importer, ptkExtends);
 
@@ -144,6 +145,14 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			get
 			{
 				return m_declaringType;
+			}
+		}
+
+		public TypeAttributes Attributes
+		{
+			get
+			{
+				return myTypeAttributes;
 			}
 		}
 
