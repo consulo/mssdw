@@ -12,7 +12,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 {
 	public sealed class MetadataMethodInfo
 	{
-		public readonly CorMetadataImport CorMetadataImport;
+		public readonly CorMetadataImport myMetadataImport;
 		private IMetadataImport m_importer;
 		private string m_name;
 		private int m_classToken;
@@ -26,7 +26,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 		internal MetadataMethodInfo(CorMetadataImport corMetadataImport, IMetadataImport importer, int methodToken)
 		{
-			CorMetadataImport = corMetadataImport;
+			myMetadataImport = corMetadataImport;
 			if(!importer.IsValidToken((uint)methodToken))
 				throw new ArgumentException();
 
@@ -64,7 +64,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 			// [Xamarin] Expression evaluator.
 			CorCallingConvention callingConv;
-			MetadataHelperFunctionsExtensions.ReadMethodSignature(CorMetadataImport, importer, ref ppvSigBlob, out callingConv, out m_retType, out m_argTypes);
+			MetadataHelperFunctionsExtensions.ReadMethodSignature(myMetadataImport, importer, ref ppvSigBlob, out callingConv, out m_retType, out m_argTypes);
 			m_name = szMethodName.ToString();
 			m_methodAttributes = (MethodAttributes)pdwAttr;
 			myMethodImplAttributes = (MethodImplAttributes) pdwImplFlags;
@@ -86,7 +86,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				if(TokenUtils.IsNullToken(m_classToken))
 					return null;                            // this is method outside of class
 
-				return new MetadataTypeInfo(CorMetadataImport, m_importer, m_classToken);
+				return new MetadataTypeInfo(myMetadataImport, m_importer, m_classToken);
 			}
 		}
 
@@ -155,7 +155,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					m_importer.EnumParams(ref hEnum, m_methodToken, out paramToken, 1, out count);
 					if(count != 1)
 						break;
-					var mp = new MetadataParameterInfo(CorMetadataImport, m_importer, paramToken, this, m_argTypes[nArg++]);
+					var mp = new MetadataParameterInfo(myMetadataImport, m_importer, paramToken, this, m_argTypes[nArg++]);
 					if(mp.Name != string.Empty)
 						al.Add(mp);
 				}

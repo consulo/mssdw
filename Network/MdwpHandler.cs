@@ -45,41 +45,46 @@ namespace Consulo.Internal.Mssdw.Network
 			while(myDebugSession.Process != null)
 			{
 				Packet packet = conn.ReadPacket();
-				#if DEBUG
-				Console.Error.WriteLine("Packet:" + packet.CommandSet + " " + packet.Command);
-				#endif
-				switch(packet.CommandSet)
+				try
 				{
-					case CommandSet.VirtualMachine:
-						if(!VirtualMachineHandle.Handle(packet, myDebugSession))
-						{
+					switch(packet.CommandSet)
+					{
+						case CommandSet.VirtualMachine:
+							if(!VirtualMachineHandle.Handle(packet, myDebugSession))
+							{
+								NotImplementedPacket(packet);
+							}
+							break;
+						case CommandSet.Method:
+							if(!MethodHandle.Handle(packet, myDebugSession))
+							{
+								NotImplementedPacket(packet);
+							}
+							break;
+						case CommandSet.Type:
+							if(!TypeHandle.Handle(packet, myDebugSession))
+							{
+								NotImplementedPacket(packet);
+							}
+							break;
+						case CommandSet.Thread:
+							if(!ThreadHandle.Handle(packet, myDebugSession))
+							{
+								NotImplementedPacket(packet);
+							}
+							break;
+						case CommandSet.EventRequest:
+							CommandSetEventRequest(packet);
+							break;
+						default:
 							NotImplementedPacket(packet);
-						}
-						break;
-					case CommandSet.Method:
-						if(!MethodHandle.Handle(packet, myDebugSession))
-						{
-							NotImplementedPacket(packet);
-						}
-						break;
-					case CommandSet.Type:
-						if(!TypeHandle.Handle(packet, myDebugSession))
-						{
-							NotImplementedPacket(packet);
-						}
-						break;
-					case CommandSet.Thread:
-						if(!ThreadHandle.Handle(packet, myDebugSession))
-						{
-							NotImplementedPacket(packet);
-						}
-						break;
-					case CommandSet.EventRequest:
-						CommandSetEventRequest(packet);
-						break;
-					default:
-						NotImplementedPacket(packet);
-						break;
+							break;
+					}
+				}
+				catch(Exception e)
+				{
+					Console.WriteLine(e.Message);
+					Console.WriteLine(e.StackTrace);
 				}
 				conn.SendPacket(packet);
 			}
@@ -91,7 +96,6 @@ namespace Consulo.Internal.Mssdw.Network
 			{
 				case EventRequest.CmdSet:
 					EventRequest eventRequest = EventRequest.create(packet);
-					Console.Error.WriteLine(eventRequest);
 					if(eventRequest == null)
 					{
 						NotImplementedPacket(packet);

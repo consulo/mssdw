@@ -57,40 +57,6 @@ namespace Consulo.Internal.Mssdw.Server
 
 							try
 							{
-								/*if(messageObject is InsertBreakpointRequest)
-								{
-									InsertBreakpointRequestResult result = debugSession.InsertBreakpoint((InsertBreakpointRequest)messageObject);
-
-									temp = result;
-								}
-								else if(messageObject is GetThreadsRequest)
-								{
-									GetThreadsRequestResult result = new GetThreadsRequestResult();
-
-									foreach (CorThread thread in debugSession.Process.Threads)
-									{
-										result.Add(thread.Id, GetThreadName(thread));
-									}
-
-									temp = result;
-								}
-								else if(messageObject is GetFramesRequest)
-								{
-									GetFramesRequestResult result = new GetFramesRequestResult();
-
-									CorThread current = debugSession.Process.Threads.Where(x => x.Id == ((GetFramesRequest)messageObject).ThreadId).First();
-									if(current != null)
-									{
-										IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
-										foreach (CorFrame corFrame in frames)
-										{
-											AddFrame(debugSession, corFrame, result);
-										}
-									}
-
-									temp = result;
-								}
-								else */
 								if(messageObject is GetMethodInfoRequest)
 								{
 									GetMethodInfoRequest request = (GetMethodInfoRequest) messageObject;
@@ -132,50 +98,6 @@ namespace Consulo.Internal.Mssdw.Server
 									}
 									temp = result;
 								}
-									/*else if(messageObject is GetTypeInfoRequest)
-									{
-										GetTypeInfoRequest request = (GetTypeInfoRequest) messageObject;
-
-										GetTypeInfoRequestResult result = new GetTypeInfoRequestResult();
-										try
-										{
-											CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.GetModuleName());
-											if(metadataForModule != null)
-											{
-												MetadataTypeInfo type = metadataForModule.CreateMetadataTypeInfo(request.Type);
-
-												if(type != null)
-												{
-													result.Name = type.Name;
-													result.FullName = type.FullName;
-													result.BaseType = type.BaseType == null ? null : new TypeRef(type.BaseType);
-													result.IsArray = type.IsArray;
-													foreach (MetadataFieldInfo o in type.GetFields())
-													{
-														result.AddField(o);
-													}
-
-													foreach (MetadataMethodInfo o in type.GetMethods())
-													{
-														result.AddMethod(o);
-													}
-
-													foreach (MetadataPropertyInfo o in type.GetProperties())
-													{
-														result.AddProperty(o);
-													}
-												}
-											}
-										}
-										catch(Exception e)
-										{
-											Console.WriteLine(e.Message);
-											Console.WriteLine(e.StackTrace);
-											// ignored all exceptions - if can be failed when no image, etc, send empty result
-										}
-
-										temp = result;
-									}   */
 								else if(messageObject is GetArgumentRequest)
 								{
 									GetArgumentRequest argumentRequest = (GetArgumentRequest)messageObject;
@@ -206,46 +128,6 @@ namespace Consulo.Internal.Mssdw.Server
 									{
 										temp = new UnknownValueResult("temp = null");
 									}
-								}
-								else if(messageObject is GetLocalsRequest)
-								{
-									GetLocalsRequestResult result = new GetLocalsRequestResult();
-
-									GetLocalsRequest localsRequest = (GetLocalsRequest)messageObject;
-									CorThread current = debugSession.Process.Threads.Where(x => x.Id == localsRequest.ThreadId).FirstOrDefault();
-									if(current != null)
-									{
-										IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
-										int i = 0;
-										CorFrame corFrame = null;
-										foreach (CorFrame frame in frames)
-										{
-											if(i == localsRequest.StackFrameIndex)
-											{
-												corFrame = frame;
-												break;
-											}
-											i++;
-										}
-
-										if(corFrame != null)
-										{
-											uint offset;
-											CorDebugMappingResult mr;
-
-											corFrame.GetIP(out offset, out mr);
-
-											ISymbolMethod met = corFrame.Function.GetSymbolMethod(debugSession);
-
-											ISymbolScope scope = met.RootScope;
-
-											CorMetadataImport module = debugSession.GetMetadataForModule(corFrame.Function.Module.Name);
-											Debug.Assert(module != null);
-											collectLocals(scope, module, (int) offset, result);
-										}
-									}
-
-									temp = result;
 								}
 								else if(messageObject is GetFieldValueRequest)
 								{
@@ -331,12 +213,6 @@ namespace Consulo.Internal.Mssdw.Server
 									TypeRef typeRef = debugSession.FindTypeByName(vmQName);
 									temp = new FindTypeInfoRequestResult(typeRef);
 								}
-								/*else if(messageObject is ContinueRequest)
-								{
-									debugSession.Process.Continue(false);
-
-									temp = new ContinueRequestResult();
-								}*/
 							}
 							catch(Exception e)
 							{
@@ -365,34 +241,6 @@ namespace Consulo.Internal.Mssdw.Server
 			}
 		}
 
-		private static void collectLocals(ISymbolScope scope, CorMetadataImport metadataImport, int offset, GetLocalsRequestResult result)
-		{
-			ISymbolVariable[] locals = scope.GetLocals();
-			foreach (ISymbolVariable local in locals)
-			{
-				int index = local.AddressField1;
-				//if (local.StartOffset <= offset && local.EndOffset >= offset)
-				{
-					MetadataTypeInfo type = null;
-					byte[] signature = local.GetSignature();
-					unsafe
-					{
-						fixed (byte* p = signature)
-						{
-							IntPtr ptr = (IntPtr) p;
-							type = MetadataHelperFunctionsExtensions.ReadType(metadataImport, metadataImport.m_importer, ref ptr);
-						}
-					}
-
-					result.Add(index, type, local.Name);
-				}
-			}
-
-			foreach (ISymbolScope o in scope.GetChildren())
-			{
-				collectLocals(o, metadataImport, offset, result);
-			}
-		}
 
 		private object CreateValueResult(CorValue originalValue)
 		{
