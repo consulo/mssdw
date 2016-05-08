@@ -26,7 +26,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Consulo.Internal.Mssdw.Server;
-using Consulo.Internal.Mssdw.Server.Event;
 using Microsoft.Samples.Debugging.CorDebug;
 
 using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
@@ -232,7 +231,7 @@ namespace Consulo.Internal.Mssdw.Network
 			}
 		}
 
-		internal void WriteValue(CorValue corValue)
+		internal void WriteValue(CorValue corValue, DebugSession debugSession)
 		{
 			if(corValue == null)
 			{
@@ -249,7 +248,7 @@ namespace Consulo.Internal.Mssdw.Network
 					return;
 				}
 
-				WriteValue(toReferenceValue.Dereference());
+				WriteValue(toReferenceValue.Dereference(), debugSession);
 				return;
 			}
 
@@ -272,22 +271,26 @@ namespace Consulo.Internal.Mssdw.Network
 				case CorElType.ELEMENT_TYPE_U8:
 				case CorElType.ELEMENT_TYPE_R4:
 				case CorElType.ELEMENT_TYPE_R8:
-					return new NumberValueResult(originalValue, corValueType, corValue.CastToGenericValue());
+					return new NumberValueResult(originalValue, corValueType, corValue.CastToGenericValue()); */
 				case CorElType.ELEMENT_TYPE_VOID:
-					return new NullValueResult();
+					break;
 				case CorElType.ELEMENT_TYPE_CLASS:
 				case CorElType.ELEMENT_TYPE_VALUETYPE:
-					return new ObjectValueResult(originalValue, debugSession, corValue.CastToObjectValue());   */
+					CorObjectValue objectValue = corValue.CastToObjectValue();
+					WriteInt(objectValue.Id);
+					WriteLong(objectValue.Address);
+					WriteTypeRef(new TypeRef(objectValue.ExactType.GetTypeInfo(debugSession)));
+					break;
 				case CorElType.ELEMENT_TYPE_STRING:
 					WriteString(corValue.CastToStringValue().String);
 					break;
 				case CorElType.ELEMENT_TYPE_BOOLEAN:
 					WriteBool((bool) corValue.CastToGenericValue().GetValue());
 					break;
-				/*case CorElType.ELEMENT_TYPE_SZARRAY:
-					return new ArrayValueResult(originalValue, debugSession, corValue.CastToArrayValue());
-				default:
-					return new UnknownValueResult("corValueType: " + string.Format("{0:X}", corValueType));  */
+					/*case CorElType.ELEMENT_TYPE_SZARRAY:
+						return new ArrayValueResult(originalValue, debugSession, corValue.CastToArrayValue());
+					default:
+						return new UnknownValueResult("corValueType: " + string.Format("{0:X}", corValueType));  */
 			}
 		}
 
@@ -329,6 +332,18 @@ namespace Consulo.Internal.Mssdw.Network
 
 		internal void WriteInt(int value)
 		{
+			output.WriteByte((byte)(value >> 24));
+			output.WriteByte((byte)(value >> 16));
+			output.WriteByte((byte)(value >> 8));
+			output.WriteByte((byte)(value));
+		}
+
+		internal void WriteLong(long value)
+		{
+			output.WriteByte((byte)(value >> 58));
+			output.WriteByte((byte)(value >> 50));
+			output.WriteByte((byte)(value >> 42));
+			output.WriteByte((byte)(value >> 34));
 			output.WriteByte((byte)(value >> 24));
 			output.WriteByte((byte)(value >> 16));
 			output.WriteByte((byte)(value >> 8));

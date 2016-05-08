@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.Samples.Debugging.CorDebug;
+using Microsoft.Samples.Debugging.CorMetadata;
 
 namespace Consulo.Internal.Mssdw.Network.Handle
 {
 	internal class StackFrameHandle
 	{
 		private const int GetLocalValue = 1;
+		private const int GetThis = 2;
 
 		public static bool Handle(Packet packet, DebugSession debugSession)
 		{
@@ -34,7 +37,19 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 				case GetLocalValue:
 					int localVariableIndex = packet.ReadInt();
 					CorValue value = corFrame == null ? null : corFrame.GetLocalVariable(localVariableIndex);
-					packet.WriteValue(value);
+					packet.WriteValue(value, debugSession);
+					break;
+				case GetThis:
+					if(corFrame == null)
+					{
+						packet.WriteValue(null, debugSession);
+					}
+					else
+					{
+						CorMetadataImport module = debugSession.GetMetadataForModule(corFrame.Function.Module.Name);
+						MetadataMethodInfo methodInfo = module.GetMethodInfo(corFrame.FunctionToken);
+						packet.WriteValue((methodInfo.Attributes & MethodAttributes.Static) != 0 ? null : corFrame.GetArgument(0), debugSession);
+					}
 					break;
 				default:
 					return false;
