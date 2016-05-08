@@ -442,7 +442,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		{
 			if(IsArray || IsPointer || IsByRef)
 			{
-				return null;
+				return Array.Empty<MetadataPropertyInfo>();
 			}
 
 			List<MetadataPropertyInfo> al = new List<MetadataPropertyInfo>();
@@ -510,7 +510,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		{
 			if(IsArray || IsPointer || IsByRef)
 			{
-				return null;
+				return Array.Empty<MetadataFieldInfo>();
 			}
 
 			List<MetadataFieldInfo> al = new List<MetadataFieldInfo>();
@@ -541,7 +541,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		{
 			if(IsArray || IsPointer || IsByRef)
 			{
-				return null;
+				return Array.Empty<MetadataMethodInfo>();
 			}
 
 			List<MetadataMethodInfo> al = new List<MetadataMethodInfo>();
