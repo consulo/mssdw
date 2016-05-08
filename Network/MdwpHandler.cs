@@ -51,7 +51,10 @@ namespace Consulo.Internal.Mssdw.Network
 				switch(packet.CommandSet)
 				{
 					case CommandSet.VirtualMachine:
-						CommandSetVirtualMachine(packet);
+						if(!VirtualMachineHandle.Handle(packet, myDebugSession))
+						{
+							NotImplementedPacket(packet);
+						}
 						break;
 					case CommandSet.Method:
 						if(!MethodHandle.Handle(packet, myDebugSession))
@@ -79,36 +82,6 @@ namespace Consulo.Internal.Mssdw.Network
 						break;
 				}
 				conn.SendPacket(packet);
-			}
-		}
-
-		private void CommandSetVirtualMachine(Packet packet)
-		{
-			switch(packet.Command)
-			{
-				case VirtualMachine.Version:
-					packet.WriteString("mssdw");
-					packet.WriteInt(1);
-					packet.WriteInt(0);
-					break;
-				case VirtualMachine.AllThreads:
-					IEnumerable<CorThread> threads = myDebugSession.Process.Threads;
-					List<CorThread> list = new List<CorThread>(threads);
-					packet.WriteInt(list.Count);
-					foreach (CorThread corThread in list)
-					{
-						packet.WriteInt(corThread.Id);
-					}
-					break;
-				case VirtualMachine.Suspend:
-					myDebugSession.Process.Stop(-1);
-					break;
-				case VirtualMachine.Resume:
-					myDebugSession.Process.Continue(false);
-					break;
-				default:
-					NotImplementedPacket(packet); // include a SendPacket
-					break;
 			}
 		}
 

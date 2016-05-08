@@ -34,14 +34,6 @@ namespace Consulo.Internal.Mssdw.Network
 		internal const int Event = 64;
 	}
 
-	static class VirtualMachine
-	{
-		internal const int Version = 1;
-		internal const int AllThreads = 2;
-		internal const int Suspend = 3;
-		internal const int Resume = 4;
-	}
-
 	static class Error
 	{
 		internal const int NOT_IMPLEMENTED = 100;
