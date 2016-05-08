@@ -55,6 +55,12 @@ namespace Consulo.Internal.Mssdw.Network
 								NotImplementedPacket(packet);
 							}
 							break;
+						case CommandSet.StackFrame:
+							if(!StackFrameHandle.Handle(packet, myDebugSession))
+							{
+								NotImplementedPacket(packet);
+							}
+							break;
 						case CommandSet.Method:
 							if(!MethodHandle.Handle(packet, myDebugSession))
 							{

@@ -207,12 +207,6 @@ namespace Consulo.Internal.Mssdw.Server
 										temp = new UnknownValueResult("temp = null");
 									}
 								}
-								else if(messageObject is FindTypeInfoRequest)
-								{
-									string vmQName = ((FindTypeInfoRequest) messageObject).VmQName;
-									TypeRef typeRef = debugSession.FindTypeByName(vmQName);
-									temp = new FindTypeInfoRequestResult(typeRef);
-								}
 							}
 							catch(Exception e)
 							{
@@ -301,41 +295,6 @@ namespace Consulo.Internal.Mssdw.Server
 		public void PutWaiter(string id, Action<ClientMessage> action)
 		{
 			queries.Add(id, action);
-		}
-
-		public string GetThreadName(CorThread thread)
-		{
-			// From http://social.msdn.microsoft.com/Forums/en/netfxtoolsdev/thread/461326fe-88bd-4a6b-82a9-1a66b8e65116
-			try
-			{
-				CorReferenceValue refVal = thread.ThreadVariable.CastToReferenceValue();
-				if(refVal.IsNull)
-					return string.Empty;
-
-				CorObjectValue val = refVal.Dereference().CastToObjectValue();
-				if(val != null)
-				{
-					MetadataTypeInfo classType = val.ExactType.GetTypeInfo(debugSession);
-					// Loop through all private instance fields in the thread class
-					foreach (MetadataFieldInfo fi in classType.GetFields())
-					{
-						if(fi.Name == "m_Name")
-						{
-							CorReferenceValue fieldValue = val.GetFieldValue(val.Class, fi.MetadataToken).CastToReferenceValue();
-
-							if(fieldValue.IsNull)
-								return string.Empty;
-							else
-								return fieldValue.Dereference().CastToStringValue().String;
-						}
-					}
-				}
-			} catch(Exception)
-			{
-				// Ignore
-			}
-
-			return string.Empty;
 		}
 	}
 }

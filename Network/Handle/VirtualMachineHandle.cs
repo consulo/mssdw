@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Consulo.Internal.Mssdw.Server;
 using Microsoft.Samples.Debugging.CorDebug;
 
 namespace Consulo.Internal.Mssdw.Network.Handle
@@ -11,6 +12,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 		internal const int Resume = 4;
 		internal const int Exit = 5;
 		internal const int Dispose = 6;
+		internal const int FindType = 10;
 
 		public static bool Handle(Packet packet, DebugSession debugSession)
 		{
@@ -39,6 +41,11 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 				case Exit:
 				case Dispose:
 					debugSession.Process.Terminate(0);
+					break;
+				case FindType:
+					string qName = packet.ReadString();
+					TypeRef findTypeByName = debugSession.FindTypeByName(qName);
+					packet.WriteTypeRef(findTypeByName);
 					break;
 				default:
 					return false;

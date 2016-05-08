@@ -197,8 +197,10 @@ namespace Microsoft.Samples.Debugging.CorDebug.NativeApi
         ELEMENT_TYPE_U8 = 11,
         ELEMENT_TYPE_VALUETYPE = 0x11,
 		ELEMENT_TYPE_VAR = 0x13,
-        ELEMENT_TYPE_VOID = 1
-    }
+        ELEMENT_TYPE_VOID = 1,
+
+		VALUE_TYPE_ID_NULL = 0xf0
+	}
 
     #region Top-level interfaces
     [ComImport, Guid("3D6F5F61-7538-11D3-8D5B-00104B35E7EF"), InterfaceType(1)]

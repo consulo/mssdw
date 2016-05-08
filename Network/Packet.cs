@@ -26,6 +26,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Consulo.Internal.Mssdw.Server;
+using Consulo.Internal.Mssdw.Server.Event;
+using Microsoft.Samples.Debugging.CorDebug;
+
+using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
 
 namespace Consulo.Internal.Mssdw.Network
 {
@@ -225,6 +229,65 @@ namespace Consulo.Internal.Mssdw.Network
 			else
 			{
 				WriteByte(0);
+			}
+		}
+
+		internal void WriteValue(CorValue corValue)
+		{
+			if(corValue == null)
+			{
+				WriteByte((byte)CorElType.VALUE_TYPE_ID_NULL);
+				return;
+			}
+
+			CorReferenceValue toReferenceValue = corValue.CastToReferenceValue();
+			if(toReferenceValue != null)
+			{
+				if(toReferenceValue.IsNull)
+				{
+					WriteByte((byte)CorElType.VALUE_TYPE_ID_NULL);
+					return;
+				}
+
+				WriteValue(toReferenceValue.Dereference());
+				return;
+			}
+
+			CorElType corValueType = corValue.Type;
+			WriteByte((int) corValueType);
+
+			switch(corValueType)
+			{
+				/*case CorElType.ELEMENT_TYPE_CHAR:
+					return new CharValueResult(originalValue, corValue.CastToGenericValue());
+				case CorElType.ELEMENT_TYPE_I:
+				case CorElType.ELEMENT_TYPE_U:
+				case CorElType.ELEMENT_TYPE_I1:
+				case CorElType.ELEMENT_TYPE_U1:
+				case CorElType.ELEMENT_TYPE_I2:
+				case CorElType.ELEMENT_TYPE_U2:
+				case CorElType.ELEMENT_TYPE_I4:
+				case CorElType.ELEMENT_TYPE_U4:
+				case CorElType.ELEMENT_TYPE_I8:
+				case CorElType.ELEMENT_TYPE_U8:
+				case CorElType.ELEMENT_TYPE_R4:
+				case CorElType.ELEMENT_TYPE_R8:
+					return new NumberValueResult(originalValue, corValueType, corValue.CastToGenericValue());
+				case CorElType.ELEMENT_TYPE_VOID:
+					return new NullValueResult();
+				case CorElType.ELEMENT_TYPE_CLASS:
+				case CorElType.ELEMENT_TYPE_VALUETYPE:
+					return new ObjectValueResult(originalValue, debugSession, corValue.CastToObjectValue());   */
+				case CorElType.ELEMENT_TYPE_STRING:
+					WriteString(corValue.CastToStringValue().String);
+					break;
+				case CorElType.ELEMENT_TYPE_BOOLEAN:
+					WriteBool((bool) corValue.CastToGenericValue().GetValue());
+					break;
+				/*case CorElType.ELEMENT_TYPE_SZARRAY:
+					return new ArrayValueResult(originalValue, debugSession, corValue.CastToArrayValue());
+				default:
+					return new UnknownValueResult("corValueType: " + string.Format("{0:X}", corValueType));  */
 			}
 		}
 
