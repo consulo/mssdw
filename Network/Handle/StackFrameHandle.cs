@@ -10,6 +10,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 	{
 		private const int GetLocalValue = 1;
 		private const int GetThis = 2;
+		private const int GetArgumentValue = 3;
 
 		public static bool Handle(Packet packet, DebugSession debugSession)
 		{
@@ -35,10 +36,34 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 			switch(packet.Command)
 			{
 				case GetLocalValue:
+				{
 					int localVariableIndex = packet.ReadInt();
 					CorValue value = corFrame == null ? null : corFrame.GetLocalVariable(localVariableIndex);
 					packet.WriteValue(value, debugSession);
 					break;
+				}
+				case GetArgumentValue:
+				{
+					if(corFrame == null)
+					{
+						packet.WriteValue(null, debugSession);
+					}
+					else
+					{
+						CorMetadataImport module = debugSession.GetMetadataForModule(corFrame.Function.Module.Name);
+						MetadataMethodInfo methodInfo = module.GetMethodInfo(corFrame.FunctionToken);
+
+						int parameterIndex = packet.ReadInt();
+						if((methodInfo.Attributes & MethodAttributes.Static) == 0)
+						{
+							parameterIndex ++; // skip this
+						}
+
+						CorValue value = corFrame.GetArgument(parameterIndex);
+						packet.WriteValue(value, debugSession);
+					}
+					break;
+				}
 				case GetThis:
 					if(corFrame == null)
 					{

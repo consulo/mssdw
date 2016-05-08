@@ -13,6 +13,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 	internal class MethodHandle
 	{
 		private const int GetName = 1;
+		private const int GetParamInfo = 4;
 		private const int GetLocalsInfo = 5;
 		private const int GetInfo = 6;
 
@@ -46,6 +47,28 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 			{
 				case GetName:
 					packet.WriteString(methodInfo == null ? "<invalid>" : methodInfo.Name);
+					break;
+				case GetParamInfo:
+					if(methodInfo == null)
+					{
+						packet.WriteInt(0); // call conversion
+						packet.WriteInt(0); // param count
+						packet.WriteInt(0); // generic param count
+						packet.WriteTypeRef(null);
+					}
+					else
+					{
+						MetadataParameterInfo[] parameters = methodInfo.GetParameters();
+						packet.WriteInt(0);
+						packet.WriteInt(parameters.Length);
+						packet.WriteInt(methodInfo.GetGenericArgumentNames().Length);
+						packet.WriteTypeRef(new TypeRef(methodInfo.ReturnType));
+						foreach (MetadataParameterInfo parameter in parameters)
+						{
+							packet.WriteTypeRef(new TypeRef(parameter.ParameterType));
+							packet.WriteString(parameter.Name);
+						}
+					}
 					break;
 				case GetInfo:
 					packet.WriteInt(methodInfo == null ? 0 : (int)methodInfo.Attributes);
