@@ -5,11 +5,9 @@ using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Consulo.Internal.Mssdw.Network;
 using Consulo.Internal.Mssdw.Server;
 using Consulo.Internal.Mssdw.Server.Event;
-using Consulo.Internal.Mssdw.Server.Request;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.CorMetadata;
@@ -75,7 +73,7 @@ namespace Consulo.Internal.Mssdw
 			switch(requestEventKind)
 			{
 				case EventKind.BREAKPOINT:
-					InsertBreakpoint(eventRequest);
+					Console.WriteLine(InsertBreakpoint(eventRequest));
 					break;
 				case EventKind.MODULE_LOAD:
 					myModuleLoadRequest = eventRequest;
@@ -130,12 +128,12 @@ namespace Consulo.Internal.Mssdw
 			  process.OnAssemblyUnload += new CorAssemblyEventHandler(OnAssemblyUnload);
 			  process.OnCreateThread += new CorThreadEventHandler(OnCreateThread);
 			  process.OnThreadExit += new CorThreadEventHandler(OnThreadExit);*/
-			process.OnModuleLoad += new CorModuleEventHandler(OnModuleLoadImpl);
+			process.OnModuleLoad += new CorModuleEventHandler(OnModuleLoad);
 			process.OnModuleUnload += new CorModuleEventHandler(OnModuleUnload);
-			process.OnProcessExit += new CorProcessEventHandler(OnProcessExitImpl);
+			process.OnProcessExit += new CorProcessEventHandler(OnProcessExit);
 			/*  process.OnUpdateModuleSymbols += new UpdateModuleSymbolsEventHandler(OnUpdateModuleSymbols);
 			  process.OnDebuggerError += new DebuggerErrorEventHandler(OnDebuggerError);*/
-			process.OnBreakpoint += new BreakpointEventHandler(OnBreakpointImpl);
+			process.OnBreakpoint += new BreakpointEventHandler(OnBreakpoint);
 			/*  process.OnStepComplete += new StepCompleteEventHandler(OnStepComplete);
 			  process.OnBreak += new CorThreadEventHandler(OnBreak);
 			  process.OnNameChange += new CorThreadEventHandler(OnNameChange);
@@ -145,6 +143,8 @@ namespace Consulo.Internal.Mssdw
 			  process.OnException2 += new CorException2EventHandler(OnException2);
 	*/
 			//process.RegisterStdOutput(OnStdOutput);
+
+			SendEvent(EventKind.VM_START);
 		}
 
 		public CorProcess Process
@@ -178,17 +178,14 @@ namespace Consulo.Internal.Mssdw
 			stepper.SetJmcStatus(true);
 		}
 
-		public InsertBreakpointRequestResult InsertBreakpoint(EventRequest request)
+		public BreakEventStatus InsertBreakpoint(EventRequest request)
 		{
 			BreakpointLocation location = request.FindModifier<BreakpointLocation>();
-
-			InsertBreakpointRequestResult result = new InsertBreakpointRequestResult();
 
 			DocInfo doc;
 			if(!documents.TryGetValue(System.IO.Path.GetFullPath(location.FilePath), out doc))
 			{
-				result.SetStatus(BreakEventStatus.NoDoc, null);
-				return result;
+				return BreakEventStatus.NoDoc;
 			}
 
 			int line;
@@ -199,8 +196,7 @@ namespace Consulo.Internal.Mssdw
 			catch
 			{
 				// Invalid line
-				result.SetStatus(BreakEventStatus.Invalid, null);
-				return result;
+				return BreakEventStatus.Invalid;
 			}
 			ISymbolMethod met = null;
 			if(doc.Reader is ISymbolReader2)
@@ -233,8 +229,7 @@ namespace Consulo.Internal.Mssdw
 			}
 			if(met == null)
 			{
-				result.SetStatus(BreakEventStatus.NoMethod, null);
-				return result;
+				return BreakEventStatus.NoMethod;
 			}
 
 			int offset = -1;
@@ -260,8 +255,7 @@ namespace Consulo.Internal.Mssdw
 
 			if(offset == -1)
 			{
-				result.SetStatus(BreakEventStatus.Invalid, null);
-				return result;
+				return BreakEventStatus.Invalid;
 			}
 
 			CorFunction func = doc.Module.GetFunctionFromToken(met.Token.GetToken());
@@ -269,13 +263,13 @@ namespace Consulo.Internal.Mssdw
 			corBp.Activate(true);
 			breakpoints[corBp] = request;
 
-			//result.Handle = corBp;
-			result.Status = BreakEventStatus.Bound;
-			return result;
+			return BreakEventStatus.Bound;
 		}
 
-		void OnBreakpointImpl(object sender, CorBreakpointEventArgs e)
+		void OnBreakpoint(object sender, CorBreakpointEventArgs e)
 		{
+			Console.WriteLine("Enter breakpoint");
+
 			lock (debugLock)
 			{
 				if(evaluating)
@@ -310,20 +304,13 @@ namespace Consulo.Internal.Mssdw
 
 			e.Continue = false;
 
-			Console.WriteLine("Enter breakpoint");
-
-			Packet packet = Packet.CreateEventPacket();
-			packet.WriteByte(SuspendPolicy.ALL);
-			packet.WriteInt(1); // event size
-
-			packet.WriteByte(eventRequest.EventKind);
-			packet.WriteInt(eventRequest.RequestId);
-			packet.WriteInt(e.Thread.Id);  // thread id
-
-			myConnection.SendPacket(packet);
+			SendEvent(eventRequest, packet =>
+			{
+				packet.WriteInt(e.Thread.Id);  // thread id
+			});
 		}
 
-		private void OnModuleLoadImpl(object sender, CorModuleEventArgs e)
+		private void OnModuleLoad(object sender, CorModuleEventArgs e)
 		{
 			CorMetadataImport mi = new CorMetadataImport(this, e.Module);
 
@@ -392,15 +379,10 @@ namespace Consulo.Internal.Mssdw
 
 			if(myModuleLoadRequest != null)
 			{
-				Packet packet = Packet.CreateEventPacket();
-				packet.WriteByte(SuspendPolicy.ALL);
-				packet.WriteInt(1); // event size
-
-				packet.WriteByte(myModuleLoadRequest.EventKind);
-				packet.WriteInt(myModuleLoadRequest.RequestId);
-				packet.WriteString(file);  // file
-
-				myConnection.SendPacket(packet);
+				SendEvent(myModuleLoadRequest, packet =>
+				{
+					packet.WriteString(file);  // file
+				});
 			}
 		}
 
@@ -441,7 +423,7 @@ namespace Consulo.Internal.Mssdw
 			e.Continue = true;
 		}
 
-		public void OnProcessExitImpl(object sender, CorProcessEventArgs e)
+		public void OnProcessExit(object sender, CorProcessEventArgs e)
 		{
 			// If the main thread stopped, terminate the debugger session
 			if(e.Process.Id == process.Id)
@@ -456,10 +438,12 @@ namespace Consulo.Internal.Mssdw
 						dbg.Terminate();
 						dbg = null;
 					});
+
+					SendEvent(EventKind.VM_DEATH);
+
+					myConnection.Close();
 				}
 			}
-
-			myConnection.Close();
 		}
 
 		private void OnDebuggerOutput(bool error, string message)
@@ -594,13 +578,27 @@ namespace Consulo.Internal.Mssdw
 
 			return string.Empty;
 		}
-		/*public void OnStdOutput (object sender, CorTargetOutputEventArgs e) {
-			if (e.IsStdError) {
-				Console.Error.WriteLine(e.Text);
+
+		internal void SendEvent(EventRequest request, Action<Packet> action = null)
+		{
+			SendEvent(request.EventKind, request.RequestId, action);
+		}
+
+		internal void SendEvent(int eventKind, int requestId = 0, Action<Packet> action = null)
+		{
+			Packet packet = Packet.CreateEventPacket();
+			packet.WriteByte(SuspendPolicy.ALL);
+			packet.WriteInt(1); // event size
+
+			packet.WriteByte(eventKind);
+			packet.WriteInt(requestId);
+
+			if(action != null)
+			{
+				action(packet);
 			}
-			else {
-				Console.WriteLine(e.Text);
-			}
-		}*/
+
+			myConnection.SendPacket(packet);
+		}
 	}
 }

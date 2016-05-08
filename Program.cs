@@ -35,7 +35,6 @@ public class Program
 		DebugSession session = new DebugSession(conn);
 		session.Start(arguments);
 
-
 		MdwpHandler handler = new MdwpHandler(conn, session);
 		try
 		{

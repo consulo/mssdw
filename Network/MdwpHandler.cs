@@ -42,10 +42,12 @@ namespace Consulo.Internal.Mssdw.Network
 
 		internal void Run()
 		{
-			while(true)
+			while(myDebugSession.Process != null)
 			{
 				Packet packet = conn.ReadPacket();
+				#if DEBUG
 				Console.Error.WriteLine("Packet:" + packet.CommandSet + " " + packet.Command);
+				#endif
 				switch(packet.CommandSet)
 				{
 					case CommandSet.VirtualMachine:
