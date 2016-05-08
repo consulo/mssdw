@@ -29,10 +29,6 @@ using Consulo.Internal.Mssdw.Server;
 
 namespace Consulo.Internal.Mssdw.Network
 {
-	/// <summary>
-	/// A JDWP Packet descriped at
-	/// http://java.sun.com/javase/6/docs/technotes/guides/jpda/jdwp-spec.html
-	/// </summary>
 	class Packet
 	{
 		private static int packetCounter;

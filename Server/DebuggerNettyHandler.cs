@@ -3,47 +3,24 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Consulo.Internal.Mssdw.Server.Event;
 using Consulo.Internal.Mssdw.Server.Request;
-using DotNetty.Buffers;
-using DotNetty.Transport.Channels;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.CorMetadata;
 using Microsoft.Samples.Debugging.Extensions;
-using Newtonsoft.Json;
 
 using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
 
 namespace Consulo.Internal.Mssdw.Server
 {
 	[Obsolete]
-	public class DebuggerNettyHandler : ChannelHandlerAdapter
+	public class DebuggerNettyHandler
 	{
-		private NettyClient client;
-
 		private DebugSession debugSession;
 
 		private Dictionary<string, Action<ClientMessage>> queries = new Dictionary<string, Action<ClientMessage>>();
-
-		public DebuggerNettyHandler(DebugSession debugSession)
-		{
-			this.debugSession = debugSession;
-		}
-
-		public override void ChannelRegistered(DotNetty.Transport.Channels.IChannelHandlerContext context)
-		{
-			debugSession.Client = client = new NettyClient(context.Channel, this);
-		}
-
-		public override void ChannelUnregistered(DotNetty.Transport.Channels.IChannelHandlerContext context)
-		{
-			debugSession.Client = null;
-
-			StopWaitors();
-		}
 
 		private void StopWaitors()
 		{
@@ -58,19 +35,19 @@ namespace Consulo.Internal.Mssdw.Server
 			}
 		}
 
-		public override void ChannelRead(IChannelHandlerContext context, object message)
+		public void ChannelRead()
 		{
-			IByteBuffer buffer = message as IByteBuffer;
+			object buffer = null;
 			if(buffer != null)
 			{
 				Task.Run(async () =>
 				{
-					string jsonContext = buffer.ToString(Encoding.UTF8);
+					string jsonContext = null;
 
 					//Console.WriteLine("receive: " + jsonContext);
 					try
 					{
-						ClientMessage clientMessage = JsonConvert.DeserializeObject<ClientMessage>(jsonContext, new ClientMessageConverter());
+						ClientMessage clientMessage = null;
 
 						Action<ClientMessage> action;
 						if(!queries.TryGetValue(clientMessage.Id, out action))
@@ -113,7 +90,8 @@ namespace Consulo.Internal.Mssdw.Server
 
 									temp = result;
 								}
-								else */if(messageObject is GetMethodInfoRequest)
+								else */
+								if(messageObject is GetMethodInfoRequest)
 								{
 									GetMethodInfoRequest request = (GetMethodInfoRequest) messageObject;
 
@@ -154,50 +132,50 @@ namespace Consulo.Internal.Mssdw.Server
 									}
 									temp = result;
 								}
-								/*else if(messageObject is GetTypeInfoRequest)
-								{
-									GetTypeInfoRequest request = (GetTypeInfoRequest) messageObject;
-
-									GetTypeInfoRequestResult result = new GetTypeInfoRequestResult();
-									try
+									/*else if(messageObject is GetTypeInfoRequest)
 									{
-										CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.GetModuleName());
-										if(metadataForModule != null)
+										GetTypeInfoRequest request = (GetTypeInfoRequest) messageObject;
+
+										GetTypeInfoRequestResult result = new GetTypeInfoRequestResult();
+										try
 										{
-											MetadataTypeInfo type = metadataForModule.CreateMetadataTypeInfo(request.Type);
-
-											if(type != null)
+											CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(request.Type.GetModuleName());
+											if(metadataForModule != null)
 											{
-												result.Name = type.Name;
-												result.FullName = type.FullName;
-												result.BaseType = type.BaseType == null ? null : new TypeRef(type.BaseType);
-												result.IsArray = type.IsArray;
-												foreach (MetadataFieldInfo o in type.GetFields())
-												{
-													result.AddField(o);
-												}
+												MetadataTypeInfo type = metadataForModule.CreateMetadataTypeInfo(request.Type);
 
-												foreach (MetadataMethodInfo o in type.GetMethods())
+												if(type != null)
 												{
-													result.AddMethod(o);
-												}
+													result.Name = type.Name;
+													result.FullName = type.FullName;
+													result.BaseType = type.BaseType == null ? null : new TypeRef(type.BaseType);
+													result.IsArray = type.IsArray;
+													foreach (MetadataFieldInfo o in type.GetFields())
+													{
+														result.AddField(o);
+													}
 
-												foreach (MetadataPropertyInfo o in type.GetProperties())
-												{
-													result.AddProperty(o);
+													foreach (MetadataMethodInfo o in type.GetMethods())
+													{
+														result.AddMethod(o);
+													}
+
+													foreach (MetadataPropertyInfo o in type.GetProperties())
+													{
+														result.AddProperty(o);
+													}
 												}
 											}
 										}
-									}
-									catch(Exception e)
-									{
-										Console.WriteLine(e.Message);
-										Console.WriteLine(e.StackTrace);
-										// ignored all exceptions - if can be failed when no image, etc, send empty result
-									}
+										catch(Exception e)
+										{
+											Console.WriteLine(e.Message);
+											Console.WriteLine(e.StackTrace);
+											// ignored all exceptions - if can be failed when no image, etc, send empty result
+										}
 
-									temp = result;
-								}   */
+										temp = result;
+									}   */
 								else if(messageObject is GetArgumentRequest)
 								{
 									GetArgumentRequest argumentRequest = (GetArgumentRequest)messageObject;
@@ -372,7 +350,6 @@ namespace Consulo.Internal.Mssdw.Server
 								Console.WriteLine("Bad handle for object: " + (messageObject == null ? "null" : messageObject.GetType().FullName));
 							}
 
-							await SendMessage<object>(clientMessage, temp);
 						}
 						else
 						{
@@ -471,25 +448,6 @@ namespace Consulo.Internal.Mssdw.Server
 				default:
 					return new UnknownValueResult("corValueType: " + string.Format("{0:X}", corValueType));
 			}
-		}
-
-		private async Task SendMessage<T>(ClientMessage clientMessage, T value) where T : class
-		{
-			ServerMessage<T> serverMessage = new ServerMessage<T>(value);
-
-			serverMessage.Id = clientMessage.Id;
-			await client.Write(serverMessage);
-		}
-
-		public override void ChannelReadComplete(IChannelHandlerContext context)
-		{
-			context.Flush();
-		}
-
-		public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
-		{
-			Console.WriteLine("Exception: " + exception);
-			StopWaitors();
 		}
 
 		public void PutWaiter(string id, Action<ClientMessage> action)

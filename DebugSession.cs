@@ -52,12 +52,6 @@ namespace Consulo.Internal.Mssdw
 		private CorStepper stepper;
 		private bool autoStepInto;
 
-		public NettyClient Client
-		{
-			get;
-			set;
-		}
-
 		public CorThread ActiveThread
 		{
 			get
