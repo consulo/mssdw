@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections;
-using System.Text;
 using System.Reflection;
-
+using System.Text;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
 using Microsoft.Samples.Debugging.Extensions;
 
@@ -189,6 +188,14 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			if(m_customAttributes == null)
 				m_customAttributes = MetadataHelperFunctionsExtensions.GetDebugAttributes(m_importer, m_propertyToken);
 			return m_customAttributes;
+		}
+
+		public int MetadataToken
+		{
+			get
+			{
+				return m_propertyToken;
+			}
 		}
 
 		public string Name

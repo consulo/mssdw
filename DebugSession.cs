@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Consulo.Internal.Mssdw.Network;
 using Consulo.Internal.Mssdw.Server;
@@ -465,10 +464,26 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
+		void OnStartEvaluating()
+		{
+			lock (debugLock)
+			{
+				evaluating = true;
+			}
+		}
+
+		void OnEndEvaluating()
+		{
+			lock (debugLock)
+			{
+				evaluating = false;
+				Monitor.PulseAll(debugLock);
+			}
+		}
+
 		public bool IsExternalCode(string fileName)
 		{
-			return string.IsNullOrWhiteSpace(fileName)
-			|| !documents.ContainsKey(fileName);
+			return string.IsNullOrWhiteSpace(fileName) || !documents.ContainsKey(fileName);
 		}
 
 		public string GetThreadName(CorThread thread)

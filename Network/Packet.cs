@@ -288,7 +288,9 @@ namespace Consulo.Internal.Mssdw.Network
 					WriteTypeRef(new TypeRef(objectValue.ExactType.GetTypeInfo(debugSession)));
 					break;
 				case CorElType.ELEMENT_TYPE_STRING:
-					WriteString(corValue.CastToStringValue().String);
+					CorStringValue stringValue = corValue.CastToStringValue();
+					WriteInt(stringValue.Id);
+					WriteString(stringValue.String);
 					break;
 				case CorElType.ELEMENT_TYPE_BOOLEAN:
 					WriteBool((bool) corValue.CastToGenericValue().GetValue());

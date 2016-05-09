@@ -12,6 +12,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 		private const int GetMethods = 2;
 		private const int GetFields = 3;
 		private const int GetValue = 4;
+		private const int GetProperties = 9;
 
 		public static bool Handle(Packet packet, DebugSession debugSession)
 		{
@@ -102,6 +103,29 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 						}
 
 						packet.WriteValue(typeInfo.GetFieldValue(metadataFieldInfo, corFrame), debugSession);
+					}
+					break;
+				}
+				case GetProperties:
+				{
+					if(typeInfo == null)
+					{
+						packet.WriteInt(0);
+					}
+					else
+					{
+						MetadataPropertyInfo[] propertyInfos = typeInfo.GetProperties();
+						packet.WriteInt(propertyInfos.Length);
+						foreach (MetadataPropertyInfo propertyInfo in propertyInfos)
+						{
+							packet.WriteInt(propertyInfo.MetadataToken);
+							packet.WriteString(propertyInfo.Name);
+							packet.WriteInt((int) propertyInfo.Attributes);
+							MetadataMethodInfo getMethod = propertyInfo.GetGetMethod();
+							packet.WriteInt(getMethod == null ? 0 : getMethod.MetadataToken);
+							MetadataMethodInfo setMethod = propertyInfo.GetSetMethod();
+							packet.WriteInt(setMethod == null ? 0 : setMethod.MetadataToken);
+						}
 					}
 					break;
 				}
