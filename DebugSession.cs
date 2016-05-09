@@ -24,7 +24,7 @@ namespace Consulo.Internal.Mssdw
 			public int References;
 		}
 
-		class DocInfo
+		public class DocInfo
 		{
 			public ISymbolReader Reader;
 			public ISymbolDocument Document;
@@ -33,7 +33,7 @@ namespace Consulo.Internal.Mssdw
 
 		private readonly object terminateLock = new object();
 		private readonly object debugLock = new object();
-		private readonly Dictionary<string, DocInfo> documents = new Dictionary<string, DocInfo>(StringComparer.CurrentCultureIgnoreCase);
+		internal readonly Dictionary<string, DocInfo> documents = new Dictionary<string, DocInfo>(StringComparer.CurrentCultureIgnoreCase);
 		private readonly Dictionary<string, ModuleInfo> modules = new Dictionary<string, ModuleInfo>();
 		private readonly SymbolBinder symbolBinder = new SymbolBinder();
 		readonly Dictionary<CorBreakpoint, EventRequest> breakpoints = new Dictionary<CorBreakpoint, EventRequest>();
@@ -72,7 +72,7 @@ namespace Consulo.Internal.Mssdw
 			switch(requestEventKind)
 			{
 				case EventKind.BREAKPOINT:
-					Console.WriteLine(InsertBreakpoint(eventRequest));
+					InsertBreakpoint(eventRequest);
 					break;
 				case EventKind.MODULE_LOAD:
 					myModuleLoadRequest = eventRequest;
@@ -185,98 +185,18 @@ namespace Consulo.Internal.Mssdw
 			Bound
 		}
 
-		public BreakEventStatus InsertBreakpoint(EventRequest request)
+		public void InsertBreakpoint(EventRequest request)
 		{
 			BreakpointLocation location = request.FindModifier<BreakpointLocation>();
-
-			DocInfo doc;
-			if(!documents.TryGetValue(System.IO.Path.GetFullPath(location.FilePath), out doc))
-			{
-				return BreakEventStatus.NoDoc;
-			}
-
-			int line;
-			try
-			{
-				line = doc.Document.FindClosestLine(location.Line);
-			}
-			catch
-			{
-				// Invalid line
-				return BreakEventStatus.Invalid;
-			}
-			ISymbolMethod met = null;
-			if(doc.Reader is ISymbolReader2)
-			{
-				ISymbolMethod[] methods = ((ISymbolReader2)doc.Reader).GetMethodsFromDocumentPosition(doc.Document, line, 0);
-				if(methods != null && methods.Any())
-				{
-					if(methods.Count() == 1)
-					{
-						met = methods[0];
-					}
-					else
-					{
-						int deepest = -1;
-						foreach (ISymbolMethod method in methods)
-						{
-							var firstSequence = method.GetSequencePoints().FirstOrDefault((sp) => sp.StartLine != 0xfeefee);
-							if(firstSequence != null && firstSequence.StartLine >= deepest)
-							{
-								deepest = firstSequence.StartLine;
-								met = method;
-							}
-						}
-					}
-				}
-			}
-			if(met == null)
-			{
-				met = doc.Reader.GetMethodFromDocumentPosition(doc.Document, line, 0);
-			}
-			if(met == null)
-			{
-				return BreakEventStatus.NoMethod;
-			}
-
-			int offset = -1;
-			int firstSpInLine = -1;
-			foreach (SequencePoint sp in met.GetSequencePoints())
-			{
-				if(sp.IsInside(doc.Document.URL, line, location.Column))
-				{
-					offset = sp.Offset;
-					break;
-				}
-				else if(firstSpInLine == -1 && sp.StartLine == line && sp.Document.URL.Equals(doc.Document.URL, StringComparison.OrdinalIgnoreCase))
-				{
-					firstSpInLine = sp.Offset;
-				}
-			}
-
-			if(offset == -1)
-			{
-				//No exact match? Use first match in that line
-				offset = firstSpInLine;
-			}
-
-			if(offset == -1)
-			{
-				return BreakEventStatus.Invalid;
-			}
-
-			CorFunction func = doc.Module.GetFunctionFromToken(met.Token.GetToken());
-			CorFunctionBreakpoint corBp = func.ILCode.CreateBreakpoint(offset);
+			CorMetadataImport module = GetMetadataForModule(location.ModulePath);
+			CorFunction func = module.Module.GetFunctionFromToken(location.MethodToken);
+			CorFunctionBreakpoint corBp = func.ILCode.CreateBreakpoint(location.Offset);
 			corBp.Activate(true);
 			breakpoints[corBp] = request;
-
-			return BreakEventStatus.Bound;
 		}
 
 		void OnBreakpoint(object sender, CorBreakpointEventArgs e)
 		{
-			Console.WriteLine("Enter breakpoint");
-
 			lock (debugLock)
 			{
 				if(evaluating)
@@ -311,7 +231,7 @@ namespace Consulo.Internal.Mssdw
 
 			e.Continue = false;
 
-			SendEvent(eventRequest, packet =>
+			ReplyEvent(eventRequest, packet =>
 			{
 				packet.WriteInt(e.Thread.Id);  // thread id
 			});
@@ -386,7 +306,7 @@ namespace Consulo.Internal.Mssdw
 
 			if(myModuleLoadRequest != null)
 			{
-				SendEvent(myModuleLoadRequest, packet =>
+				ReplyEvent(myModuleLoadRequest, packet =>
 				{
 					packet.WriteString(file);  // file
 				});
@@ -586,7 +506,7 @@ namespace Consulo.Internal.Mssdw
 			return string.Empty;
 		}
 
-		internal void SendEvent(EventRequest request, Action<Packet> action = null)
+		internal void ReplyEvent(EventRequest request, Action<Packet> action = null)
 		{
 			SendEvent(request.EventKind, request.RequestId, action);
 		}

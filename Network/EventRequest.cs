@@ -129,23 +129,23 @@ namespace Consulo.Internal.Mssdw.Network
 
 	class BreakpointLocation : EventModifier
 	{
-		public string FilePath { get; set; }
+		public string ModulePath { get; set; }
 
-		public int Line { get; set; }
+		public int MethodToken { get; set; }
 
-		public int Column { get; set; }
+		public int Offset { get; set; }
 
 		internal BreakpointLocation(Packet packet)
 		{
-			FilePath = packet.ReadString();
-			Line = packet.ReadInt();
-			Column = packet.ReadInt();
+			ModulePath = packet.ReadString();
+			MethodToken = packet.ReadInt();
+			Offset = packet.ReadInt();
 		}
 
 		public override string ToString()
 		{
 			// for debugging
-			return "BreakpointLocation:" + FilePath + ":" + Line + ":" + Column;
+			return "BreakpointLocation:" + ModulePath + ":" + MethodToken + ":" + Offset;
 		}
 	}
 }
