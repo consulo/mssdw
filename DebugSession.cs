@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using Consulo.Internal.Mssdw.Network;
 using Consulo.Internal.Mssdw.Server;
-using Consulo.Internal.Mssdw.Server.Event;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.CorMetadata;
@@ -176,6 +175,14 @@ namespace Consulo.Internal.Mssdw
 			stepper = activeThread.CreateStepper();
 			stepper.SetUnmappedStopMask(CorDebugUnmappedStop.STOP_NONE);
 			stepper.SetJmcStatus(true);
+		}
+
+		public enum BreakEventStatus
+		{
+			NoDoc,
+			Invalid,
+			NoMethod,
+			Bound
 		}
 
 		public BreakEventStatus InsertBreakpoint(EventRequest request)

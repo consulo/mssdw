@@ -26,7 +26,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Consulo.Internal.Mssdw.Server;
-using Consulo.Internal.Mssdw.Server.Event;
 using Microsoft.Samples.Debugging.CorDebug;
 
 using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
