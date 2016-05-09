@@ -79,6 +79,12 @@ namespace Consulo.Internal.Mssdw.Network
 								NotImplementedPacket(packet);
 							}
 							break;
+						case CommandSet.ObjectReference:
+							if(!ObjectReferenceHandle.Handle(packet, myDebugSession))
+							{
+								NotImplementedPacket(packet);
+							}
+							break;;
 						case CommandSet.ArrayReference:
 							if(!ArrayReferenceHandle.Handle(packet, myDebugSession))
 							{

@@ -27,6 +27,7 @@ namespace Consulo.Internal.Mssdw.Network
 	static class CommandSet
 	{
 		internal const int VirtualMachine = 1;
+		internal const int ObjectReference = 9;
 		internal const int Thread = 11;
 		internal const int ArrayReference = 13;
 		internal const int EventRequest = 15;
