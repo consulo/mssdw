@@ -15,9 +15,17 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 			{
 				case GetValue:
 				{
-					CorObjectValue objectValue = CorValueRegistrator.Get(objectId) as CorObjectValue;
-					CorClass corClass = objectValue.Class;
-					packet.WriteValue(objectValue.GetFieldValue(corClass, fieldId), debugSession);
+					CorValue corValue = CorValueRegistrator.Get(objectId);
+					CorObjectValue corObjectValue = FindCorObjectValue(corValue);
+					if(corObjectValue == null)
+					{
+						packet.WriteValue(null, debugSession);
+					}
+					else
+					{
+						CorClass corClass = corObjectValue.Class;
+						packet.WriteValue(corObjectValue.GetFieldValue(corClass, fieldId), debugSession);
+					}
 					break;
 				}
 				default:
@@ -25,6 +33,22 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 			}
 
 			return true;
+		}
+
+		private static CorObjectValue FindCorObjectValue(CorValue value)
+		{
+			CorReferenceValue toReferenceValue = value.CastToReferenceValue();
+			if(toReferenceValue != null)
+			{
+				if(toReferenceValue.IsNull)
+				{
+					return null;
+				}
+
+				return FindCorObjectValue(toReferenceValue.Dereference());
+			}
+
+			return value.CastToObjectValue();
 		}
 	}
 }

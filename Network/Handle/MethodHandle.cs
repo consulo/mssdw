@@ -37,7 +37,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 			int methodId = packet.ReadInt();
 
 			MetadataMethodInfo methodInfo = null;
-			CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(typeRef.GetModuleName());
+			CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(typeRef.ModuleName);
 			if(metadataForModule != null)
 			{
 				methodInfo = metadataForModule.GetMethodInfo(methodId);
@@ -85,20 +85,18 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 					else
 					{
 						CorFrame corFrame = null;
-						CorThread current = debugSession.Process.Threads.Where(x => x.Id == threadId).FirstOrDefault();
-						if(current != null)
+						CorThread current = debugSession.GetThread(threadId);
+						IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
+						int i = 0;
+						foreach (CorFrame frame in frames)
 						{
-							IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
-							int i = 0;
-							foreach (CorFrame frame in frames)
+							if(i == stackFrameId)
 							{
-								if(i == stackFrameId)
-								{
-									corFrame = frame;
-									break;
-								}
+								corFrame = frame;
+								break;
 							}
 						}
+
 						if(corFrame == null)
 						{
 							packet.WriteInt(0); // locals size
@@ -110,7 +108,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 
 						corFrame.GetIP(out offset, out mr);
 
-						CorMetadataImport module = debugSession.GetMetadataForModule(ModuleNameRegistrator.Get(typeRef.ModuleNameId));
+						CorMetadataImport module = debugSession.GetMetadataForModule(typeRef.ModuleName);
 						ISymbolMethod met = module.Module.GetFunctionFromToken(methodId).GetSymbolMethod(debugSession);
 
 						ISymbolScope scope = met.RootScope;

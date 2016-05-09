@@ -11,6 +11,8 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using Consulo.Internal.Mssdw;
+using Consulo.Internal.Mssdw.Server;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata.NativeApi;
 using Microsoft.Samples.Debugging.Extensions;
@@ -56,6 +58,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 		internal List<int> m_arrayLoBounds;
 		internal bool m_isByRef, m_isPtr;
 		internal List<MetadataTypeInfo> m_typeArgs;
+		private string baseTypeName;
 
 		public readonly CorMetadataImport MetadataImport;
 
@@ -118,7 +121,7 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 				m_name = GetNestedClassPrefix(importer, classToken, pdwTypeDefFlags) + szTypedef.ToString();
 				myTypeAttributes = pdwTypeDefFlags;
 				// Check whether the type is an enum
-				string baseTypeName = GetTypeName(importer, ptkExtends);
+				baseTypeName = GetTypeName(importer, ptkExtends);
 
 				IntPtr ppvSig;
 				if(baseTypeName == "System.Enum")
@@ -257,7 +260,6 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 
 			CorClass corClass = metadataImportModule.GetClassFromToken(m_typeToken);
 
-			Console.WriteLine(MetadataToken + " " + corClass.Token + " ^ ");
 			return corClass.GetStaticFieldValue(fieldInfo.MetadataToken, corFrame);
 		}
 
@@ -293,39 +295,52 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 			}
 		}
 
-		public MetadataTypeInfo BaseType
+		public TypeRef BaseType(DebugSession debugSession)
 		{
-			get
+			//TODO [VISTALL] find better way for base type calculation, old impl was return BAD module name - returned this module ref,
+			//TODO [VISTALL] but not target module ref. For example:
+			//TODO [VISTALL] Type 'Program:untitled.exe' return base 'System.Object:untitled.exe'. Second module name is invalid, required 'mscorlib.dll'
+
+			// in this case we return null for now
+			if(IsArray || IsPointer || IsByRef)
 			{
-				// in this case we return null for now
-				if(IsArray || IsPointer || IsByRef)
-				{
-					return null;
-				}
-
-				if(m_typeToken == 0)
-				{
-					throw new NotImplementedException();
-				}
-
-				var token = new MetadataToken(m_typeToken);
-				int size;
-				TypeAttributes pdwTypeDefFlags;
-				int ptkExtends;
-
-				m_importer.GetTypeDefProps(token,
-						null,
-						0,
-						out size,
-						out pdwTypeDefFlags,
-						out ptkExtends
-				);
-
-				if(ptkExtends == 0)
-					return null;
-
-				return new MetadataTypeInfo(MetadataImport, m_importer, ptkExtends);
+				return null;
 			}
+
+			if(baseTypeName == null || baseTypeName.Length == 0)
+			{
+				return null;
+			}
+			TypeRef typeRef = debugSession.FindTypeByName(baseTypeName);
+			if(typeRef == null)
+			{
+				return null;
+			}
+			return typeRef;
+			/*if(m_typeToken == 0)
+			{
+				throw new NotImplementedException();
+			}
+
+			var token = new MetadataToken(m_typeToken);
+			int size;
+			TypeAttributes pdwTypeDefFlags;
+			int ptkExtends;
+
+			m_importer.GetTypeDefProps(token,
+					null,
+					0,
+					out size,
+					out pdwTypeDefFlags,
+					out ptkExtends
+			);
+
+			if(ptkExtends == 0)
+			{
+				return null;
+			}
+
+			return new MetadataTypeInfo(MetadataImport, m_importer, ptkExtends);*/
 		}
 
 		// [Xamarin] Expression evaluator.

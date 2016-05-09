@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Samples.Debugging.CorMetadata;
 
@@ -5,7 +6,7 @@ namespace Consulo.Internal.Mssdw.Server
 {
 	public class TypeRef
 	{
-		public int ModuleNameId;
+		public string ModuleName;
 
 		public int ClassToken;
 
@@ -23,7 +24,7 @@ namespace Consulo.Internal.Mssdw.Server
 
 		public TypeRef(MetadataTypeInfo type)
 		{
-			ModuleNameId = ModuleNameRegistrator.GetOrRegister(type.MetadataImport.ModuleName);
+			ModuleName = type.MetadataImport.ModuleName;
 			ClassToken = type.MetadataToken;
 			IsPointer = type.IsPointer;
 			IsByRef = type.IsByRef;
@@ -33,13 +34,14 @@ namespace Consulo.Internal.Mssdw.Server
 
 		public TypeRef(string moduleName, int classToken)
 		{
-			ModuleNameId = ModuleNameRegistrator.GetOrRegister(moduleName);
+			ModuleName = moduleName;
 			ClassToken = classToken;
 		}
 
-		public string GetModuleName()
+
+		public override string ToString()
 		{
-			return ModuleNameRegistrator.Get(ModuleNameId);
+			return string.Format("ModuleName: {0}, ClassToken: {1}", ModuleName, ClassToken);
 		}
 	}
 }

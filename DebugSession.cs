@@ -47,6 +47,7 @@ namespace Consulo.Internal.Mssdw
 		private CorThread activeThread;
 		private CorStepper stepper;
 		private bool autoStepInto;
+		private Semaphore myEvalSemaphore;
 
 		public CorThread ActiveThread
 		{
@@ -134,15 +135,51 @@ namespace Consulo.Internal.Mssdw
 			process.OnBreakpoint += new BreakpointEventHandler(OnBreakpoint);
 			/*  process.OnStepComplete += new StepCompleteEventHandler(OnStepComplete);
 			  process.OnBreak += new CorThreadEventHandler(OnBreak);
-			  process.OnNameChange += new CorThreadEventHandler(OnNameChange);
-			  process.OnEvalComplete += new EvalEventHandler(OnEvalComplete);
-			  process.OnEvalException += new EvalEventHandler(OnEvalException);
-			  process.OnLogMessage += new LogMessageEventHandler(OnLogMessage);
-			  process.OnException2 += new CorException2EventHandler(OnException2);
-	*/
+			  process.OnNameChange += new CorThreadEventHandler(OnNameChange);   */
+			process.OnEvalComplete += new EvalEventHandler(OnEvalComplete);
+			process.OnEvalException += new EvalEventHandler(OnEvalException);
+			/*process.OnLogMessage += new LogMessageEventHandler(OnLogMessage);
+			process.OnException2 += new CorException2EventHandler(OnException2);*/
 			//process.RegisterStdOutput(OnStdOutput);
 
 			SendEvent(EventKind.VM_START);
+		}
+
+		internal void OnEvalComplete(object sender, CorEvalEventArgs e)
+		{
+			if(myEvalSemaphore != null)
+			{
+				myEvalSemaphore.Release();
+				e.Continue = false;
+			}
+		}
+
+		internal void OnEvalException(object sender, CorEvalEventArgs e)
+		{
+			if(myEvalSemaphore != null)
+			{
+				myEvalSemaphore.Release();
+				e.Continue = false;
+			}
+		}
+
+		internal CorValue Evaluate(CorThread corThread, Action<CorEval> action)
+		{
+			lock (debugLock)
+			{
+				CorEval corEval = corThread.CreateEval();
+
+				myEvalSemaphore = new Semaphore(0, 1);
+				action(corEval);
+				process.SetAllThreadsDebugState(CorDebugThreadState.THREAD_SUSPEND, corThread);
+				ClearEvalStatus();
+				OnStartEvaluating();
+				Process.Continue(false);
+				myEvalSemaphore.WaitOne();
+				OnEndEvaluating();
+
+				return corEval.Result;
+			}
 		}
 
 		public CorProcess Process
@@ -478,6 +515,43 @@ namespace Consulo.Internal.Mssdw
 			{
 				evaluating = false;
 				Monitor.PulseAll(debugLock);
+			}
+		}
+
+		public void WaitUntilStopped()
+		{
+			lock (debugLock)
+			{
+				while(evaluating)
+					Monitor.Wait(debugLock);
+			}
+		}
+
+		public CorThread GetThread(int id)
+		{
+			try
+			{
+				WaitUntilStopped();
+				foreach (CorThread t in process.Threads)
+					if(t.Id == id)
+						return t;
+				throw new InvalidOperationException("Invalid thread id " + id);
+			}
+			catch
+			{
+				throw;
+			}
+		}
+
+		void ClearEvalStatus()
+		{
+			foreach (CorProcess p in dbg.Processes)
+			{
+				if(p.Id == processId)
+				{
+					process = p;
+					break;
+				}
 			}
 		}
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Consulo.Internal.Mssdw.Server;
@@ -18,7 +19,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 		{
 			TypeRef typeRef = packet.ReadTypeRef();
 			MetadataTypeInfo typeInfo = null;
-			CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(typeRef.GetModuleName());
+			CorMetadataImport metadataForModule = debugSession.GetMetadataForModule(typeRef.ModuleName);
 			if(metadataForModule != null)
 			{
 				typeInfo = metadataForModule.CreateMetadataTypeInfo(typeRef);
@@ -31,8 +32,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 					packet.WriteString(typeInfo == null ? "" : typeInfo.Namespace);
 					packet.WriteString(typeInfo == null ? "" : typeInfo.Name);
 					packet.WriteString(typeInfo == null ? "" : typeInfo.FullName);
-					MetadataTypeInfo baseTypeInfo = typeInfo == null ? null : typeInfo.BaseType;
-					packet.WriteTypeRef(baseTypeInfo == null ? null : new TypeRef(baseTypeInfo));
+					packet.WriteTypeRef(typeInfo == null ? null : typeInfo.BaseType(debugSession));
 					packet.WriteInt(typeInfo == null ? 0 : (int) typeInfo.Attributes);
 					packet.WriteBool(typeInfo != null && typeInfo.IsArray);
 					break;
@@ -87,7 +87,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 						int stackFrameId = packet.ReadInt();
 
 						MetadataFieldInfo metadataFieldInfo = typeInfo.GetFields().Where(x => x.MetadataToken == fieldId).First();
-						CorThread corThread = debugSession.Process.Threads.Where(x => x.Id == threadId).First();
+						CorThread corThread = debugSession.GetThread(threadId);
 
 						IEnumerable<CorFrame> frames = DebugSession.GetFrames(corThread);
 						int i = 0;

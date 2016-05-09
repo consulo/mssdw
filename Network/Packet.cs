@@ -169,8 +169,13 @@ namespace Consulo.Internal.Mssdw.Network
 
 		internal TypeRef ReadTypeRef()
 		{
+			bool valid = ReadBool();
+			if(!valid)
+			{
+				return null;
+			}
 			TypeRef typeRef = new TypeRef();
-			typeRef.ModuleNameId = ReadInt();
+			typeRef.ModuleName = ReadString();
 			typeRef.ClassToken = ReadInt();
 			typeRef.IsPointer = ReadBool();
 			typeRef.IsByRef = ReadBool();
@@ -200,34 +205,54 @@ namespace Consulo.Internal.Mssdw.Network
 
 		internal void WriteTypeRef(TypeRef typeRef)
 		{
-			WriteInt(typeRef == null ? 0 : typeRef.ModuleNameId);
-			WriteInt(typeRef == null ? 0 : typeRef.ClassToken);
-			WriteBool(typeRef != null && typeRef.IsPointer);
-			WriteBool(typeRef != null && typeRef.IsByRef);
-			if(typeRef != null && typeRef.ArraySizes != null)
+			WriteBool(typeRef != null);
+			if(typeRef != null)
 			{
-				WriteByte(typeRef.ArraySizes.Count);
-				foreach (int arraySize in typeRef.ArraySizes)
+				WriteString(typeRef.ModuleName);
+				WriteInt(typeRef == null ? 0 : typeRef.ClassToken);
+				WriteBool(typeRef != null && typeRef.IsPointer);
+				WriteBool(typeRef != null && typeRef.IsByRef);
+				if(typeRef != null && typeRef.ArraySizes != null)
 				{
-					WriteInt(arraySize);
+					WriteByte(typeRef.ArraySizes.Count);
+					foreach (int arraySize in typeRef.ArraySizes)
+					{
+						WriteInt(arraySize);
+					}
 				}
-			}
-			else
-			{
-				WriteByte(0);
-			}
+				else
+				{
+					WriteByte(0);
+				}
 
-			if(typeRef != null && typeRef.ArrayLowerBounds != null)
-			{
-				WriteByte(typeRef.ArrayLowerBounds.Count);
-				foreach (int arraySize in typeRef.ArrayLowerBounds)
+				if(typeRef != null && typeRef.ArrayLowerBounds != null)
 				{
-					WriteInt(arraySize);
+					WriteByte(typeRef.ArrayLowerBounds.Count);
+					foreach (int arraySize in typeRef.ArrayLowerBounds)
+					{
+						WriteInt(arraySize);
+					}
+				}
+				else
+				{
+					WriteByte(0);
 				}
 			}
-			else
+		}
+
+		internal CorValue ReadValue()
+		{
+			CorElType corElType = (CorElType) ReadByte();
+			switch(corElType)
 			{
-				WriteByte(0);
+				case CorElType.VALUE_TYPE_ID_NULL:
+					return null;
+				case CorElType.ELEMENT_TYPE_CLASS:
+				case CorElType.ELEMENT_TYPE_OBJECT:
+					int value = ReadInt();
+					return CorValueRegistrator.Get(value);
+				default:
+					return null;
 			}
 		}
 
@@ -239,6 +264,11 @@ namespace Consulo.Internal.Mssdw.Network
 				return;
 			}
 
+			WriteValue(corValue.Id, corValue, debugSession);
+		}
+
+		private void WriteValue(int originalId, CorValue corValue, DebugSession debugSession)
+		{
 			CorReferenceValue toReferenceValue = corValue.CastToReferenceValue();
 			if(toReferenceValue != null)
 			{
@@ -248,7 +278,7 @@ namespace Consulo.Internal.Mssdw.Network
 					return;
 				}
 
-				WriteValue(toReferenceValue.Dereference(), debugSession);
+				WriteValue(originalId, toReferenceValue.Dereference(), debugSession);
 				return;
 			}
 
@@ -283,13 +313,13 @@ namespace Consulo.Internal.Mssdw.Network
 				case CorElType.ELEMENT_TYPE_CLASS:
 				case CorElType.ELEMENT_TYPE_VALUETYPE:
 					CorObjectValue objectValue = corValue.CastToObjectValue();
-					WriteInt(objectValue.Id);
+					WriteInt(originalId);
 					WriteLong(objectValue.Address);
 					WriteTypeRef(new TypeRef(objectValue.ExactType.GetTypeInfo(debugSession)));
 					break;
 				case CorElType.ELEMENT_TYPE_STRING:
 					CorStringValue stringValue = corValue.CastToStringValue();
-					WriteInt(stringValue.Id);
+					WriteInt(originalId);
 					WriteString(stringValue.String);
 					break;
 				case CorElType.ELEMENT_TYPE_BOOLEAN:
@@ -298,7 +328,7 @@ namespace Consulo.Internal.Mssdw.Network
 				case CorElType.ELEMENT_TYPE_ARRAY:
 				case CorElType.ELEMENT_TYPE_SZARRAY:
 					CorArrayValue arrayValue = corValue.CastToArrayValue();
-					WriteInt(arrayValue.Id);
+					WriteInt(originalId);
 					WriteLong(arrayValue.Address);
 					WriteTypeRef(new TypeRef(arrayValue.ExactType.GetTypeInfo(debugSession)));
 					WriteInt(arrayValue.Count);

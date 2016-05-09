@@ -4,6 +4,7 @@ using System.Diagnostics.SymbolStore;
 using System.Linq;
 using Consulo.Internal.Mssdw.Server;
 using Microsoft.Samples.Debugging.CorDebug;
+using Microsoft.Samples.Debugging.CorMetadata;
 using Microsoft.Samples.Debugging.CorSymbolStore;
 
 namespace Consulo.Internal.Mssdw.Network.Handle
@@ -18,7 +19,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 
 			public DebugInformationResult(string moduleName, int methodId, int token)
 			{
-				myModuleName =  moduleName;
+				myModuleName = moduleName;
 				myMethodToken = methodId;
 				myOffset = token;
 			}
@@ -30,6 +31,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 		internal const int Resume = 4;
 		internal const int Exit = 5;
 		internal const int Dispose = 6;
+		internal const int InvokeMethod = 7;
 		internal const int FindType = 10;
 		internal const int FindDebugOffset = 11;
 
@@ -81,6 +83,34 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 						packet.WriteInt(result.myOffset);
 					}
 					break;
+				case InvokeMethod:
+				{
+					int threadId = packet.ReadInt();
+					int stackFrameId = packet.ReadInt();
+					TypeRef typeRef = packet.ReadTypeRef();
+					int methodId = packet.ReadInt();
+					int argumentsSize = packet.ReadInt();
+					CorValue[] arguments = new CorValue[argumentsSize];
+					for(int i = 0; i < argumentsSize; i++)
+					{
+						arguments[i] = packet.ReadValue();
+					}
+
+					CorThread corThread = debugSession.GetThread(threadId);
+
+					CorMetadataImport module = debugSession.GetMetadataForModule(typeRef.ModuleName);
+
+					CorFunction corFunction = module.Module.GetFunctionFromToken(methodId);
+
+					CorValue evalResult = debugSession.Evaluate(corThread, eval =>
+					{
+						eval.CallFunction(corFunction, arguments);
+					});
+
+					packet.WriteBool(true);  // all is ok
+					packet.WriteValue(evalResult, debugSession);
+					break;
+				}
 				default:
 					return false;
 			}

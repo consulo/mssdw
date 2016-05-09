@@ -15,10 +15,10 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 				case GetValue:
 				{
 					int index = packet.ReadInt();
-					CorArrayValue cor = CorValueRegistrator.Get(objectId) as CorArrayValue;
-					if(cor != null)
+					CorArrayValue corArrayValue = FindCorArrayValue(CorValueRegistrator.Get(objectId));
+					if(corArrayValue != null)
 					{
-						CorValue value = cor.GetElement(new int[]{index});
+						CorValue value = corArrayValue.GetElement(new int[]{index});
 						packet.WriteValue(value, debugSession);
 					}
 					else
@@ -32,6 +32,22 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 			}
 
 			return true;
+		}
+
+		private static CorArrayValue FindCorArrayValue(CorValue value)
+		{
+			CorReferenceValue toReferenceValue = value.CastToReferenceValue();
+			if(toReferenceValue != null)
+			{
+				if(toReferenceValue.IsNull)
+				{
+					return null;
+				}
+
+				return FindCorArrayValue(toReferenceValue.Dereference());
+			}
+
+			return value.CastToArrayValue();
 		}
 	}
 }

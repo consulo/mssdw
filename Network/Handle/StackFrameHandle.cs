@@ -18,19 +18,17 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 			int stackFrameId = packet.ReadInt();
 
 			CorFrame corFrame = null;
-			CorThread current = debugSession.Process.Threads.Where(x => x.Id == threadId).FirstOrDefault();
-			if(current != null)
+			CorThread current = debugSession.GetThread(threadId);
+			IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
+			int i = 0;
+			foreach (CorFrame frame in frames)
 			{
-				IEnumerable<CorFrame> frames = DebugSession.GetFrames(current);
-				int i = 0;
-				foreach (CorFrame frame in frames)
+				if(i == stackFrameId)
 				{
-					if(i == stackFrameId)
-					{
-						corFrame = frame;
-						break;
-					}
+					corFrame = frame;
+					break;
 				}
+				i++;
 			}
 
 			switch(packet.Command)
