@@ -28,6 +28,7 @@ namespace Consulo.Internal.Mssdw.Network
 	{
 		internal const int VirtualMachine = 1;
 		internal const int Thread = 11;
+		internal const int ArrayReference = 13;
 		internal const int EventRequest = 15;
 		internal const int StackFrame = 16;
 		internal const int Method = 22;

@@ -294,10 +294,17 @@ namespace Consulo.Internal.Mssdw.Network
 				case CorElType.ELEMENT_TYPE_BOOLEAN:
 					WriteBool((bool) corValue.CastToGenericValue().GetValue());
 					break;
-					/*case CorElType.ELEMENT_TYPE_SZARRAY:
-						return new ArrayValueResult(originalValue, debugSession, corValue.CastToArrayValue());
-					default:
-						return new UnknownValueResult("corValueType: " + string.Format("{0:X}", corValueType));  */
+				case CorElType.ELEMENT_TYPE_ARRAY:
+				case CorElType.ELEMENT_TYPE_SZARRAY:
+					CorArrayValue arrayValue = corValue.CastToArrayValue();
+					WriteInt(arrayValue.Id);
+					WriteLong(arrayValue.Address);
+					WriteTypeRef(new TypeRef(arrayValue.ExactType.GetTypeInfo(debugSession)));
+					WriteInt(arrayValue.Count);
+					break;
+				default:
+					Console.WriteLine("Unsupported corValue: {0:X}", corValueType);
+					break;
 			}
 		}
 
