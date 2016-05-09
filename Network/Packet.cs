@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Consulo.Internal.Mssdw.Server;
+using Consulo.Internal.Mssdw.Server.Event;
 using Microsoft.Samples.Debugging.CorDebug;
 
 using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
@@ -257,8 +258,7 @@ namespace Consulo.Internal.Mssdw.Network
 
 			switch(corValueType)
 			{
-				/*case CorElType.ELEMENT_TYPE_CHAR:
-					return new CharValueResult(originalValue, corValue.CastToGenericValue());
+				case CorElType.ELEMENT_TYPE_CHAR:
 				case CorElType.ELEMENT_TYPE_I:
 				case CorElType.ELEMENT_TYPE_U:
 				case CorElType.ELEMENT_TYPE_I1:
@@ -267,11 +267,18 @@ namespace Consulo.Internal.Mssdw.Network
 				case CorElType.ELEMENT_TYPE_U2:
 				case CorElType.ELEMENT_TYPE_I4:
 				case CorElType.ELEMENT_TYPE_U4:
+					WriteInt((int) corValue.CastToGenericValue().GetValue());
+					break;
 				case CorElType.ELEMENT_TYPE_I8:
 				case CorElType.ELEMENT_TYPE_U8:
+					WriteLong((long) corValue.CastToGenericValue().GetValue());
+					break;
 				case CorElType.ELEMENT_TYPE_R4:
+					WriteInt((int) BitConverter.DoubleToInt64Bits((float) corValue.CastToGenericValue().GetValue()));
+					break;
 				case CorElType.ELEMENT_TYPE_R8:
-					return new NumberValueResult(originalValue, corValueType, corValue.CastToGenericValue()); */
+					WriteLong(BitConverter.DoubleToInt64Bits((double) corValue.CastToGenericValue().GetValue()));
+					break;
 				case CorElType.ELEMENT_TYPE_VOID:
 					break;
 				case CorElType.ELEMENT_TYPE_CLASS:
