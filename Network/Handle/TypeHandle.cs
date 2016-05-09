@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.Linq;
 using Consulo.Internal.Mssdw.Server;
+using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata;
 
 namespace Consulo.Internal.Mssdw.Network.Handle
@@ -8,6 +11,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 		private const int GetInfo = 1;
 		private const int GetMethods = 2;
 		private const int GetFields = 3;
+		private const int GetValue = 4;
 
 		public static bool Handle(Packet packet, DebugSession debugSession)
 		{
@@ -66,6 +70,38 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 							packet.WriteTypeRef(new TypeRef(fieldInfo.FieldType));
 							packet.WriteInt((int) fieldInfo.Attributes);
 						}
+					}
+					break;
+				}
+				case GetValue:
+				{
+					if(typeInfo == null)
+					{
+						packet.WriteValue(null, debugSession);
+					}
+					else
+					{
+						int fieldId = packet.ReadInt();
+						int threadId = packet.ReadInt();
+						int stackFrameId = packet.ReadInt();
+
+						MetadataFieldInfo metadataFieldInfo = typeInfo.GetFields().Where(x => x.MetadataToken == fieldId).First();
+						CorThread corThread = debugSession.Process.Threads.Where(x => x.Id == threadId).First();
+
+						IEnumerable<CorFrame> frames = DebugSession.GetFrames(corThread);
+						int i = 0;
+						CorFrame corFrame = null;
+						foreach (CorFrame frame in frames)
+						{
+							if(i == stackFrameId)
+							{
+								corFrame = frame;
+								break;
+							}
+							i++;
+						}
+
+						packet.WriteValue(typeInfo.GetFieldValue(metadataFieldInfo, corFrame), debugSession);
 					}
 					break;
 				}

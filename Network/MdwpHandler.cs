@@ -90,6 +90,7 @@ namespace Consulo.Internal.Mssdw.Network
 							{
 								NotImplementedPacket(packet);
 							}
+
 							break;;
 						case CommandSet.EventRequest:
 							CommandSetEventRequest(packet);
