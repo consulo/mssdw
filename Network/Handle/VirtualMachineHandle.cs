@@ -63,6 +63,14 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 					debugSession.Process.Terminate(0);
 					break;
 				case Dispose:
+					debugSession.Stopping = true;
+					try
+					{
+						debugSession.Process.Continue(false);
+					}
+					catch
+					{
+					}
 					debugSession.Process.Detach();
 					break;
 				case FindType:

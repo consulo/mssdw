@@ -33,7 +33,7 @@ namespace Consulo.Internal.Mssdw.Network
 		/// </summary>
 		/// <param name="stream">the stream to read</param>
 		/// <param name="buffer">the buffer that should be fill</param>
-		/// <exception cref="IOException">
+		/// <exception cref="EndOfStreamException">
 		/// If the stream ends.
 		/// </exception>
 		internal static void ReadFully(Stream stream, byte[] buffer)
@@ -45,7 +45,7 @@ namespace Consulo.Internal.Mssdw.Network
 				int count = stream.Read(buffer, offset, needed - offset);
 				if (count == 0)
 				{
-					throw new IOException("protocol error - premature EOF");
+					throw new EndOfStreamException();
 				}
 				needed -= count;
 				offset += count;

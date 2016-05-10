@@ -42,7 +42,7 @@ public class Program
 		}
 		catch(IOException)
 		{
-			Environment.Exit(-1);
+			// ignored
 		}
 		catch(Exception e)
 		{

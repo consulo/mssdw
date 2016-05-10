@@ -42,7 +42,7 @@ namespace Consulo.Internal.Mssdw.Network
 
 		internal void Run()
 		{
-			while(myDebugSession.Process != null)
+			while(!myDebugSession.Stopping)
 			{
 				Packet packet = conn.ReadPacket();
 				try

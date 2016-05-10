@@ -313,6 +313,8 @@ namespace Consulo.Internal.Mssdw
 			process.Continue(false);
 		}
 
+		public bool Stopping = false;
+
 		public CorProcess Process
 		{
 			get
@@ -623,6 +625,7 @@ namespace Consulo.Internal.Mssdw
 			{
 				lock (terminateLock)
 				{
+					Stopping = true;
 					process.Dispose();
 					process = null;
 					ThreadPool.QueueUserWorkItem(delegate
