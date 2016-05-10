@@ -66,6 +66,9 @@ namespace Consulo.Internal.Mssdw.Network
 					case EventModifierKind.BreakpointLocation:
 						modifier = new BreakpointLocation(packet);
 						break;
+					case EventModifierKind.Step:
+						modifier = new StepInfo(packet);
+						break;
 					default:
 						return null; //Invalid or not supported EventModifierKind
 				}
@@ -125,6 +128,29 @@ namespace Consulo.Internal.Mssdw.Network
 
 	abstract class EventModifier
 	{
+	}
+
+	class StepInfo : EventModifier
+	{
+		public const int Into = 0;
+		public const int Over = 1;
+		public const int Out = 2;
+
+		public int ThreadId { get; set; }
+
+		public int StepDepth { get; set; }
+
+		internal StepInfo(Packet packet)
+		{
+			ThreadId = packet.ReadInt();
+			StepDepth = packet.ReadInt();
+		}
+
+		public override string ToString()
+		{
+			// for debugging
+			return "Step:" + ThreadId + ":" + StepDepth;
+		}
 	}
 
 	class BreakpointLocation : EventModifier

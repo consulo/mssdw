@@ -40,6 +40,7 @@ namespace Consulo.Internal.Mssdw
 		private readonly Dictionary<int, EventRequest> myEventRequests = new Dictionary<int, EventRequest>();
 
 		private EventRequest myModuleLoadRequest;
+		private EventRequest myStepRequest;
 
 		private CorProcess process;
 		private CorDebugger dbg;
@@ -74,6 +75,22 @@ namespace Consulo.Internal.Mssdw
 			{
 				case EventKind.BREAKPOINT:
 					InsertBreakpoint(eventRequest);
+					break;
+				case EventKind.STEP:
+					myStepRequest = eventRequest;
+					StepInfo stepInfo = eventRequest.FindModifier<StepInfo>();
+					switch(stepInfo.StepDepth)
+					{
+						case StepInfo.Into:
+							Step(true);
+							break;
+						case StepInfo.Out:
+							StepOut();
+							break;
+						case StepInfo.Over:
+							Step(false);
+							break;
+					}
 					break;
 				case EventKind.MODULE_LOAD:
 					myModuleLoadRequest = eventRequest;
@@ -117,6 +134,9 @@ namespace Consulo.Internal.Mssdw
 					break;
 				case EventKind.MODULE_LOAD:
 					myModuleLoadRequest = null;
+					break;
+				case EventKind.STEP:
+					myStepRequest = null;
 					break;
 			}
 		}
@@ -261,7 +281,6 @@ namespace Consulo.Internal.Mssdw
 
 					ClearEvalStatus();
 					process.SetAllThreadsDebugState(CorDebugThreadState.THREAD_RUN, null);
-					process.Continue(false);
 				}
 			}
 			catch(Exception e)
@@ -277,7 +296,6 @@ namespace Consulo.Internal.Mssdw
 				stepper.StepOut();
 				ClearEvalStatus();
 				process.SetAllThreadsDebugState(CorDebugThreadState.THREAD_RUN, null);
-				process.Continue(false);
 			}
 		}
 
@@ -454,8 +472,20 @@ namespace Consulo.Internal.Mssdw
 				return;
 			}
 
-			e.Continue = false;
-			SetActiveThread(e.Thread);
+			if(myStepRequest != null)
+			{
+				e.Continue = false;
+				SetActiveThread(e.Thread);
+
+				ReplyEvent(myStepRequest, obj =>
+				{
+					obj.WriteInt(e.Thread.Id);
+				});
+			}
+			else
+			{
+				e.Continue = true;
+			}
 		}
 
 		bool StepThrough(MetadataMethodInfo methodInfo)

@@ -62,6 +62,7 @@ namespace Consulo.Internal.Mssdw.Network
 
 	static class EventModifierKind
 	{
+		internal const int Step = 10;
 		internal const int BreakpointLocation = 50;
 	}
 
