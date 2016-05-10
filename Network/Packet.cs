@@ -25,8 +25,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using Consulo.Internal.Mssdw.Server;
 using Microsoft.Samples.Debugging.CorDebug;
+using Microsoft.Samples.Debugging.CorMetadata;
 
 using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
 
@@ -311,12 +314,31 @@ namespace Consulo.Internal.Mssdw.Network
 				case CorElType.ELEMENT_TYPE_VOID:
 					break;
 				case CorElType.ELEMENT_TYPE_CLASS:
-				case CorElType.ELEMENT_TYPE_VALUETYPE:
+				{
 					CorObjectValue objectValue = corValue.CastToObjectValue();
 					WriteInt(originalId);
 					WriteLong(objectValue.Address);
 					WriteTypeRef(new TypeRef(objectValue.ExactType.GetTypeInfo(debugSession)));
 					break;
+				}
+				case CorElType.ELEMENT_TYPE_VALUETYPE:
+				{
+					CorObjectValue objectValue = corValue.CastToObjectValue();
+					WriteInt(originalId);
+					WriteLong(objectValue.Address);
+					MetadataTypeInfo metadataInfo = objectValue.ExactType.GetTypeInfo(debugSession);
+					WriteTypeRef(new TypeRef(metadataInfo));
+					WriteBool(metadataInfo.ReallyIsEnum);
+					// we need skip static values
+					MetadataFieldInfo[] fields = metadataInfo.GetFields().Where(field => (field.Attributes & FieldAttributes.Static) == 0).ToArray();
+					WriteInt(fields.Length);
+					foreach (MetadataFieldInfo field in fields)
+					{
+						CorValue value = objectValue.GetFieldValue(objectValue.Class, field.MetadataToken);
+						WriteValue(value, debugSession);
+					}
+					break;
+				}
 				case CorElType.ELEMENT_TYPE_STRING:
 					CorStringValue stringValue = corValue.CastToStringValue();
 					WriteInt(originalId);
@@ -385,10 +407,10 @@ namespace Consulo.Internal.Mssdw.Network
 
 		internal void WriteLong(long value)
 		{
-			output.WriteByte((byte)(value >> 58));
-			output.WriteByte((byte)(value >> 50));
-			output.WriteByte((byte)(value >> 42));
-			output.WriteByte((byte)(value >> 34));
+			output.WriteByte((byte)(value >> 56));
+			output.WriteByte((byte)(value >> 48));
+			output.WriteByte((byte)(value >> 40));
+			output.WriteByte((byte)(value >> 32));
 			output.WriteByte((byte)(value >> 24));
 			output.WriteByte((byte)(value >> 16));
 			output.WriteByte((byte)(value >> 8));

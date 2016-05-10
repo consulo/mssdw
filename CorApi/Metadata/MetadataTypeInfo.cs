@@ -623,11 +623,10 @@ namespace Microsoft.Samples.Debugging.CorMetadata
 					MetadataFieldInfo[] fields = GetFields();       // BindingFlags is actually ignored in the "fake" type,
 					// but we only want the public fields anyway
 					m_enumValues = new List<KeyValuePair<string, ulong>>();
-					FieldAttributes staticLiteralField = FieldAttributes.HasDefault | FieldAttributes.Literal | FieldAttributes.Static;
 					for(int i = 0; i < fields.Length; i++)
 					{
 						MetadataFieldInfo field = fields[i] as MetadataFieldInfo;
-						if((field.Attributes & staticLiteralField) == staticLiteralField)
+						if(field.IsConstant)
 						{
 							m_enumValues.Add(new KeyValuePair<string, ulong>(field.Name, Convert.ToUInt64(field.ConstantValue, CultureInfo.InvariantCulture)));
 						}

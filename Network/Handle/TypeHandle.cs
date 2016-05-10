@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Consulo.Internal.Mssdw.Server;
 using Microsoft.Samples.Debugging.CorDebug;
+using Microsoft.Samples.Debugging.CorDebug.NativeApi;
 using Microsoft.Samples.Debugging.CorMetadata;
 
 namespace Consulo.Internal.Mssdw.Network.Handle
@@ -102,7 +103,24 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 							i++;
 						}
 
-						packet.WriteValue(typeInfo.GetFieldValue(metadataFieldInfo, corFrame), debugSession);
+						if(typeInfo.ReallyIsEnum && metadataFieldInfo.IsConstant)
+						{
+							var value = typeInfo.EnumValues.Where(arg => arg.Key == metadataFieldInfo.Name).ToArray();
+							if(value.Length == 0)
+							{
+								packet.WriteValue(null, debugSession);
+							}
+							else
+							{
+								KeyValuePair<string, ulong> keyValue = value[0];
+								packet.WriteByte((int) CorElementType.ELEMENT_TYPE_U8);
+								packet.WriteLong((long) keyValue.Value);
+							}
+						}
+						else
+						{
+							packet.WriteValue(typeInfo.GetFieldValue(metadataFieldInfo, corFrame), debugSession);
+						}
 					}
 					break;
 				}
