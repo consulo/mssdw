@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Consulo.Internal.Mssdw.Network;
 using Consulo.Internal.Mssdw.Server;
@@ -47,6 +48,7 @@ namespace Consulo.Internal.Mssdw
 		private CorThread activeThread;
 		private CorStepper stepper;
 		private bool autoStepInto;
+		private bool stepInsideDebuggerHidden = false;
 		private Semaphore myEvalSemaphore;
 
 		public CorThread ActiveThread
@@ -84,7 +86,6 @@ namespace Consulo.Internal.Mssdw
 		{
 			string command = args[0];
 			string commandLine = string.Join(" ", args);
-			Console.WriteLine("running: " + commandLine);
 			DirectoryInfo parentDirectory = Directory.GetParent(command);
 
 			if(!File.Exists(command))
@@ -107,19 +108,8 @@ namespace Consulo.Internal.Mssdw
 			foreach (DictionaryEntry de in Environment.GetEnvironmentVariables())
 				env[(string)de.Key] = (string)de.Value;
 
-			//foreach (KeyValuePair<string, string> var in startInfo.EnvironmentVariables)
-			//   env[var.Key] = var.Value;
-
-			int flags = 0;
-			//if (!startInfo.UseExternalConsole)
-			/*{
-				flags = (int)CreationFlags.CREATE_NO_WINDOW;
-				flags |= DebuggerExtensions.CREATE_REDIRECT_STD;
-			}*/
-
-			process = dbg.CreateProcess(command, commandLine, parentDirectory.FullName, env, flags);
+			process = dbg.CreateProcess(command, commandLine, parentDirectory.FullName, env, 0);
 			processId = process.Id;
-			Console.WriteLine("processId: " + processId);
 
 			process.OnCreateProcess += new CorProcessEventHandler(OnCreateProcess);
 			process.OnCreateAppDomain += new CorAppDomainEventHandler(OnCreateAppDomain);
@@ -133,8 +123,8 @@ namespace Consulo.Internal.Mssdw
 			/*  process.OnUpdateModuleSymbols += new UpdateModuleSymbolsEventHandler(OnUpdateModuleSymbols);
 			  process.OnDebuggerError += new DebuggerErrorEventHandler(OnDebuggerError);*/
 			process.OnBreakpoint += new BreakpointEventHandler(OnBreakpoint);
-			/*  process.OnStepComplete += new StepCompleteEventHandler(OnStepComplete);
-			  process.OnBreak += new CorThreadEventHandler(OnBreak);
+			process.OnStepComplete += new StepCompleteEventHandler(OnStepComplete);
+			/*  process.OnBreak += new CorThreadEventHandler(OnBreak);
 			  process.OnNameChange += new CorThreadEventHandler(OnNameChange);   */
 			process.OnEvalComplete += new EvalEventHandler(OnEvalComplete);
 			process.OnEvalException += new EvalEventHandler(OnEvalException);
@@ -180,6 +170,79 @@ namespace Consulo.Internal.Mssdw
 
 				return corEval.Result;
 			}
+		}
+
+		void Step(bool into)
+		{
+			try
+			{
+				if(stepper != null)
+				{
+					CorFrame frame = activeThread.ActiveFrame;
+					ISymbolReader reader = GetReaderForModule(frame.Function.Module.Name);
+					if(reader == null)
+					{
+						RawContinue(into);
+						return;
+					}
+					ISymbolMethod met = reader.GetMethod(new SymbolToken(frame.Function.Token));
+					if(met == null)
+					{
+						RawContinue(into);
+						return;
+					}
+
+					uint offset;
+					CorDebugMappingResult mappingResult;
+					frame.GetIP(out offset, out mappingResult);
+
+					// Exclude all ranges belonging to the current line
+					List<COR_DEBUG_STEP_RANGE> ranges = new List<COR_DEBUG_STEP_RANGE>();
+					var sequencePoints = met.GetSequencePoints().ToArray();
+					for(int i = 0; i < sequencePoints.Length; i++)
+					{
+						if(sequencePoints[i].Offset > offset)
+						{
+							var r = new COR_DEBUG_STEP_RANGE();
+							r.startOffset = i == 0 ? 0 : (uint)sequencePoints[i - 1].Offset;
+							r.endOffset = (uint)sequencePoints[i].Offset;
+							ranges.Add(r);
+							break;
+						}
+					}
+					if(ranges.Count == 0 && sequencePoints.Length > 0)
+					{
+						var r = new COR_DEBUG_STEP_RANGE();
+						r.startOffset = (uint)sequencePoints[sequencePoints.Length - 1].Offset;
+						r.endOffset = uint.MaxValue;
+						ranges.Add(r);
+					}
+
+					stepper.StepRange(into, ranges.ToArray());
+
+					ClearEvalStatus();
+					process.SetAllThreadsDebugState(CorDebugThreadState.THREAD_RUN, null);
+					process.Continue(false);
+				}
+			}
+			catch(Exception e)
+			{
+				OnDebuggerOutput(true, e.ToString());
+			}
+		}
+
+		private void RawContinue(bool into, bool stepOverAll = false)
+		{
+			if(stepOverAll)
+				stepper.StepRange(into, new[]{ new COR_DEBUG_STEP_RANGE()
+				{
+					startOffset = 0,
+					endOffset = uint.MaxValue
+				} });
+			else
+				stepper.Step(into);
+			ClearEvalStatus();
+			process.Continue(false);
 		}
 
 		public CorProcess Process
@@ -273,7 +336,89 @@ namespace Consulo.Internal.Mssdw
 			});
 		}
 
-		private void OnModuleLoad(object sender, CorModuleEventArgs e)
+		void OnStepComplete(object sender, CorStepCompleteEventArgs e)
+		{
+			lock (debugLock)
+			{
+				if(evaluating)
+				{
+					e.Continue = true;
+					return;
+				}
+			}
+
+			bool localAutoStepInto = autoStepInto;
+			autoStepInto = false;
+			bool localStepInsideDebuggerHidden = stepInsideDebuggerHidden;
+			stepInsideDebuggerHidden = false;
+
+			if(e.AppDomain.Process.HasQueuedCallbacks(e.Thread))
+			{
+				e.Continue = true;
+				return;
+			}
+
+			if(localAutoStepInto)
+			{
+				Step(true);
+				e.Continue = true;
+				return;
+			}
+
+			if(ContinueOnStepIn(e.Thread.ActiveFrame.Function.GetMethodInfo(this)))
+			{
+				e.Continue = true;
+				return;
+			}
+
+			var currentSequence = Consulo.Internal.Mssdw.Network.Handle.ThreadHandle.GetSequencePoint(this, e.Thread.ActiveFrame);
+			if(currentSequence == null)
+			{
+				stepper.StepOut();
+				autoStepInto = true;
+				e.Continue = true;
+				return;
+			}
+
+			if(StepThrough(e.Thread.ActiveFrame.Function.GetMethodInfo(this)))
+			{
+				stepInsideDebuggerHidden = e.StepReason == CorDebugStepReason.STEP_CALL;
+				RawContinue(true, true);
+				e.Continue = true;
+				return;
+			}
+
+			if(currentSequence.IsSpecial)
+			{
+				Step(false);
+				e.Continue = true;
+				return;
+			}
+
+			if(localStepInsideDebuggerHidden && e.StepReason == CorDebugStepReason.STEP_RETURN)
+			{
+				Step(true);
+				e.Continue = true;
+				return;
+			}
+
+			e.Continue = false;
+			SetActiveThread(e.Thread);
+		}
+
+		bool StepThrough(MetadataMethodInfo methodInfo)
+		{
+			return methodInfo.GetCustomAttributes(true).Union(methodInfo.DeclaringType.GetCustomAttributes(true)).Any(v =>
+			v is System.Diagnostics.DebuggerHiddenAttribute ||
+			v is System.Diagnostics.DebuggerStepThroughAttribute);
+		}
+
+		bool ContinueOnStepIn(MetadataMethodInfo methodInfo)
+		{
+			return methodInfo.GetCustomAttributes(true).Any(v => v is System.Diagnostics.DebuggerStepperBoundaryAttribute);
+		}
+
+		void OnModuleLoad(object sender, CorModuleEventArgs e)
 		{
 			CorMetadataImport mi = new CorMetadataImport(this, e.Module);
 
@@ -338,14 +483,17 @@ namespace Consulo.Internal.Mssdw
 				}
 			}
 
-			e.Continue = false;
-
 			if(myModuleLoadRequest != null)
 			{
+				e.Continue = false;
 				ReplyEvent(myModuleLoadRequest, packet =>
 				{
 					packet.WriteString(file);  // file
 				});
+			}
+			else
+			{
+				e.Continue = true;
 			}
 		}
 
