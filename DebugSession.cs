@@ -96,9 +96,13 @@ namespace Consulo.Internal.Mssdw
 			myEventRequests.Clear();
 		}
 
-		public void RemoveEventRequest(int requestId)
+		public void RemoveEventRequest(int eventKind, int requestId)
 		{
 			EventRequest eventRequest = myEventRequests[requestId];
+			if(eventKind != eventRequest.EventKind)
+			{
+				throw new Exception(string.Format("Event kind is diferent {0} vs {1}", eventKind, eventRequest.EventKind));
+			}
 
 			myEventRequests.Remove(requestId);
 

@@ -84,14 +84,14 @@ namespace Consulo.Internal.Mssdw.Network
 							{
 								NotImplementedPacket(packet);
 							}
-							break;;
+							break;
 						case CommandSet.ArrayReference:
 							if(!ArrayReferenceHandle.Handle(packet, myDebugSession))
 							{
 								NotImplementedPacket(packet);
 							}
 
-							break;;
+							break;
 						case CommandSet.EventRequest:
 							CommandSetEventRequest(packet);
 							break;
@@ -126,8 +126,9 @@ namespace Consulo.Internal.Mssdw.Network
 					}
 					break;
 				case EventRequest.CmdClear:
+					byte eventKind = packet.ReadByte();
 					int requestId = packet.ReadInt();
-					myDebugSession.RemoveEventRequest(requestId);
+					myDebugSession.RemoveEventRequest(eventKind, requestId);
 					break;
 				case EventRequest.CmdClearAllBreakpoints:
 					myDebugSession.RemoveBreakpointEventRequests();
