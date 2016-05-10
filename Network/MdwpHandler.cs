@@ -125,6 +125,13 @@ namespace Consulo.Internal.Mssdw.Network
 						packet.WriteInt(eventRequest.RequestId);
 					}
 					break;
+				case EventRequest.CmdClear:
+					int requestId = packet.ReadInt();
+					myDebugSession.RemoveEventRequest(requestId);
+					break;
+				case EventRequest.CmdClearAllBreakpoints:
+					myDebugSession.RemoveBreakpointEventRequests();
+					break;
 				default:
 					NotImplementedPacket(packet);
 					break;

@@ -37,7 +37,7 @@ namespace Consulo.Internal.Mssdw
 		private readonly Dictionary<string, ModuleInfo> modules = new Dictionary<string, ModuleInfo>();
 		private readonly SymbolBinder symbolBinder = new SymbolBinder();
 		readonly Dictionary<CorBreakpoint, EventRequest> breakpoints = new Dictionary<CorBreakpoint, EventRequest>();
-		private readonly List<EventRequest> myEventRequests = new List<EventRequest>();
+		private readonly Dictionary<int, EventRequest> myEventRequests = new Dictionary<int, EventRequest>();
 
 		private EventRequest myModuleLoadRequest;
 
@@ -68,16 +68,51 @@ namespace Consulo.Internal.Mssdw
 
 		public void AddEventRequest(EventRequest eventRequest)
 		{
-			myEventRequests.Add(eventRequest);
+			myEventRequests.Add(eventRequest.RequestId, eventRequest);
 
-			int requestEventKind = eventRequest.EventKind;
-			switch(requestEventKind)
+			switch(eventRequest.EventKind)
 			{
 				case EventKind.BREAKPOINT:
 					InsertBreakpoint(eventRequest);
 					break;
 				case EventKind.MODULE_LOAD:
 					myModuleLoadRequest = eventRequest;
+					break;
+			}
+		}
+
+		public void RemoveBreakpointEventRequests()
+		{
+			foreach (EventRequest requestsValue in myEventRequests.Values)
+			{
+				CorFunctionBreakpoint functionBreakpoint = requestsValue.Data as CorFunctionBreakpoint;
+
+				if(functionBreakpoint != null)
+				{
+					functionBreakpoint.Active = false;
+				}
+			}
+
+			myEventRequests.Clear();
+		}
+
+		public void RemoveEventRequest(int requestId)
+		{
+			EventRequest eventRequest = myEventRequests[requestId];
+
+			myEventRequests.Remove(requestId);
+
+			switch(eventRequest.EventKind)
+			{
+				case EventKind.BREAKPOINT:
+					CorFunctionBreakpoint functionBreakpoint = eventRequest.Data as CorFunctionBreakpoint;
+					if(functionBreakpoint != null)
+					{
+						functionBreakpoint.Active = false;
+					}
+					break;
+				case EventKind.MODULE_LOAD:
+					myModuleLoadRequest = null;
 					break;
 			}
 		}
@@ -290,8 +325,10 @@ namespace Consulo.Internal.Mssdw
 			CorMetadataImport module = GetMetadataForModule(location.ModulePath);
 			CorFunction func = module.Module.GetFunctionFromToken(location.MethodToken);
 			CorFunctionBreakpoint corBp = func.ILCode.CreateBreakpoint(location.Offset);
-			corBp.Activate(true);
+			corBp.Active = true;
+
 			breakpoints[corBp] = request;
+			request.Data = corBp;
 		}
 
 		void OnBreakpoint(object sender, CorBreakpointEventArgs e)

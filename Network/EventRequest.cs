@@ -16,6 +16,8 @@ namespace Consulo.Internal.Mssdw.Network
 		private readonly List<EventModifier> modifiers;
 		private readonly int requestId;
 
+		public object Data { get; set; }
+
 		private EventRequest(byte eventKind, byte suspendPolicy, List<EventModifier> modifiers)
 		{
 			this.eventKind = eventKind;
@@ -54,12 +56,10 @@ namespace Consulo.Internal.Mssdw.Network
 			}
 			byte suspendPolicy = packet.ReadByte();
 			int count = packet.ReadByte();
-			Console.Error.WriteLine("Set:" + eventKind + "-" + suspendPolicy + "-" + count);
 			List<EventModifier> modifiers = new List<EventModifier>();
 			for(int i = 0; i < count; i++)
 			{
 				byte modKind = packet.ReadByte(); // class EventModifierKind
-				Console.Error.WriteLine("EventModifierKind:" + modKind);
 				EventModifier modifier;
 				switch(modKind)
 				{
