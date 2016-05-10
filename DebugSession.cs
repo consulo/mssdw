@@ -266,6 +266,17 @@ namespace Consulo.Internal.Mssdw
 			}
 		}
 
+		void StepOut()
+		{
+			if(stepper != null)
+			{
+				stepper.StepOut();
+				ClearEvalStatus();
+				process.SetAllThreadsDebugState(CorDebugThreadState.THREAD_RUN, null);
+				process.Continue(false);
+			}
+		}
+
 		private void RawContinue(bool into, bool stepOverAll = false)
 		{
 			if(stepOverAll)
