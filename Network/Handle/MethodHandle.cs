@@ -16,6 +16,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 		private const int GetParamInfo = 4;
 		private const int GetLocalsInfo = 5;
 		private const int GetInfo = 6;
+		private const int GetCustomAttributes = 9;
 
 		public class LocalInfo
 		{
@@ -126,6 +127,23 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 						}
 					}
 					break;
+				case GetCustomAttributes:
+				{
+					if(methodInfo == null)
+					{
+						packet.WriteInt(0);
+					}
+					else
+					{
+						object[] customAttributes = methodInfo.GetCustomAttributes(false);
+						packet.WriteInt(customAttributes.Length);
+						foreach (object customAttribute in customAttributes)
+						{
+							packet.WriteString(customAttribute.GetType().FullName);
+						}
+					}
+					break;
+				}
 				default:
 					return false;
 			}

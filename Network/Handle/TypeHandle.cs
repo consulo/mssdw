@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Consulo.Internal.Mssdw.Server;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorDebug.NativeApi;
@@ -15,6 +15,7 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 		private const int GetFields = 3;
 		private const int GetValue = 4;
 		private const int GetProperties = 9;
+		private const int GetCustomAttributes = 10;
 
 		public static bool Handle(Packet packet, DebugSession debugSession)
 		{
@@ -143,6 +144,23 @@ namespace Consulo.Internal.Mssdw.Network.Handle
 							packet.WriteInt(getMethod == null ? 0 : getMethod.MetadataToken);
 							MetadataMethodInfo setMethod = propertyInfo.GetSetMethod();
 							packet.WriteInt(setMethod == null ? 0 : setMethod.MetadataToken);
+						}
+					}
+					break;
+				}
+				case GetCustomAttributes:
+				{
+					if(typeInfo == null)
+					{
+						packet.WriteInt(0);
+					}
+					else
+					{
+						object[] customAttributes = typeInfo.GetCustomAttributes(false);
+						packet.WriteInt(customAttributes.Length);
+						foreach (object customAttribute in customAttributes)
+						{
+							packet.WriteString(customAttribute.GetType().FullName);
 						}
 					}
 					break;

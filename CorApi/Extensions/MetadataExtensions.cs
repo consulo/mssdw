@@ -312,7 +312,9 @@ namespace Microsoft.Samples.Debugging.Extensions
 			attr = GetCustomAttribute(importer, token, typeof (System.Diagnostics.DebuggerStepperBoundaryAttribute));
 			if(attr != null)
 				attributes.Add(attr);
-
+			attr = GetCustomAttribute(importer, token, typeof (System.FlagsAttribute));
+			if(attr != null)
+				attributes.Add(attr);
 			return attributes.Count == 0 ? emptyAttributes : attributes.ToArray();
 		}
 
