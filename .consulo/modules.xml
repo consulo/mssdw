@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
+<project>
   <component name="ModuleManager">
     <modules>
       <module name="mssdw" dirurl="file://$PROJECT_DIR$" current-layer="Debug">
         <module-layer name="Debug">
-          <extension id="microsoft-csharp" unsafe-code="true" language-version-module-name="" language-version-name="" optimize-code="false" platform="ANY_CPU" custom-compiler-sdk-module-name="" custom-compiler-sdk-name="" />
+          <extension id="microsoft-csharp" unsafe-code="true" optimize-code="false" platform="ANY_CPU" />
           <extension id="microsoft-dotnet" sdk-module-name="" sdk-name=".NET 4.0 (windir) (predefined)" target="EXECUTABLE" debug="true" allow-source-roots="false" file-name="$ModuleName$.$TargetFileExt$" output-dir="$ModuleProductionOutputDirPath$" namespace-prefix="Consulo.Internal.Mssdw">
             <define>DEBUG</define>
             <define>TRACE</define>
@@ -18,7 +18,7 @@
           <orderEntry type="dot-net-library" name="System.Core" />
         </module-layer>
         <module-layer name="Release">
-          <extension id="microsoft-csharp" unsafe-code="false" language-version-module-name="" language-version-name="" optimize-code="true" platform="ANY_CPU" custom-compiler-sdk-module-name="" custom-compiler-sdk-name="" />
+          <extension id="microsoft-csharp" unsafe-code="false" optimize-code="true" platform="ANY_CPU" />
           <extension id="microsoft-dotnet" sdk-module-name="" sdk-name=".NET 2.0 (windir) (predefined)" target="EXECUTABLE" debug="false" allow-source-roots="false" file-name="$ModuleName$.$TargetFileExt$" output-dir="$ModuleProductionOutputDirPath$" namespace-prefix="">
             <define>TRACE</define>
           </extension>
@@ -32,7 +32,7 @@
       </module>
       <module name="TestApplication" dirurl="file://$PROJECT_DIR$/TestApplication" current-layer="Debug">
         <module-layer name="Debug">
-          <extension id="microsoft-csharp" unsafe-code="false" language-version-module-name="" language-version-name="" optimize-code="false" platform="ANY_CPU" custom-compiler-sdk-module-name="" custom-compiler-sdk-name="MSBuild 14.0.25123.0 (predefined)" />
+          <extension id="microsoft-csharp" unsafe-code="false" optimize-code="false" platform="ANY_CPU" />
           <extension id="microsoft-dotnet" sdk-module-name="" sdk-name=".NET 4.0 (windir) (predefined)" target="EXECUTABLE" debug="true" allow-source-roots="false" file-name="$ModuleName$.$TargetFileExt$" output-dir="$ModuleProductionOutputDirPath$" namespace-prefix="">
             <define>DEBUG</define>
             <define>TRACE</define>
@@ -44,7 +44,7 @@
           <orderEntry type="dot-net-library" name="System.Windows.Forms" />
         </module-layer>
         <module-layer name="Release">
-          <extension id="microsoft-csharp" unsafe-code="false" language-version-module-name="" language-version-name="" optimize-code="true" platform="ANY_CPU" custom-compiler-sdk-module-name="" custom-compiler-sdk-name="" />
+          <extension id="microsoft-csharp" unsafe-code="false" optimize-code="true" platform="ANY_CPU" />
           <extension id="microsoft-dotnet" sdk-module-name="" sdk-name=".NET 4.5.1 (predefined)" target="EXECUTABLE" debug="false" allow-source-roots="false" file-name="$ModuleName$.$TargetFileExt$" output-dir="$ModuleProductionOutputDirPath$" namespace-prefix="">
             <define>TRACE</define>
           </extension>

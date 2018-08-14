@@ -145,7 +145,7 @@ namespace Consulo.Internal.Mssdw
 		{
 			string command = args[0];
 			string commandLine = string.Join(" ", args);
-			DirectoryInfo parentDirectory = Directory.GetParent(command);
+			string parentDirectory = Directory.GetCurrentDirectory();
 
 			if(!File.Exists(command))
 			{
@@ -165,9 +165,11 @@ namespace Consulo.Internal.Mssdw
 
 			Dictionary<string, string> env = new Dictionary<string, string>();
 			foreach (DictionaryEntry de in Environment.GetEnvironmentVariables())
+			{
 				env[(string)de.Key] = (string)de.Value;
+			}
 
-			process = dbg.CreateProcess(command, commandLine, parentDirectory.FullName, env, 0);
+			process = dbg.CreateProcess(command, commandLine, parentDirectory, env, 0);
 			processId = process.Id;
 
 			process.OnCreateProcess += new CorProcessEventHandler(OnCreateProcess);
