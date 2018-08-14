@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Consulo.Internal.Mssdw.Server;
 using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata;
@@ -435,10 +436,16 @@ namespace Consulo.Internal.Mssdw.Network
 
 		internal void WriteString(string value)
 		{
-			System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-			byte[] bytes = encoding.GetBytes(value);
-			WriteInt(bytes.Length);
-			output.Write(bytes, 0, bytes.Length);
+			if(string.IsNullOrEmpty(value))
+			{
+				WriteInt(0);
+			}
+			else
+			{
+				byte[] bytes = Encoding.UTF8.GetBytes(value);
+				WriteInt(bytes.Length);
+				output.Write(bytes, 0, bytes.Length);
+			}
 		}
 	}
 }
