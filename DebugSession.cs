@@ -519,6 +519,11 @@ namespace Consulo.Internal.Mssdw
 			}
 
 			string file = e.Module.Assembly.Name;
+			if("<unknown>" == file)
+			{
+				return;
+			}
+
 			lock (documents)
 			{
 				ISymbolReader reader = null;
