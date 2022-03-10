@@ -705,6 +705,11 @@ namespace Consulo.Internal.Mssdw
 
 		internal CorMetadataImport GetMetadataForModule(string file)
 		{
+			if (string.IsNullOrEmpty(file))
+			{
+				return null;
+			}
+
 			lock (documents)
 			{
 				ModuleInfo mod;
@@ -716,6 +721,11 @@ namespace Consulo.Internal.Mssdw
 
 		internal ISymbolReader GetReaderForModule(string file)
 		{
+			if (string.IsNullOrEmpty(file))
+			{
+				return null;
+			}
+
 			lock (documents)
 			{
 				ModuleInfo mod;
