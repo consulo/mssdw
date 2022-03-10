@@ -33,6 +33,7 @@ using Microsoft.Samples.Debugging.CorDebug;
 using Microsoft.Samples.Debugging.CorMetadata;
 
 using CorElType = Microsoft.Samples.Debugging.CorDebug.NativeApi.CorElementType;
+using System.Globalization;
 
 namespace Consulo.Internal.Mssdw.Network
 {
@@ -300,12 +301,18 @@ namespace Consulo.Internal.Mssdw.Network
 				case CorElType.ELEMENT_TYPE_U2:
 				case CorElType.ELEMENT_TYPE_I4:
 				case CorElType.ELEMENT_TYPE_U4:
-					WriteInt((int) corValue.CastToGenericValue().GetValue());
+				{
+					IConvertible convertible = (IConvertible) corValue.CastToGenericValue().GetValue();
+					WriteInt(convertible.ToInt32(CultureInfo.InvariantCulture));
 					break;
+				}
 				case CorElType.ELEMENT_TYPE_I8:
 				case CorElType.ELEMENT_TYPE_U8:
-					WriteLong((long) corValue.CastToGenericValue().GetValue());
+				{
+					IConvertible convertible = (IConvertible) corValue.CastToGenericValue().GetValue();
+					WriteLong(convertible.ToInt64(CultureInfo.InvariantCulture));
 					break;
+				}
 				case CorElType.ELEMENT_TYPE_R4:
 					WriteInt((int) BitConverter.DoubleToInt64Bits((float) corValue.CastToGenericValue().GetValue()));
 					break;
